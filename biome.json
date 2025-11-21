@@ -1,0 +1,64 @@
+{
+	"vcs": {
+		"enabled": true,
+		"clientKind": "git",
+		"useIgnoreFile": true
+	},
+	"formatter": {
+		"enabled": true,
+		"formatWithErrors": false,
+		"lineEnding": "lf",
+		"lineWidth": 80,
+		"attributePosition": "auto",
+		"includes": [
+			"**",
+			"!**/node_modules",
+			"!**/.next",
+			"!**/.vercel",
+			"!**/public",
+			"!**/dist",
+			"!**/.vscode",
+			"!**/pnpm-lock.yaml",
+			"!**/package-lock.json",
+			"!**/yarn.lock"
+		]
+	},
+	"linter": {
+		"enabled": true,
+		"rules": {
+			"recommended": true,
+			"suspicious": {
+				"noArrayIndexKey": "off",
+				"noConfusingVoidType": "off",
+				"noExplicitAny": "off"
+			},
+			"style": {
+				"noNonNullAssertion": "off",
+				"noParameterAssign": "off",
+				"useNodejsImportProtocol": "off"
+			},
+			"a11y": {
+				"noSvgWithoutTitle": "off",
+				"useKeyWithClickEvents": "off"
+			}
+		}
+	},
+	"javascript": {
+		"formatter": {
+			"quoteProperties": "asNeeded",
+			"trailingCommas": "all",
+			"semicolons": "asNeeded",
+			"arrowParentheses": "always",
+			"bracketSpacing": true,
+			"bracketSameLine": false,
+			"attributePosition": "auto"
+		}
+	},
+	"assist": {
+		"actions": {
+			"source": {
+				"organizeImports": "on"
+			}
+		}
+	}
+}

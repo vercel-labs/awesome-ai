@@ -1,7 +1,7 @@
 import { tool } from "ai"
 import { spawn } from "child_process"
 import { z } from "zod"
-import { toolOutput } from "./tool-utils"
+import { toolOutput } from "@/tools/lib/tool-output"
 
 const MAX_OUTPUT_LENGTH = 30_000
 const DEFAULT_TIMEOUT = 1 * 60 * 1000 // 1 minute

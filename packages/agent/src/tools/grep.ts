@@ -2,7 +2,7 @@ import { tool } from "ai"
 import { spawn } from "child_process"
 import * as path from "path"
 import { z } from "zod"
-import { toolOutput } from "./tool-utils"
+import { toolOutput } from "@/tools/lib/tool-output"
 
 export const grepTool = tool({
 	description: `Searches for patterns in files using grep.

@@ -47,39 +47,28 @@ function updateImportAliases(
 	config: Config,
 	_isRemote: boolean = false,
 ) {
-	// Not a local import - keep as is
-	if (
-		!moduleSpecifier.startsWith("@tools") &&
-		!moduleSpecifier.startsWith("@prompts") &&
-		!moduleSpecifier.startsWith("@agents") &&
-		!moduleSpecifier.startsWith("@/")
-	) {
-		return moduleSpecifier
+	if (moduleSpecifier.startsWith("@/tools/")) {
+		const rest = moduleSpecifier.replace(/^@\/tools\//, "")
+		return `${config.aliases.tools}/${rest}`
+	}
+	if (moduleSpecifier === "@/tools") {
+		return config.aliases.tools
 	}
 
-	// Handle @tools, @prompts, @agents imports
-	if (moduleSpecifier.startsWith("@tools")) {
-		const rest = moduleSpecifier.replace(/^@tools/, "")
-		const alias = config.aliases.tools.split("/")[0]
-		return `${alias}${rest}`
+	if (moduleSpecifier.startsWith("@/prompts/")) {
+		const rest = moduleSpecifier.replace(/^@\/prompts\//, "")
+		return `${config.aliases.prompts}/${rest}`
+	}
+	if (moduleSpecifier === "@/prompts") {
+		return config.aliases.prompts
 	}
 
-	if (moduleSpecifier.startsWith("@prompts")) {
-		const rest = moduleSpecifier.replace(/^@prompts/, "")
-		const alias = config.aliases.prompts.split("/")[0]
-		return `${alias}${rest}`
+	if (moduleSpecifier.startsWith("@/agents/")) {
+		const rest = moduleSpecifier.replace(/^@\/agents\//, "")
+		return `${config.aliases.agents}/${rest}`
 	}
-
-	if (moduleSpecifier.startsWith("@agents")) {
-		const rest = moduleSpecifier.replace(/^@agents/, "")
-		const alias = config.aliases.agents.split("/")[0]
-		return `${alias}${rest}`
-	}
-
-	// Handle @/ imports (fallback to default alias)
-	if (moduleSpecifier.startsWith("@/")) {
-		const alias = config.aliases.agents.split("/")[0]
-		return moduleSpecifier.replace(/^@\//, `${alias}/`)
+	if (moduleSpecifier === "@/agents") {
+		return config.aliases.agents
 	}
 
 	return moduleSpecifier

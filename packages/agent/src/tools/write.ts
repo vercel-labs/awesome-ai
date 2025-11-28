@@ -1,8 +1,18 @@
 import { tool } from "ai"
+import { createTwoFilesPatch } from "diff"
 import { promises as fs } from "fs"
 import * as path from "path"
 import { z } from "zod"
-import { toolOutput } from "./tool-utils"
+import { toolOutput } from "@/tools/lib/tool-output"
+import { trimDiff } from "@/tools/lib/trim-diff"
+
+/**
+ * Check if a path is contained within a directory
+ */
+function isPathWithin(directory: string, filepath: string): boolean {
+	const relative = path.relative(directory, filepath)
+	return !relative.startsWith("..") && !path.isAbsolute(relative)
+}
 
 export const writeTool = tool({
 	description: `Writes a file to the local filesystem.
@@ -12,7 +22,8 @@ Usage:
 - If this is an existing file, you MUST use the Read tool first to read the file's contents. This tool will fail if you did not read the file first.
 - ALWAYS prefer editing existing files in the codebase. NEVER write new files unless explicitly required.
 - NEVER proactively create documentation files (*.md) or README files. Only create documentation files if explicitly requested by the User.
-- Only use emojis if the user explicitly requests it. Avoid writing emojis to files unless asked.`,
+- Only use emojis if the user explicitly requests it. Avoid writing emojis to files unless asked.
+- Writing to paths outside the current working directory will include a warning.`,
 	inputSchema: z.object({
 		filePath: z
 			.string()
@@ -30,6 +41,11 @@ Usage:
 			filePath: z.string(),
 			result: z.string(),
 			content: z.string(),
+			lineCount: z.number(),
+			byteSize: z.number(),
+			wasOverwrite: z.boolean(),
+			diff: z.string().optional(),
+			warning: z.string().optional(),
 		},
 		error: {
 			filePath: z.string(),
@@ -43,7 +59,19 @@ Usage:
 			}
 		}
 		if (output.status === "success") {
-			return { type: "text", value: output.result }
+			let result = output.result
+
+			// Add warning if present
+			if (output.warning) {
+				result = `⚠️ ${output.warning}\n\n${result}`
+			}
+
+			// Add diff if overwriting
+			if (output.diff && output.wasOverwrite) {
+				result += `\n\nChanges:\n${output.diff}`
+			}
+
+			return { type: "text", value: result }
 		}
 		throw new Error("Invalid output status in toModelOutput")
 	},
@@ -60,23 +88,45 @@ Usage:
 		}
 
 		try {
+			// Check if writing outside working directory
+			const cwd = process.cwd()
+			let warning: string | undefined
+			if (!isPathWithin(cwd, filepath)) {
+				warning = `Writing file outside working directory: ${filepath}`
+			}
+
 			// Create directory if it doesn't exist
 			const dir = path.dirname(filepath)
 			await fs.mkdir(dir, { recursive: true })
 
+			// Check if file exists and get its content for diff
 			let exists = false
+			let previousContent = ""
 			try {
 				await fs.access(filepath)
 				exists = true
+				previousContent = await fs.readFile(filepath, "utf-8")
 			} catch {
 				// File doesn't exist
 			}
 
+			// Write the file
 			await fs.writeFile(filepath, content, "utf-8")
 
-			const message = exists
-				? `File overwritten: ${filepath}`
-				: `File created: ${filepath}`
+			// Calculate stats
+			const lineCount = content.split("\n").length
+			const byteSize = Buffer.byteLength(content, "utf-8")
+
+			// Generate diff if overwriting
+			let diff: string | undefined
+			if (exists && previousContent !== content) {
+				diff = trimDiff(
+					createTwoFilesPatch(filepath, filepath, previousContent, content),
+				)
+			}
+
+			const action = exists ? "overwritten" : "created"
+			const message = `File ${action}: ${filepath} (${lineCount} lines, ${byteSize} bytes)`
 
 			yield {
 				status: "success",
@@ -84,6 +134,11 @@ Usage:
 				filePath: filepath,
 				result: message,
 				content,
+				lineCount,
+				byteSize,
+				wasOverwrite: exists,
+				diff,
+				warning,
 			}
 		} catch (error) {
 			yield {

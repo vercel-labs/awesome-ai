@@ -77,15 +77,17 @@ Reads files from the local filesystem with line numbers.
 ### Current Features
 - Line-numbered output format (`00001| content`)
 - Configurable offset and limit for partial reads
-- Binary file detection (null byte + non-printable character analysis)
+- **Extension-based binary detection** - Fast-path for 50+ known binary extensions (.zip, .exe, .wasm, .pdf, etc.)
+- **Byte-level binary detection** - Fallback analysis for unknown extensions (null bytes, non-printable chars)
+- **Sensitive file blocking** - Blocks `.env` files for security (allows `.env.example`, `.env.sample`)
+- **External directory warning** - Warns when reading outside working directory
+- **End of file indicator** - Shows total line count when file is fully read
 - File suggestions when path not found
 - Maximum line length truncation (2000 chars)
 - Directory detection with helpful error message
 
 ### Potential Improvements
 - [ ] **Image support** - Return images as base64 for vision-capable models
-- [ ] **Sensitive file blocking** - Block reading `.env` files (security)
-- [ ] **Extension-based binary detection** - Fast-path for known binary extensions (.zip, .exe, .wasm, etc.)
 - [ ] **File read tracking** - Track when files were read for conflict detection
 
 ---
@@ -95,15 +97,18 @@ Reads files from the local filesystem with line numbers.
 Creates new files or overwrites existing files.
 
 ### Current Features
-- Automatic directory creation
+- Automatic directory creation (creates parent directories if needed)
 - Detects if file exists vs created
 - Absolute path resolution
+- **External directory warning** - Warns when writing outside working directory
+- **Diff output for overwrites** - Shows what changed when overwriting existing files
+- **File statistics** - Reports line count and byte size in output
+- **Rich metadata** - Includes `lineCount`, `byteSize`, `wasOverwrite`, `diff`, `warning`
 
 ### Potential Improvements
 - [ ] **LSP diagnostics** - Return linter/type errors after writing so agent can fix them immediately
 - [ ] **File conflict detection** - Verify file hasn't changed since it was last read before overwriting
 - [ ] **Permission system** - Optional approval before writing files
-- [ ] **External directory protection** - Warn/block writes outside project directory
 
 ---
 

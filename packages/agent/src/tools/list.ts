@@ -2,7 +2,7 @@ import { tool } from "ai"
 import { promises as fs } from "fs"
 import * as path from "path"
 import { z } from "zod"
-import { toolOutput } from "./tool-utils"
+import { toolOutput } from "@/tools/lib/tool-output"
 
 const IGNORE_PATTERNS = [
 	"node_modules",

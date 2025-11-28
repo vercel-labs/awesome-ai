@@ -5,43 +5,23 @@ import { afterEach, beforeEach, describe, expect, it } from "vitest"
 import {
 	BlockAnchorReplacer,
 	ContextAwareReplacer,
-	EscapeNormalizedReplacer,
 	editTool,
+	EscapeNormalizedReplacer,
 	IndentationFlexibleReplacer,
 	LineTrimmedReplacer,
 	MultiOccurrenceReplacer,
 	replace,
 	SimpleReplacer,
 	TrimmedBoundaryReplacer,
-	trimDiff,
 	WhitespaceNormalizedReplacer,
 } from "../edit"
+import { executeTool } from "./lib/test-utils"
 
 // Helper to collect all values from a generator
 function collect<T>(gen: Generator<T, void, unknown>): T[] {
 	const results: T[] = []
 	for (const value of gen) {
 		results.push(value)
-	}
-	return results
-}
-
-// Helper to execute tool and collect results
-async function executeTool(
-	input: Parameters<NonNullable<typeof editTool.execute>>[0],
-) {
-	const toolCallOptions = {
-		toolCallId: "test-call-id",
-		messages: [],
-	}
-	const result = editTool.execute!(input, toolCallOptions)
-	const results: unknown[] = []
-	if (Symbol.asyncIterator in Object(result)) {
-		for await (const r of result as AsyncIterable<unknown>) {
-			results.push(r)
-		}
-	} else {
-		results.push(await result)
 	}
 	return results
 }
@@ -297,46 +277,6 @@ describe("MultiOccurrenceReplacer", () => {
 })
 
 // ============================================================================
-// trimDiff() tests
-// ============================================================================
-
-describe("trimDiff", () => {
-	it("removes common indentation from diff content lines", () => {
-		const diff = `--- a/file
-+++ b/file
-@@ -1,3 +1,3 @@
-     line1
--    old line
-+    new line
-     line3`
-		const result = trimDiff(diff)
-		expect(result).toContain("-old line")
-		expect(result).toContain("+new line")
-	})
-
-	it("preserves diff when no common indentation", () => {
-		const diff = `--- a/file
-+++ b/file
-@@ -1 +1 @@
--old
-+new`
-		const result = trimDiff(diff)
-		expect(result).toContain("-old")
-		expect(result).toContain("+new")
-	})
-
-	it("handles empty content lines", () => {
-		const diff = `--- a/file
-+++ b/file
-@@ -1,2 +1,2 @@
--old
-+new`
-		const result = trimDiff(diff)
-		expect(result).toBe(diff)
-	})
-})
-
-// ============================================================================
 // editTool integration tests
 // ============================================================================
 
@@ -356,7 +296,7 @@ describe("editTool", () => {
 	it("replaces text in a file", async () => {
 		await fs.writeFile(tempFile, "Hello, world!", "utf-8")
 
-		const results = await executeTool({
+		const results = await executeTool(editTool, {
 			filePath: tempFile,
 			oldString: "world",
 			newString: "vitest",
@@ -371,7 +311,7 @@ describe("editTool", () => {
 	})
 
 	it("returns error for non-existent file", async () => {
-		const results = await executeTool({
+		const results = await executeTool(editTool, {
 			filePath: path.join(tempDir, "nonexistent.txt"),
 			oldString: "foo",
 			newString: "bar",
@@ -386,7 +326,7 @@ describe("editTool", () => {
 	})
 
 	it("returns error when path is a directory", async () => {
-		const results = await executeTool({
+		const results = await executeTool(editTool, {
 			filePath: tempDir,
 			oldString: "foo",
 			newString: "bar",
@@ -403,7 +343,7 @@ describe("editTool", () => {
 	it("overwrites file when oldString is empty", async () => {
 		await fs.writeFile(tempFile, "original content", "utf-8")
 
-		const results = await executeTool({
+		const results = await executeTool(editTool, {
 			filePath: tempFile,
 			oldString: "",
 			newString: "completely new content",
@@ -419,7 +359,7 @@ describe("editTool", () => {
 	it("replaces all occurrences with replaceAll=true", async () => {
 		await fs.writeFile(tempFile, "foo bar foo baz foo", "utf-8")
 
-		const results = await executeTool({
+		const results = await executeTool(editTool, {
 			filePath: tempFile,
 			oldString: "foo",
 			newString: "qux",
@@ -436,7 +376,7 @@ describe("editTool", () => {
 	it("returns error when oldString not found", async () => {
 		await fs.writeFile(tempFile, "Hello, world!", "utf-8")
 
-		const results = await executeTool({
+		const results = await executeTool(editTool, {
 			filePath: tempFile,
 			oldString: "notfound",
 			newString: "replacement",
@@ -453,7 +393,7 @@ describe("editTool", () => {
 	it("returns error for multiple matches without replaceAll", async () => {
 		await fs.writeFile(tempFile, "foo bar foo", "utf-8")
 
-		const results = await executeTool({
+		const results = await executeTool(editTool, {
 			filePath: tempFile,
 			oldString: "foo",
 			newString: "baz",
@@ -470,7 +410,7 @@ describe("editTool", () => {
 	it("normalizes CRLF line endings", async () => {
 		await fs.writeFile(tempFile, "line1\r\nline2\r\nline3", "utf-8")
 
-		const results = await executeTool({
+		const results = await executeTool(editTool, {
 			filePath: tempFile,
 			oldString: "line2",
 			newString: "replaced",
@@ -487,7 +427,7 @@ describe("editTool", () => {
 		// Test that line-trimmed matching works through the tool
 		await fs.writeFile(tempFile, "  hello world  ", "utf-8")
 
-		const results = await executeTool({
+		const results = await executeTool(editTool, {
 			filePath: tempFile,
 			oldString: "hello world",
 			newString: "goodbye world",
@@ -503,7 +443,7 @@ describe("editTool", () => {
 	it("yields pending status before completion", async () => {
 		await fs.writeFile(tempFile, "content", "utf-8")
 
-		const results = await executeTool({
+		const results = await executeTool(editTool, {
 			filePath: tempFile,
 			oldString: "content",
 			newString: "new content",
@@ -517,7 +457,7 @@ describe("editTool", () => {
 	it("includes diff in success result", async () => {
 		await fs.writeFile(tempFile, "old text", "utf-8")
 
-		const results = await executeTool({
+		const results = await executeTool(editTool, {
 			filePath: tempFile,
 			oldString: "old",
 			newString: "new",

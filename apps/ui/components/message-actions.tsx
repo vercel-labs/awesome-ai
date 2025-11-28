@@ -7,7 +7,7 @@ import { Action, Actions } from "./elements/actions"
 import { CopyIcon, PencilEditIcon } from "./icons"
 
 export function MessageActions({
-	chatId,
+	chatId: _chatId,
 	message,
 	isLoading,
 	setMode,

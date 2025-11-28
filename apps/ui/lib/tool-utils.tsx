@@ -1,7 +1,10 @@
 import type { ToolUIPart } from "ai"
 import type { ReactNode } from "react"
 import { CodeBlock } from "@/components/elements/code-block"
-import { DiffBlock, DiffBlockCopyButton } from "@/components/elements/diff-block"
+import {
+	DiffBlock,
+	DiffBlockCopyButton,
+} from "@/components/elements/diff-block"
 
 /**
  * Get language for syntax highlighting from file extension

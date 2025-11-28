@@ -54,6 +54,14 @@
 			"attributePosition": "auto"
 		}
 	},
+	"css": {
+		"parser": {
+			"tailwindDirectives": true
+		},
+		"formatter": {
+			"enabled": false
+		}
+	},
 	"assist": {
 		"actions": {
 			"source": {

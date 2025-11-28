@@ -9,7 +9,7 @@
 		"format": "biome check"
 	},
 	"devDependencies": {
-		"@biomejs/biome": "^2.2.5",
+		"@biomejs/biome": "latest",
 		"turbo": "latest"
 	},
 	"packageManager": "pnpm@10.6.5"

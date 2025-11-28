@@ -3,9 +3,9 @@
 import type { UseChatHelpers } from "@ai-sdk/react"
 import { motion } from "framer-motion"
 import { useState } from "react"
+import { formatToolOutputForDisplay } from "@/lib/tool-utils"
 import type { AgentMessage } from "@/lib/types"
 import { cn, sanitizeText } from "@/lib/utils"
-import { formatToolOutputForDisplay } from "@/lib/tool-utils"
 import {
 	Confirmation,
 	ConfirmationAccepted,

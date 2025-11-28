@@ -15,7 +15,12 @@
 		"esModuleInterop": true,
 		"skipLibCheck": true,
 		"declaration": true,
-		"outDir": "./dist"
+		"outDir": "./dist",
+		"resolveJsonModule": true,
+		"baseUrl": ".",
+		"paths": {
+			"@/*": ["./*"]
+		}
 	},
 	"include": ["src/**/*"]
 }

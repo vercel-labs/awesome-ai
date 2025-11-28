@@ -3,7 +3,7 @@ import { deleteAllChats, getChatHistory } from "@/app/(chat)/actions"
 
 export async function GET(request: Request) {
 	const { searchParams } = new URL(request.url)
-	const limit = Number.parseInt(searchParams.get("limit") || "20")
+	const limit = Number.parseInt(searchParams.get("limit") || "20", 10)
 	const endingBefore = searchParams.get("ending_before") || undefined
 
 	try {

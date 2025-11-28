@@ -1,12 +1,12 @@
 import { Experimental_Agent as Agent, type LanguageModel } from "ai"
-import { getSystemPrompt } from "../prompts/coding-agent"
-import { bashTool } from "../tools/bash"
-import { editTool } from "../tools/edit"
-import { globTool } from "../tools/glob"
-import { grepTool } from "../tools/grep"
-import { listTool } from "../tools/list"
-import { readTool } from "../tools/read"
-import { writeTool } from "../tools/write"
+import { getSystemPrompt } from "@/prompts/coding-agent"
+import { bashTool } from "@/tools/bash"
+import { editTool } from "@/tools/edit"
+import { globTool } from "@/tools/glob"
+import { grepTool } from "@/tools/grep"
+import { listTool } from "@/tools/list"
+import { readTool } from "@/tools/read"
+import { writeTool } from "@/tools/write"
 
 const tools = {
 	read: readTool,

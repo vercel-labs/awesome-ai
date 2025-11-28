@@ -39,8 +39,8 @@ function parseDiff(diffText: string): DiffLine[] {
 		if (line.startsWith("@@")) {
 			const match = line.match(/@@ -(\d+),?\d* \+(\d+),?\d* @@/)
 			if (match) {
-				oldLineNo = Number.parseInt(match[1]) - 1
-				newLineNo = Number.parseInt(match[2]) - 1
+				oldLineNo = Number.parseInt(match[1], 10) - 1
+				newLineNo = Number.parseInt(match[2], 10) - 1
 			}
 			result.push({
 				type: "hunk-header",
@@ -224,4 +224,3 @@ export const DiffBlockCopyButton = ({
 		</Button>
 	)
 }
-

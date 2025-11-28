@@ -4,7 +4,14 @@ import type { UseChatHelpers } from "@ai-sdk/react"
 import { Trigger } from "@radix-ui/react-select"
 import type { ChatStatus } from "ai"
 import type { ChangeEvent } from "react"
-import { memo, startTransition, useCallback, useEffect, useRef, useState } from "react"
+import {
+	memo,
+	startTransition,
+	useCallback,
+	useEffect,
+	useRef,
+	useState,
+} from "react"
 import { SelectItem } from "@/components/ui/select"
 import { chatModels } from "@/lib/ai/models"
 import type { AgentMessage } from "@/lib/types"
@@ -106,37 +113,37 @@ export function MultimodalInput({
 					value={input}
 				/>
 			</div>
-		<PromptInputToolbar className="!border-top-0 border-t-0! p-0 shadow-none dark:border-0 dark:border-transparent!">
-			<PromptInputTools className="gap-0 sm:gap-0.5">
-				<ModelSelectorCompact
-					onModelChange={onModelChange}
-					selectedModelId={selectedModelId}
-				/>
-			</PromptInputTools>
+			<PromptInputToolbar className="!border-top-0 border-t-0! p-0 shadow-none dark:border-0 dark:border-transparent!">
+				<PromptInputTools className="gap-0 sm:gap-0.5">
+					<ModelSelectorCompact
+						onModelChange={onModelChange}
+						selectedModelId={selectedModelId}
+					/>
+				</PromptInputTools>
 
-			{status === "submitted" ? (
-				<Button
-					className="size-7 rounded-full bg-foreground p-1 text-background transition-colors duration-200 hover:bg-foreground/90 disabled:bg-muted disabled:text-muted-foreground"
-					data-testid="stop-button"
-					onClick={(event) => {
-						event.preventDefault()
-						stop()
-						setMessages?.((messages) => messages)
-					}}
-				>
-					<StopIcon size={14} />
-				</Button>
-			) : (
-				<PromptInputSubmit
-					className="size-8 rounded-full bg-primary text-primary-foreground transition-colors duration-200 hover:bg-primary/90 disabled:bg-muted disabled:text-muted-foreground"
-					disabled={input.trim() === ""}
-					status={status}
-				>
-					<ArrowUpIcon size={14} />
-				</PromptInputSubmit>
-			)}
-		</PromptInputToolbar>
-	</PromptInput>
+				{status === "submitted" ? (
+					<Button
+						className="size-7 rounded-full bg-foreground p-1 text-background transition-colors duration-200 hover:bg-foreground/90 disabled:bg-muted disabled:text-muted-foreground"
+						data-testid="stop-button"
+						onClick={(event) => {
+							event.preventDefault()
+							stop()
+							setMessages?.((messages) => messages)
+						}}
+					>
+						<StopIcon size={14} />
+					</Button>
+				) : (
+					<PromptInputSubmit
+						className="size-8 rounded-full bg-primary text-primary-foreground transition-colors duration-200 hover:bg-primary/90 disabled:bg-muted disabled:text-muted-foreground"
+						disabled={input.trim() === ""}
+						status={status}
+					>
+						<ArrowUpIcon size={14} />
+					</PromptInputSubmit>
+				)}
+			</PromptInputToolbar>
+		</PromptInput>
 	)
 }
 

@@ -1,0 +1,180 @@
+import { Command } from "commander"
+import { promises as fs } from "fs"
+import path from "path"
+import prompts from "prompts"
+import { z } from "zod"
+import { preFlightInit } from "@/src/preflights/preflight-init"
+import { BUILTIN_REGISTRIES } from "@/src/registry/constants"
+import { clearRegistryContext } from "@/src/registry/context"
+import { rawConfigSchema } from "@/src/schema"
+import { getConfig, resolveConfigPaths } from "@/src/utils/get-config"
+import { handleError } from "@/src/utils/handle-error"
+import { highlighter } from "@/src/utils/highlighter"
+import { logger } from "@/src/utils/logger"
+import { spinner } from "@/src/utils/spinner"
+
+export const initOptionsSchema = z.object({
+	cwd: z.string(),
+	yes: z.boolean(),
+	defaults: z.boolean(),
+	force: z.boolean(),
+	silent: z.boolean(),
+})
+
+export const init = new Command()
+	.name("init")
+	.description("initialize your project and install dependencies")
+	.option("-y, --yes", "skip confirmation prompt.", true)
+	.option("-d, --defaults", "use default configuration.", false)
+	.option("-f, --force", "force overwrite of existing configuration.", false)
+	.option(
+		"-c, --cwd <cwd>",
+		"the working directory. defaults to the current directory.",
+		process.cwd(),
+	)
+	.option("-s, --silent", "mute output.", false)
+	.action(async (opts) => {
+		try {
+			const options = initOptionsSchema.parse({
+				cwd: path.resolve(opts.cwd),
+				...opts,
+			})
+
+			await runInit(options)
+
+			logger.log(
+				`${highlighter.success(
+					"Success!",
+				)} Project initialization completed.\nYou may now add agents, tools, and prompts.`,
+			)
+			logger.break()
+		} catch (error) {
+			logger.break()
+			handleError(error)
+		} finally {
+			clearRegistryContext()
+		}
+	})
+
+export async function runInit(options: z.infer<typeof initOptionsSchema>) {
+	await preFlightInit(options)
+
+	const existingConfig = await getConfig(options.cwd)
+
+	const config = existingConfig
+		? await promptForMinimalConfig(existingConfig, options)
+		: await promptForConfig()
+
+	if (!options.yes) {
+		const { proceed } = await prompts({
+			type: "confirm",
+			name: "proceed",
+			message: `Write configuration to ${highlighter.info(
+				"agents.json",
+			)}. Proceed?`,
+			initial: true,
+		})
+
+		if (!proceed) {
+			process.exit(0)
+		}
+	}
+
+	const configSpinner = spinner(`Writing agents.json.`).start()
+	const targetPath = path.resolve(options.cwd, "agents.json")
+
+	config.registries = Object.fromEntries(
+		Object.entries(config.registries || {}).filter(
+			([key]) => !Object.keys(BUILTIN_REGISTRIES).includes(key),
+		),
+	)
+
+	await fs.writeFile(targetPath, `${JSON.stringify(config, null, 2)}\n`, "utf8")
+	configSpinner.succeed()
+
+	return await resolveConfigPaths(options.cwd, config)
+}
+
+async function promptForConfig() {
+	logger.info("")
+	const options = await prompts([
+		{
+			type: "toggle",
+			name: "typescript",
+			message: `Would you like to use ${highlighter.info(
+				"TypeScript",
+			)} (recommended)?`,
+			initial: true,
+			active: "yes",
+			inactive: "no",
+		},
+		{
+			type: "text",
+			name: "agents",
+			message: `Configure the import alias for ${highlighter.info("agents")}:`,
+			initial: "@/agents",
+		},
+		{
+			type: "text",
+			name: "tools",
+			message: `Configure the import alias for ${highlighter.info("tools")}:`,
+			initial: "@/tools",
+		},
+		{
+			type: "text",
+			name: "prompts",
+			message: `Configure the import alias for ${highlighter.info("prompts")}:`,
+			initial: "@/prompts",
+		},
+	])
+
+	return rawConfigSchema.parse({
+		$schema: "https://awesome-ai.com/schema.json",
+		tsx: options.typescript,
+		aliases: {
+			agents: options.agents,
+			tools: options.tools,
+			prompts: options.prompts,
+		},
+		registries: BUILTIN_REGISTRIES,
+	})
+}
+
+async function promptForMinimalConfig(
+	defaultConfig: z.infer<typeof rawConfigSchema>,
+	opts: z.infer<typeof initOptionsSchema>,
+) {
+	if (opts.defaults) {
+		return defaultConfig
+	}
+
+	const options = await prompts([
+		{
+			type: "text",
+			name: "agents",
+			message: `Configure the import alias for ${highlighter.info("agents")}:`,
+			initial: defaultConfig.aliases.agents,
+		},
+		{
+			type: "text",
+			name: "tools",
+			message: `Configure the import alias for ${highlighter.info("tools")}:`,
+			initial: defaultConfig.aliases.tools,
+		},
+		{
+			type: "text",
+			name: "prompts",
+			message: `Configure the import alias for ${highlighter.info("prompts")}:`,
+			initial: defaultConfig.aliases.prompts,
+		},
+	])
+
+	return rawConfigSchema.parse({
+		...defaultConfig,
+		aliases: {
+			agents: options.agents ?? defaultConfig.aliases.agents,
+			tools: options.tools ?? defaultConfig.aliases.tools,
+			prompts: options.prompts ?? defaultConfig.aliases.prompts,
+		},
+	})
+}

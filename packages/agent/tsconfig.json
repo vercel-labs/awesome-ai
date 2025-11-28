@@ -16,7 +16,13 @@
 		"skipLibCheck": true,
 		"declaration": true,
 		"outDir": "./dist",
-		"preserveWatchOutput": true
+		"preserveWatchOutput": true,
+		"baseUrl": ".",
+		"paths": {
+			"@/tools/*": ["./src/tools/*"],
+			"@/prompts/*": ["./src/prompts/*"],
+			"@/agents/*": ["./src/agents/*"]
+		}
 	},
 	"include": ["src/**/*"]
 }

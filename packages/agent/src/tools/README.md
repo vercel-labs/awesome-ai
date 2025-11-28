@@ -166,6 +166,8 @@ Executes shell commands with real-time output streaming.
 Lists files and directories in a tree format.
 
 ### Current Features
+- **Ripgrep-powered** - Uses `rg --files` for fast file listing
+- **Respects .gitignore** - Automatically honors gitignore rules
 - Recursive directory walking
 - Tree-style output format
 - Hardcoded ignore patterns (node_modules, .git, dist, etc.)
@@ -173,8 +175,6 @@ Lists files and directories in a tree format.
 - 100 file limit with truncation notice
 
 ### Potential Improvements
-- [ ] **Use ripgrep** - Much faster file listing with `rg --files`
-- [ ] **Respect .gitignore** - Honor project's gitignore rules
 - [ ] **File metadata** - Show file sizes, modification times
 
 ---
@@ -184,17 +184,16 @@ Lists files and directories in a tree format.
 Searches for regex patterns in file contents.
 
 ### Current Features
+- **Ripgrep-powered** - Uses ripgrep for fast searching
+- **Respects .gitignore** - Automatically honors gitignore rules
+- **Sorted by modification time** - Shows recently modified files first
 - Recursive search with line numbers
 - File pattern filtering (`--include`)
 - Groups results by file
 - 100 match limit with truncation notice
-- Extended regex support (`-E`)
 
 ### Potential Improvements
-- [ ] **Use ripgrep** - Much faster than system grep, better defaults
-- [ ] **Sort by modification time** - Show recently modified files first
 - [ ] **Context lines** - Show lines before/after matches (`-A`, `-B`, `-C`)
-- [ ] **Respect .gitignore** - Honor project's gitignore rules by default
 
 ---
 
@@ -203,16 +202,12 @@ Searches for regex patterns in file contents.
 Finds files matching a glob pattern.
 
 ### Current Features
+- **Ripgrep-powered** - Uses `rg --files --glob` for fast matching
+- **Respects .gitignore** - Automatically honors gitignore rules
+- **Full glob syntax** - Supports `**`, `{a,b}`, `[abc]` patterns
 - Recursive file search
-- Basic glob pattern support (`*`, `?`)
 - Sorts results by modification time (most recent first)
 - 100 file limit
-- Ignores common directories (node_modules, .git, dist, build)
-
-### Potential Improvements
-- [ ] **Use ripgrep** - Much faster glob matching with `rg --files --glob`
-- [ ] **Full glob syntax** - Support `**`, `{a,b}`, `[abc]` patterns
-- [ ] **Respect .gitignore** - Honor project's gitignore rules by default
 
 ---
 

@@ -1,17 +1,104 @@
 import { tool } from "ai"
-import { spawn } from "child_process"
+import { promises as fs } from "fs"
 import * as path from "path"
 import { z } from "zod"
 import { toolOutput } from "@/tools/lib/tool-output"
+import * as ripgrep from "@/tools/lib/ripgrep"
+
+const LIMIT = 100
+
+interface Match {
+	path: string
+	lineNum: number
+	lineText: string
+	modTime: number
+}
+
+/**
+ * Search using ripgrep
+ */
+async function searchFiles(
+	searchPath: string,
+	pattern: string,
+	include?: string,
+): Promise<Match[]> {
+	const glob = include ? [include] : undefined
+
+	const matches: Match[] = []
+
+	for await (const match of ripgrep.search({
+		cwd: searchPath,
+		pattern,
+		glob,
+	})) {
+		const fullPath = path.join(searchPath, match.path)
+
+		// Get file modification time for sorting
+		let modTime = 0
+		try {
+			const stats = await fs.stat(fullPath)
+			modTime = stats.mtimeMs
+		} catch {
+			// File may have been deleted
+		}
+
+		matches.push({
+			path: fullPath,
+			lineNum: match.lineNumber,
+			lineText: match.lineText.trim(),
+			modTime,
+		})
+
+		if (matches.length >= LIMIT) break
+	}
+
+	return matches
+}
+
+/**
+ * Format matches for output
+ */
+function formatMatches(matches: Match[]): string {
+	if (matches.length === 0) {
+		return "No matches found"
+	}
+
+	// Sort by modification time (most recent first)
+	matches.sort((a, b) => b.modTime - a.modTime)
+
+	const outputLines = [`Found ${matches.length} matches\n`]
+
+	let currentFile = ""
+	for (const match of matches) {
+		if (currentFile !== match.path) {
+			if (currentFile !== "") {
+				outputLines.push("")
+			}
+			currentFile = match.path
+			outputLines.push(`${match.path}:`)
+		}
+		outputLines.push(`  Line ${match.lineNum}: ${match.lineText}`)
+	}
+
+	if (matches.length >= LIMIT) {
+		outputLines.push("")
+		outputLines.push(
+			"(Results are truncated. Consider using a more specific path or pattern.)",
+		)
+	}
+
+	return outputLines.join("\n")
+}
 
 export const grepTool = tool({
-	description: `Searches for patterns in files using grep.
+	description: `Searches for patterns in files using ripgrep.
 
 Usage:
 - Searches for regex patterns in file contents
 - Returns matching lines with file paths and line numbers
-- Automatically sorts results by file modification time (most recent first)
+- Results are sorted by file modification time (most recent first)
 - Results are limited to 100 matches
+- Respects .gitignore rules
 - Useful for finding specific code patterns, function definitions, variable usage, etc.`,
 	inputSchema: z.object({
 		pattern: z
@@ -48,14 +135,12 @@ Usage:
 		},
 	}),
 	toModelOutput: (output) => {
-		// Only called for final yield (success or error), not preliminary (pending)
 		if (output.status === "error") {
 			return {
 				type: "error-text",
 				value: `Error searching for "${output.pattern}" in ${output.searchPath}: ${output.error}`,
 			}
 		}
-		// Success: send the full results to the LLM
 		if (output.status === "success") {
 			if (output.matchCount === 0) {
 				return {
@@ -68,8 +153,7 @@ Usage:
 				value: `Found ${output.matchCount} matches for "${output.pattern}":\n${output.result}`,
 			}
 		}
-		// Should never reach here
-		return { type: "text", value: output.message }
+		throw new Error("Invalid output status in toModelOutput")
 	},
 	async *execute({ pattern, path: searchPath, include }) {
 		const cwd = searchPath || process.cwd()
@@ -83,117 +167,16 @@ Usage:
 		}
 
 		try {
-			const result = await new Promise<{
-				result: string
-				matchCount: number
-			}>((resolve, reject) => {
-				const args = [
-					"-rn", // recursive, line numbers
-					"-E", // extended regex
-				]
-
-				if (include) {
-					args.push("--include", include)
-				}
-
-				args.push(pattern, ".")
-
-				const process = spawn("grep", args, {
-					cwd,
-					stdio: ["ignore", "pipe", "pipe"],
-				})
-
-				let output = ""
-				let errorOutput = ""
-
-				process.stdout?.on("data", (chunk) => {
-					output += chunk.toString()
-				})
-
-				process.stderr?.on("data", (chunk) => {
-					errorOutput += chunk.toString()
-				})
-
-				process.on("close", (code) => {
-					// grep returns 1 when no matches found, 0 when matches found
-					if (code === 1) {
-						resolve({ result: "No matches found", matchCount: 0 })
-						return
-					}
-
-					if (code !== 0) {
-						reject(new Error(`grep failed: ${errorOutput}`))
-						return
-					}
-
-					const lines = output.trim().split("\n")
-					const matches: Array<{
-						path: string
-						lineNum: number
-						lineText: string
-					}> = []
-
-					for (const line of lines) {
-						const match = line.match(/^([^:]+):(\d+):(.*)$/)
-						if (!match) continue
-
-						const [, filePath, lineNumStr, lineText] = match
-
-						matches.push({
-							path: path.join(cwd, filePath!),
-							lineNum: parseInt(lineNumStr!, 10),
-							lineText: lineText!.trim(),
-						})
-					}
-
-					const limit = 100
-					const truncated = matches.length > limit
-					const finalMatches = truncated ? matches.slice(0, limit) : matches
-
-					if (finalMatches.length === 0) {
-						resolve({ result: "No matches found", matchCount: 0 })
-						return
-					}
-
-					const outputLines = [`Found ${finalMatches.length} matches\n`]
-
-					let currentFile = ""
-					for (const match of finalMatches) {
-						if (currentFile !== match.path) {
-							if (currentFile !== "") {
-								outputLines.push("")
-							}
-							currentFile = match.path
-							outputLines.push(`${match.path}:`)
-						}
-						outputLines.push(`  Line ${match.lineNum}: ${match.lineText}`)
-					}
-
-					if (truncated) {
-						outputLines.push("")
-						outputLines.push(
-							"(Results are truncated. Consider using a more specific path or pattern.)",
-						)
-					}
-
-					resolve({
-						result: outputLines.join("\n"),
-						matchCount: finalMatches.length,
-					})
-				})
-
-				process.on("error", (error) => {
-					reject(new Error(`Failed to execute grep: ${error.message}`))
-				})
-			})
+			const matches = await searchFiles(cwd, pattern, include)
+			const result = formatMatches(matches)
 
 			yield {
 				status: "success",
-				message: `Found ${result.matchCount} matches for pattern: ${pattern}`,
+				message: `Found ${matches.length} matches for pattern: ${pattern}`,
 				pattern,
 				searchPath: cwd,
-				result: result.result,
-				matchCount: result.matchCount,
+				result,
+				matchCount: matches.length,
 			}
 		} catch (error) {
 			yield {

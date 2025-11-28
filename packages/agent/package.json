@@ -17,11 +17,13 @@
 	"dependencies": {
 		"ai": "catalog:",
 		"diff": "^8.0.2",
+		"unzipper": "^0.12.3",
 		"uuid": "^13.0.0",
 		"zod": "catalog:"
 	},
 	"devDependencies": {
 		"@types/node": "^20",
+		"@types/unzipper": "^0.10.10",
 		"typescript": "catalog:",
 		"vitest": "^4.0.14"
 	}

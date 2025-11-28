@@ -2,7 +2,47 @@ import { tool } from "ai"
 import { promises as fs } from "fs"
 import * as path from "path"
 import { z } from "zod"
+import * as ripgrep from "@/tools/lib/ripgrep"
 import { toolOutput } from "@/tools/lib/tool-output"
+
+const LIMIT = 100
+
+interface FileWithMtime {
+	path: string
+	mtime: number
+}
+
+/**
+ * Find files using ripgrep
+ */
+async function globFiles(
+	searchPath: string,
+	pattern: string,
+	limit: number,
+): Promise<FileWithMtime[]> {
+	const files: FileWithMtime[] = []
+
+	for await (const file of ripgrep.files({
+		cwd: searchPath,
+		glob: [pattern],
+	})) {
+		const fullPath = path.resolve(searchPath, file)
+
+		// Get modification time for sorting
+		let mtime = 0
+		try {
+			const stats = await fs.stat(fullPath)
+			mtime = stats.mtimeMs
+		} catch {
+			// File may have been deleted
+		}
+
+		files.push({ path: fullPath, mtime })
+		if (files.length >= limit) break
+	}
+
+	return files
+}
 
 export const globTool = tool({
 	description: `Searches for files matching a glob pattern.
@@ -11,6 +51,8 @@ Usage:
 - Finds files by name pattern (e.g., "*.ts", "**/*.test.js")
 - Returns full file paths sorted by modification time (most recent first)
 - Results are limited to 100 files
+- Respects .gitignore rules
+- Supports full glob syntax: **, {a,b}, [abc]
 - Useful for finding files by name or extension`,
 	inputSchema: z.object({
 		pattern: z.string().describe("The glob pattern to match files against"),
@@ -62,69 +104,19 @@ Usage:
 		}
 
 		try {
+			// Verify directory exists
 			try {
 				await fs.access(cwd)
 			} catch {
 				throw new Error(`Directory not found: ${cwd}`)
 			}
 
-			// Simple glob matching function
-			function matchGlob(filePath: string, pattern: string): boolean {
-				// Convert glob pattern to regex
-				const regexPattern = pattern
-					.replace(/\./g, "\\.")
-					.replace(/\*/g, ".*")
-					.replace(/\?/g, ".")
-				const regex = new RegExp(`^${regexPattern}$`)
-				return regex.test(filePath)
-			}
-
-			const files: Array<{ path: string; mtime: number }> = []
-			const limit = 100
-
-			async function walk(dir: string) {
-				if (files.length >= limit) return
-
-				try {
-					const entries = await fs.readdir(dir, { withFileTypes: true })
-
-					for (const entry of entries) {
-						const fullPath = path.join(dir, entry.name)
-						const relativePath = path.relative(cwd, fullPath)
-
-						// Skip common ignored directories
-						if (
-							entry.isDirectory() &&
-							["node_modules", ".git", "dist", "build"].includes(entry.name)
-						) {
-							continue
-						}
-
-						if (entry.isDirectory()) {
-							await walk(fullPath)
-						} else if (
-							matchGlob(relativePath, pattern) ||
-							matchGlob(entry.name, pattern)
-						) {
-							const stats = await fs.stat(fullPath)
-							files.push({
-								path: fullPath,
-								mtime: stats.mtimeMs,
-							})
-							if (files.length >= limit) break
-						}
-					}
-				} catch (_error) {
-					// Skip directories we can't read
-				}
-			}
-
-			await walk(cwd)
+			const files = await globFiles(cwd, pattern, LIMIT)
 
 			// Sort by modification time (most recent first)
 			files.sort((a, b) => b.mtime - a.mtime)
 
-			const truncated = files.length >= limit
+			const truncated = files.length >= LIMIT
 			const output =
 				files.length === 0
 					? "No files found"

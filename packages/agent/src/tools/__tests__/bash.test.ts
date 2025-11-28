@@ -293,4 +293,3 @@ describe("bashTool", () => {
 		expect(finalResult.output).toContain("third")
 	}, 5000)
 })
-

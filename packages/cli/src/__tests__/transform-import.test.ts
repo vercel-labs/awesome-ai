@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest"
-import { transformImports } from "../utils/transform-import"
 import type { Config } from "../schema"
+import { transformImports } from "../utils/transform-import"
 
 // Create a mock config for testing
 function createMockConfig(overrides: Partial<Config["aliases"]> = {}): Config {
@@ -271,4 +271,3 @@ import { z } from "zod"`
 		})
 	})
 })
-

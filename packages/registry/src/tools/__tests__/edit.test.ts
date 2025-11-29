@@ -5,8 +5,8 @@ import { afterEach, beforeEach, describe, expect, it } from "vitest"
 import {
 	BlockAnchorReplacer,
 	ContextAwareReplacer,
-	editTool,
 	EscapeNormalizedReplacer,
+	editTool,
 	IndentationFlexibleReplacer,
 	LineTrimmedReplacer,
 	MultiOccurrenceReplacer,

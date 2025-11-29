@@ -1,5 +1,5 @@
+import type { Message } from "@awesome-ai/registry"
 import { type ClassValue, clsx } from "clsx"
-import type { Message } from "coding-agent"
 import { twMerge } from "tailwind-merge"
 import type { AgentMessage } from "./types"
 

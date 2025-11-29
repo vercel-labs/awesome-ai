@@ -231,4 +231,3 @@ describe("listTool", () => {
 		expect(mangoIndex).toBeLessThan(zebraIndex)
 	})
 })
-

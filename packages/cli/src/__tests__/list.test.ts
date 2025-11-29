@@ -1,6 +1,6 @@
 import { afterAll, beforeAll, describe, expect, it } from "vitest"
-import { createTestProject, runCLI } from "./lib/test-utils"
 import { startMockRegistry, stopMockRegistry } from "./lib/mock-registry"
+import { createTestProject, runCLI } from "./lib/test-utils"
 
 describe("list command", () => {
 	let registryUrl: string
@@ -33,7 +33,9 @@ describe("list command", () => {
 			},
 		})
 
-		const result = await runCLI(["list", "--registry", "@test"], { cwd: project.path })
+		const result = await runCLI(["list", "--registry", "@test"], {
+			cwd: project.path,
+		})
 
 		expect(result.exitCode).toBe(0)
 		const output = JSON.parse(result.stdout)
@@ -61,9 +63,12 @@ describe("list command", () => {
 			},
 		})
 
-		const result = await runCLI(["list", "--type", "tools", "--registry", "@test"], {
-			cwd: project.path,
-		})
+		const result = await runCLI(
+			["list", "--type", "tools", "--registry", "@test"],
+			{
+				cwd: project.path,
+			},
+		)
 
 		expect(result.exitCode).toBe(0)
 		const output = JSON.parse(result.stdout)
@@ -93,9 +98,12 @@ describe("list command", () => {
 			},
 		})
 
-		const result = await runCLI(["list", "--type", "prompts", "--registry", "@test"], {
-			cwd: project.path,
-		})
+		const result = await runCLI(
+			["list", "--type", "prompts", "--registry", "@test"],
+			{
+				cwd: project.path,
+			},
+		)
 
 		expect(result.exitCode).toBe(0)
 		const output = JSON.parse(result.stdout)
@@ -158,4 +166,3 @@ describe("list command", () => {
 		expect(result.exitCode).toBe(0)
 	})
 })
-

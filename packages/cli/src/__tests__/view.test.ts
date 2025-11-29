@@ -1,6 +1,6 @@
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest"
-import { createTestProject, runCLI } from "./lib/test-utils"
 import { startMockRegistry, stopMockRegistry } from "./lib/mock-registry"
+import { createTestProject, runCLI } from "./lib/test-utils"
 
 let mockRegistry: Awaited<ReturnType<typeof startMockRegistry>>
 

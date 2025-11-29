@@ -99,9 +99,7 @@ describe("ripgrep", () => {
 		it("finds pattern in files", async () => {
 			await fs.writeFile(path.join(tempDir, "file.txt"), "hello world\nfoo bar")
 
-			const results = await collect(
-				search({ cwd: tempDir, pattern: "hello" }),
-			)
+			const results = await collect(search({ cwd: tempDir, pattern: "hello" }))
 
 			expect(results).toHaveLength(1)
 			expect(results[0]).toEqual({
@@ -222,9 +220,7 @@ describe("ripgrep", () => {
 				"line 1\nline 2\ntarget line\nline 4",
 			)
 
-			const results = await collect(
-				search({ cwd: tempDir, pattern: "target" }),
-			)
+			const results = await collect(search({ cwd: tempDir, pattern: "target" }))
 
 			expect(results).toHaveLength(1)
 			expect(results[0]?.lineNumber).toBe(3)
@@ -232,4 +228,3 @@ describe("ripgrep", () => {
 		})
 	})
 })
-

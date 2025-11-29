@@ -53,9 +53,13 @@ export const search = new Command()
 			}
 
 			const type = options.type || "agents"
-			const registry = await getRegistry(options.registry || "@awesome-ai", type, {
-				config,
-			})
+			const registry = await getRegistry(
+				options.registry || "@awesome-ai",
+				type,
+				{
+					config,
+				},
+			)
 
 			let items = registry.items
 			if (options.query) {

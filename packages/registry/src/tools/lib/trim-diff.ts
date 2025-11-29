@@ -6,9 +6,7 @@ export function trimDiff(diff: string): string {
 	const lines = diff.split("\n")
 	const contentLines = lines.filter(
 		(line) =>
-			(line.startsWith("+") ||
-				line.startsWith("-") ||
-				line.startsWith(" ")) &&
+			(line.startsWith("+") || line.startsWith("-") || line.startsWith(" ")) &&
 			!line.startsWith("---") &&
 			!line.startsWith("+++"),
 	)
@@ -28,9 +26,7 @@ export function trimDiff(diff: string): string {
 
 	const trimmedLines = lines.map((line) => {
 		if (
-			(line.startsWith("+") ||
-				line.startsWith("-") ||
-				line.startsWith(" ")) &&
+			(line.startsWith("+") || line.startsWith("-") || line.startsWith(" ")) &&
 			!line.startsWith("---") &&
 			!line.startsWith("+++")
 		) {
@@ -43,4 +39,3 @@ export function trimDiff(diff: string): string {
 
 	return trimmedLines.join("\n")
 }
-

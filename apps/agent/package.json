@@ -1,0 +1,17 @@
+{
+	"name": "agent",
+	"version": "0.0.0",
+	"private": true,
+	"type": "module",
+	"scripts": {
+		"ai": "node ../packages/cli/dist/index.js"
+	},
+	"dependencies": {
+		"ai": "catalog:",
+		"zod": "catalog:"
+	},
+	"devDependencies": {
+		"@types/node": "^22",
+		"typescript": "catalog:"
+	}
+}

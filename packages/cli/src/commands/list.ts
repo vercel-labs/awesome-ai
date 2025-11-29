@@ -50,9 +50,13 @@ export const list = new Command()
 			}
 
 			const type = options.type || "agents"
-			const registry = await getRegistry(options.registry || "@awesome-ai", type, {
-				config,
-			})
+			const registry = await getRegistry(
+				options.registry || "@awesome-ai",
+				type,
+				{
+					config,
+				},
+			)
 
 			console.log(JSON.stringify(registry.items, null, 2))
 			process.exit(0)

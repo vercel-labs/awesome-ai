@@ -137,7 +137,10 @@ describe("grepTool", () => {
 
 	it("searches nested directories", async () => {
 		await fs.mkdir(path.join(tempDir, "subdir"), { recursive: true })
-		await fs.writeFile(path.join(tempDir, "subdir", "nested.txt"), "nested match")
+		await fs.writeFile(
+			path.join(tempDir, "subdir", "nested.txt"),
+			"nested match",
+		)
 
 		const results = await executeTool(grepTool, {
 			pattern: "nested",
@@ -219,7 +222,10 @@ describe("grepTool", () => {
 	})
 
 	it("trims whitespace from matched lines", async () => {
-		await fs.writeFile(path.join(tempDir, "file.txt"), "   match with spaces   ")
+		await fs.writeFile(
+			path.join(tempDir, "file.txt"),
+			"   match with spaces   ",
+		)
 
 		const results = await executeTool(grepTool, {
 			pattern: "match",
@@ -269,4 +275,3 @@ describe("grepTool", () => {
 		expect(finalResult?.result).toContain(tempDir)
 	})
 })
-

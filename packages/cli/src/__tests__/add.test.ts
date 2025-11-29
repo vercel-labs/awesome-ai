@@ -1,6 +1,6 @@
 import { afterAll, beforeAll, describe, expect, it } from "vitest"
-import { createTestProject, runCLI } from "./lib/test-utils"
 import { startMockRegistry, stopMockRegistry } from "./lib/mock-registry"
+import { createTestProject, runCLI } from "./lib/test-utils"
 
 describe("add command", () => {
 	let registryUrl: string
@@ -199,7 +199,14 @@ describe("add command", () => {
 		const project = await createProjectWithRegistry()
 
 		const result = await runCLI(
-			["add", "@test/test-tool", "@test/tool-with-lib", "--type", "tools", "--yes"],
+			[
+				"add",
+				"@test/test-tool",
+				"@test/tool-with-lib",
+				"--type",
+				"tools",
+				"--yes",
+			],
 			{ cwd: project.path },
 		)
 
@@ -247,4 +254,3 @@ describe("add command", () => {
 		expect(content).toContain("~/tools/lib/helper")
 	})
 })
-

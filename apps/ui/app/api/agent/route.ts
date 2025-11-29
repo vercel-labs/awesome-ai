@@ -1,6 +1,6 @@
 import { gateway } from "@ai-sdk/gateway"
+import { createAgent, generateId } from "@awesome-ai/registry"
 import { convertToModelMessages } from "ai"
-import { createAgent, generateId } from "coding-agent"
 import { agentDB } from "@/lib/agent"
 import { DEFAULT_CHAT_MODEL } from "@/lib/ai/models"
 import type { AgentMessage } from "@/lib/types"

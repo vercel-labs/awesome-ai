@@ -1,6 +1,11 @@
-import { createServer, type IncomingMessage, type Server, type ServerResponse } from "http"
-import path from "path"
 import { promises as fs } from "fs"
+import {
+	createServer,
+	type IncomingMessage,
+	type Server,
+	type ServerResponse,
+} from "http"
+import path from "path"
 
 const FIXTURES_DIR = path.resolve(__dirname, "../fixtures")
 
@@ -29,22 +34,24 @@ export async function startMockRegistry(): Promise<MockRegistry> {
 	receivedHeaders = []
 
 	return new Promise((resolve, reject) => {
-		const server = createServer(async (req: IncomingMessage, res: ServerResponse) => {
-			// Capture headers for each request
-			receivedHeaders.push({ ...req.headers })
+		const server = createServer(
+			async (req: IncomingMessage, res: ServerResponse) => {
+				// Capture headers for each request
+				receivedHeaders.push({ ...req.headers })
 
-			const url = new URL(req.url || "/", `http://localhost`)
-			const filePath = path.join(FIXTURES_DIR, url.pathname)
+				const url = new URL(req.url || "/", `http://localhost`)
+				const filePath = path.join(FIXTURES_DIR, url.pathname)
 
-			try {
-				const content = await fs.readFile(filePath, "utf-8")
-				res.writeHead(200, { "Content-Type": "application/json" })
-				res.end(content)
-			} catch {
-				res.writeHead(404, { "Content-Type": "application/json" })
-				res.end(JSON.stringify({ error: "Not found", path: url.pathname }))
-			}
-		})
+				try {
+					const content = await fs.readFile(filePath, "utf-8")
+					res.writeHead(200, { "Content-Type": "application/json" })
+					res.end(content)
+				} catch {
+					res.writeHead(404, { "Content-Type": "application/json" })
+					res.end(JSON.stringify({ error: "Not found", path: url.pathname }))
+				}
+			},
+		)
 
 		// Set up timeout for server to prevent hanging
 		server.timeout = 5000

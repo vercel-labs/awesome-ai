@@ -41,6 +41,9 @@ importers:
       '@ai-sdk/react':
         specifier: ^3.0.0-beta.88
         version: 3.0.0-beta.88(react@19.1.0)(zod@4.1.12)
+      '@awesome-ai/registry':
+        specifier: workspace:*
+        version: link:../../packages/registry
       '@codemirror/lang-javascript':
         specifier: ^6.2.2
         version: 6.2.4
@@ -119,9 +122,6 @@ importers:
       codemirror:
         specifier: ^6.0.1
         version: 6.0.2
-      coding-agent:
-        specifier: workspace:*
-        version: link:../../packages/agent
       date-fns:
         specifier: ^4.1.0
         version: 4.1.0
@@ -214,37 +214,6 @@ importers:
         specifier: ^5
         version: 5.9.3
 
-  packages/agent:
-    dependencies:
-      ai:
-        specifier: 'catalog:'
-        version: 6.0.0-beta.122(zod@4.1.12)
-      diff:
-        specifier: ^8.0.2
-        version: 8.0.2
-      unzipper:
-        specifier: ^0.12.3
-        version: 0.12.3
-      uuid:
-        specifier: ^13.0.0
-        version: 13.0.0
-      zod:
-        specifier: 'catalog:'
-        version: 4.1.12
-    devDependencies:
-      '@types/node':
-        specifier: ^20
-        version: 20.19.24
-      '@types/unzipper':
-        specifier: ^0.10.10
-        version: 0.10.11
-      typescript:
-        specifier: 'catalog:'
-        version: 5.9.3
-      vitest:
-        specifier: 'catalog:'
-        version: 4.0.14(@opentelemetry/api@1.9.0)(@types/node@20.19.24)(jiti@2.6.1)(lightningcss@1.30.2)
-
   packages/cli:
     dependencies:
       '@antfu/ni':
@@ -305,6 +274,37 @@ importers:
       vitest:
         specifier: 'catalog:'
         version: 4.0.14(@opentelemetry/api@1.9.0)(@types/node@24.10.1)(jiti@2.6.1)(lightningcss@1.30.2)
+
+  packages/registry:
+    dependencies:
+      ai:
+        specifier: 'catalog:'
+        version: 6.0.0-beta.122(zod@4.1.12)
+      diff:
+        specifier: ^8.0.2
+        version: 8.0.2
+      unzipper:
+        specifier: ^0.12.3
+        version: 0.12.3
+      uuid:
+        specifier: ^13.0.0
+        version: 13.0.0
+      zod:
+        specifier: 'catalog:'
+        version: 4.1.12
+    devDependencies:
+      '@types/node':
+        specifier: ^20
+        version: 20.19.24
+      '@types/unzipper':
+        specifier: ^0.10.10
+        version: 0.10.11
+      typescript:
+        specifier: 'catalog:'
+        version: 5.9.3
+      vitest:
+        specifier: 'catalog:'
+        version: 4.0.14(@opentelemetry/api@1.9.0)(@types/node@20.19.24)(jiti@2.6.1)(lightningcss@1.30.2)
 
 packages:
 
@@ -5348,7 +5348,7 @@ snapshots:
 
   '@types/jsonfile@6.1.4':
     dependencies:
-      '@types/node': 24.10.1
+      '@types/node': 20.19.24
 
   '@types/katex@0.16.7': {}
 

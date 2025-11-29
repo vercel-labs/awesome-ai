@@ -42,7 +42,10 @@ describe("writeTool", () => {
 		await fs.writeFile(filePath, "original content", "utf-8")
 
 		const newContent = "new content"
-		const results = await executeTool(writeTool, { filePath, content: newContent })
+		const results = await executeTool(writeTool, {
+			filePath,
+			content: newContent,
+		})
 
 		const finalResult = results[results.length - 1] as {
 			status: string
@@ -103,7 +106,10 @@ describe("writeTool", () => {
 	it("yields pending status before completion", async () => {
 		const filePath = path.join(tempDir, "pending-test.txt")
 
-		const results = await executeTool(writeTool, { filePath, content: "content" })
+		const results = await executeTool(writeTool, {
+			filePath,
+			content: "content",
+		})
 
 		expect(results.length).toBeGreaterThanOrEqual(2)
 		const pendingResult = results[0] as { status: string }
@@ -208,4 +214,3 @@ describe("writeTool", () => {
 		expect(finalResult?.result).toContain("overwritten")
 	})
 })
-

@@ -78,7 +78,12 @@ function isSensitiveFile(filepath: string): boolean {
 	const basename = path.basename(filepath)
 
 	// Whitelist: allow example/sample env files
-	const whitelist = [".env.sample", ".env.example", ".env.template", ".env.local.example"]
+	const whitelist = [
+		".env.sample",
+		".env.example",
+		".env.template",
+		".env.local.example",
+	]
 	if (whitelist.some((w) => basename.endsWith(w) || basename === w.slice(1))) {
 		return false
 	}

@@ -1,4 +1,4 @@
-import { generateId } from "coding-agent"
+import { generateId } from "@awesome-ai/registry"
 import { AppSidebar } from "@/components/app-sidebar"
 import { Chat } from "@/components/chat"
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar"

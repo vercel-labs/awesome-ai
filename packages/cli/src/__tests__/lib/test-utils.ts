@@ -1,4 +1,4 @@
-import { execa, type ExecaError } from "execa"
+import { type ExecaError, execa } from "execa"
 import { promises as fs } from "fs"
 import { tmpdir } from "os"
 import path from "path"
@@ -113,7 +113,11 @@ export async function createTestProject(
  */
 export async function runCLI(
 	args: string[],
-	options: { cwd?: string; env?: Record<string, string>; timeout?: number } = {},
+	options: {
+		cwd?: string
+		env?: Record<string, string>
+		timeout?: number
+	} = {},
 ): Promise<CLIResult> {
 	try {
 		const result = await execa("node", [CLI_PATH, ...args], {

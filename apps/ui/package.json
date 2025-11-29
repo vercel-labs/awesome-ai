@@ -18,7 +18,7 @@
 		"@codemirror/state": "^6.5.0",
 		"@codemirror/theme-one-dark": "^6.1.2",
 		"@codemirror/view": "^6.35.3",
-		"coding-agent": "workspace:*",
+		"@awesome-ai/registry": "workspace:*",
 		"@radix-ui/react-alert-dialog": "^1.1.15",
 		"@radix-ui/react-avatar": "^1.1.10",
 		"@radix-ui/react-collapsible": "^1.1.12",

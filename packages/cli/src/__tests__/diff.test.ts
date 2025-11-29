@@ -1,6 +1,6 @@
 import { afterAll, beforeAll, describe, expect, it } from "vitest"
-import { createTestProject, runCLI } from "./lib/test-utils"
 import { startMockRegistry, stopMockRegistry } from "./lib/mock-registry"
+import { createTestProject, runCLI } from "./lib/test-utils"
 
 describe("diff command", () => {
 	let registryUrl: string
@@ -100,9 +100,12 @@ describe("diff command", () => {
 		})
 
 		// Then check diff
-		const result = await runCLI(["diff", "@test/test-tool", "--type", "tools"], {
-			cwd: project.path,
-		})
+		const result = await runCLI(
+			["diff", "@test/test-tool", "--type", "tools"],
+			{
+				cwd: project.path,
+			},
+		)
 
 		expect(result.exitCode).toBe(0)
 		// Should have minimal output since files are identical
@@ -124,9 +127,12 @@ describe("diff command", () => {
 		)
 
 		// Then check diff
-		const result = await runCLI(["diff", "@test/test-tool", "--type", "tools"], {
-			cwd: project.path,
-		})
+		const result = await runCLI(
+			["diff", "@test/test-tool", "--type", "tools"],
+			{
+				cwd: project.path,
+			},
+		)
 
 		expect(result.exitCode).toBe(0)
 		// Should show the difference
@@ -137,9 +143,12 @@ describe("diff command", () => {
 		const project = await createProjectWithRegistry()
 
 		// Don't add the tool, just check diff
-		const result = await runCLI(["diff", "@test/test-tool", "--type", "tools"], {
-			cwd: project.path,
-		})
+		const result = await runCLI(
+			["diff", "@test/test-tool", "--type", "tools"],
+			{
+				cwd: project.path,
+			},
+		)
 
 		expect(result.exitCode).toBe(0)
 		expect(result.stdout).toContain("does not exist locally")
@@ -173,9 +182,12 @@ describe("diff command", () => {
 		)
 
 		// Check diff
-		const result = await runCLI(["diff", "@test/test-prompt", "--type", "prompts"], {
-			cwd: project.path,
-		})
+		const result = await runCLI(
+			["diff", "@test/test-prompt", "--type", "prompts"],
+			{
+				cwd: project.path,
+			},
+		)
 
 		expect(result.exitCode).toBe(0)
 		// Should show a diff
@@ -198,9 +210,12 @@ describe("diff command", () => {
 		)
 
 		// Check diff
-		const result = await runCLI(["diff", "@test/simple-agent", "--type", "agents"], {
-			cwd: project.path,
-		})
+		const result = await runCLI(
+			["diff", "@test/simple-agent", "--type", "agents"],
+			{
+				cwd: project.path,
+			},
+		)
 
 		expect(result.exitCode).toBe(0)
 	})
@@ -235,13 +250,28 @@ describe("diff command", () => {
 
 		// Add tool in subdir
 		await runCLI(
-			["add", "@test/test-tool", "--type", "tools", "--yes", "--cwd", `${project.path}/subdir`],
+			[
+				"add",
+				"@test/test-tool",
+				"--type",
+				"tools",
+				"--yes",
+				"--cwd",
+				`${project.path}/subdir`,
+			],
 			{ cwd: project.path },
 		)
 
 		// Diff in subdir
 		const result = await runCLI(
-			["diff", "@test/test-tool", "--type", "tools", "--cwd", `${project.path}/subdir`],
+			[
+				"diff",
+				"@test/test-tool",
+				"--type",
+				"tools",
+				"--cwd",
+				`${project.path}/subdir`,
+			],
 			{ cwd: project.path },
 		)
 

@@ -36,4 +36,3 @@ describe("trimDiff", () => {
 		expect(result).toBe(diff)
 	})
 })
-

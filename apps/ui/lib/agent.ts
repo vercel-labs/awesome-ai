@@ -1,4 +1,4 @@
-import { FileStorage } from "coding-agent"
+import { FileStorage } from "@awesome-ai/registry"
 
 export const agentDB = new FileStorage({
 	baseDir: ".agent",

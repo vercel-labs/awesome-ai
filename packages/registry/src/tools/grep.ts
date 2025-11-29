@@ -2,8 +2,8 @@ import { tool } from "ai"
 import { promises as fs } from "fs"
 import * as path from "path"
 import { z } from "zod"
-import { toolOutput } from "@/tools/lib/tool-output"
 import * as ripgrep from "@/tools/lib/ripgrep"
+import { toolOutput } from "@/tools/lib/tool-output"
 
 const LIMIT = 100
 

@@ -1,5 +1,5 @@
 {
-	"name": "coding-agent",
+	"name": "@awesome-ai/registry",
 	"version": "0.0.0",
 	"type": "module",
 	"scripts": {

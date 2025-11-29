@@ -1,6 +1,10 @@
 import { describe, expect, it } from "vitest"
+import {
+	getConfig,
+	getRawConfig,
+	resolveConfigPaths,
+} from "../utils/get-config"
 import { createTestProject } from "./lib/test-utils"
-import { getConfig, getRawConfig, resolveConfigPaths } from "../utils/get-config"
 
 describe("config loading", () => {
 	describe("getRawConfig", () => {
@@ -275,4 +279,3 @@ describe("config loading", () => {
 		})
 	})
 })
-

@@ -58,4 +58,3 @@ describe("test setup", () => {
 		expect(result.stdout).toContain("add agents, tools, and prompts")
 	})
 })
-

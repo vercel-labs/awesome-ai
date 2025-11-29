@@ -1,5 +1,5 @@
+import type { tools } from "@awesome-ai/registry"
 import type { InferUITool, UIMessage } from "ai"
-import type { tools } from "coding-agent"
 import { z } from "zod"
 
 // Message metadata

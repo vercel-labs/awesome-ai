@@ -7,53 +7,67 @@
  * 2. Extracts dependencies and file content
  * 3. Generates JSON files in the registry/ output directory
  * 4. Creates index.json files for each type
+ * 5. Validates output against Zod schemas
  */
 
 import { promises as fs } from "fs"
 import path from "path"
+import { z } from "zod"
 
 const SRC_DIR = path.resolve(import.meta.dirname, "../src")
 const OUTPUT_DIR = path.resolve(import.meta.dirname, "../registry")
+const PACKAGE_JSON_PATH = path.resolve(import.meta.dirname, "../package.json")
 
-// NPM packages that should be listed as dependencies
-const NPM_PACKAGES = new Set([
-	"ai",
-	"zod",
-	"diff",
-	"uuid",
-	"unzipper",
-])
+// Will be populated from package.json
+let NPM_PACKAGES: Set<string>
 
-interface RegistryFile {
-	path: string
-	type: string
-	content: string
+async function loadNpmPackages(): Promise<Set<string>> {
+	const content = await fs.readFile(PACKAGE_JSON_PATH, "utf-8")
+	const packageJson = JSON.parse(content)
+	const deps = Object.keys(packageJson.dependencies || {})
+	// Exclude devDependencies as they shouldn't be installed by consumers
+	return new Set(deps)
 }
 
-interface RegistryItem {
-	name: string
-	type: string
-	title: string
-	description: string
-	dependencies?: string[]
-	devDependencies?: string[]
-	registryDependencies?: string[]
-	files: RegistryFile[]
-}
+// Zod schemas for validation
+const registryFileSchema = z.object({
+	path: z.string(),
+	type: z.string(),
+	content: z.string(),
+})
 
-interface RegistryIndex {
-	name: string
-	homepage: string
-	items: Array<{
-		name: string
-		type: string
-		title: string
-		description: string
-		dependencies?: string[]
-		registryDependencies?: string[]
-		categories?: string[]
-	}>
-}
+const registryItemSchema = z.object({
+	$schema: z.string().optional(),
+	name: z.string(),
+	type: z.string(),
+	title: z.string(),
+	description: z.string(),
+	dependencies: z.array(z.string()).optional(),
+	devDependencies: z.array(z.string()).optional(),
+	registryDependencies: z.array(z.string()).optional(),
+	files: z.array(registryFileSchema),
+})
+
+const registryIndexItemSchema = z.object({
+	name: z.string(),
+	type: z.string(),
+	title: z.string(),
+	description: z.string(),
+	dependencies: z.array(z.string()).optional(),
+	registryDependencies: z.array(z.string()).optional(),
+	categories: z.array(z.string()).optional(),
+})
+
+const registryIndexSchema = z.object({
+	name: z.string(),
+	homepage: z.string(),
+	items: z.array(registryIndexItemSchema),
+})
+
+// Types derived from schemas
+type RegistryFile = z.infer<typeof registryFileSchema>
+type RegistryItem = z.infer<typeof registryItemSchema>
+type RegistryIndex = z.infer<typeof registryIndexSchema>
 
 function toTitleCase(str: string): string {
 	return str
@@ -273,9 +287,19 @@ async function processDirectory(type: "tools" | "agents" | "prompts"): Promise<R
 }
 
 async function writeRegistryItem(item: RegistryItem, type: string): Promise<void> {
+	// Validate item against schema
+	const result = registryItemSchema.safeParse(item)
+	if (!result.success) {
+		console.error(`  ✗ ${type}/${item.name}.json - validation failed:`)
+		for (const error of result.error.errors) {
+			console.error(`    - ${error.path.join(".")}: ${error.message}`)
+		}
+		throw new Error(`Invalid registry item: ${item.name}`)
+	}
+
 	const outputPath = path.join(OUTPUT_DIR, type, `${item.name}.json`)
 	await fs.mkdir(path.dirname(outputPath), { recursive: true })
-	await fs.writeFile(outputPath, JSON.stringify(item, null, "\t") + "\n")
+	await fs.writeFile(outputPath, JSON.stringify(result.data, null, "\t") + "\n")
 	console.log(`  ✓ ${type}/${item.name}.json`)
 }
 
@@ -289,42 +313,73 @@ async function writeRegistryIndex(items: RegistryItem[], type: string): Promise<
 			title: item.title,
 			description: item.description,
 			dependencies: item.dependencies,
-			registryDependencies: item.registryDeps,
+			registryDependencies: item.registryDependencies,
 		})),
+	}
+
+	// Validate index against schema
+	const result = registryIndexSchema.safeParse(index)
+	if (!result.success) {
+		console.error(`  ✗ ${type}/registry.json - validation failed:`)
+		for (const error of result.error.errors) {
+			console.error(`    - ${error.path.join(".")}: ${error.message}`)
+		}
+		throw new Error(`Invalid registry index for ${type}`)
 	}
 
 	// Also create registry.json (used by list command)
 	const registryPath = path.join(OUTPUT_DIR, type, "registry.json")
 	await fs.mkdir(path.dirname(registryPath), { recursive: true })
-	await fs.writeFile(registryPath, JSON.stringify(index, null, "\t") + "\n")
+	await fs.writeFile(registryPath, JSON.stringify(result.data, null, "\t") + "\n")
 	console.log(`  ✓ ${type}/registry.json`)
 }
 
 async function main() {
 	console.log("Building registry...\n")
 
+	// Load npm packages from package.json
+	NPM_PACKAGES = await loadNpmPackages()
+	console.log(`Detected ${NPM_PACKAGES.size} npm dependencies: ${[...NPM_PACKAGES].join(", ")}\n`)
+
 	// Clean output directory
 	await fs.rm(OUTPUT_DIR, { recursive: true, force: true })
 	await fs.mkdir(OUTPUT_DIR, { recursive: true })
 
 	const types = ["tools", "agents", "prompts"] as const
+	let totalItems = 0
+	let totalErrors = 0
 
 	for (const type of types) {
 		console.log(`Processing ${type}...`)
 		const items = await processDirectory(type)
 
 		for (const item of items) {
-			await writeRegistryItem(item, type)
+			try {
+				await writeRegistryItem(item, type)
+				totalItems++
+			} catch (error) {
+				totalErrors++
+				// Continue processing other items
+			}
 		}
 
 		if (items.length > 0) {
-			await writeRegistryIndex(items, type)
+			try {
+				await writeRegistryIndex(items, type)
+			} catch (error) {
+				totalErrors++
+			}
 		}
 
 		console.log(`  Found ${items.length} ${type}\n`)
 	}
 
-	console.log("Registry build complete!")
+	if (totalErrors > 0) {
+		console.error(`\nRegistry build completed with ${totalErrors} error(s).`)
+		process.exit(1)
+	}
+
+	console.log(`Registry build complete! Generated ${totalItems} items.`)
 }
 
 main().catch((error) => {

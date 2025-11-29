@@ -3,6 +3,11 @@
 	"type": "registry:tool",
 	"title": "Write",
 	"description": "Writes a file to the local filesystem.",
+	"dependencies": [
+		"ai",
+		"diff",
+		"zod"
+	],
 	"files": [
 		{
 			"path": "tools/write.ts",
@@ -19,10 +24,5 @@
 			"type": "registry:lib",
 			"content": "/**\n * Trim common indentation from diff output for cleaner display.\n * Removes the minimum shared indentation from all diff content lines.\n */\nexport function trimDiff(diff: string): string {\n\tconst lines = diff.split(\"\\n\")\n\tconst contentLines = lines.filter(\n\t\t(line) =>\n\t\t\t(line.startsWith(\"+\") || line.startsWith(\"-\") || line.startsWith(\" \")) &&\n\t\t\t!line.startsWith(\"---\") &&\n\t\t\t!line.startsWith(\"+++\"),\n\t)\n\n\tif (contentLines.length === 0) return diff\n\n\tlet min = Infinity\n\tfor (const line of contentLines) {\n\t\tconst content = line.slice(1)\n\t\tif (content.trim().length > 0) {\n\t\t\tconst match = content.match(/^(\\s*)/)\n\t\t\tif (match) min = Math.min(min, match[1]!.length)\n\t\t}\n\t}\n\n\tif (min === Infinity || min === 0) return diff\n\n\tconst trimmedLines = lines.map((line) => {\n\t\tif (\n\t\t\t(line.startsWith(\"+\") || line.startsWith(\"-\") || line.startsWith(\" \")) &&\n\t\t\t!line.startsWith(\"---\") &&\n\t\t\t!line.startsWith(\"+++\")\n\t\t) {\n\t\t\tconst prefix = line[0]\n\t\t\tconst content = line.slice(1)\n\t\t\treturn prefix + content.slice(min)\n\t\t}\n\t\treturn line\n\t})\n\n\treturn trimmedLines.join(\"\\n\")\n}\n"
 		}
-	],
-	"dependencies": [
-		"ai",
-		"diff",
-		"zod"
 	]
 }

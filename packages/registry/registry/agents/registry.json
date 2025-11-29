@@ -9,6 +9,16 @@
 			"description": "Coding Agent - an AI agent",
 			"dependencies": [
 				"ai"
+			],
+			"registryDependencies": [
+				"prompts:coding-agent",
+				"tools:bash",
+				"tools:edit",
+				"tools:glob",
+				"tools:grep",
+				"tools:list",
+				"tools:read",
+				"tools:write"
 			]
 		}
 	]

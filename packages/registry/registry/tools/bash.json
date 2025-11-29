@@ -3,6 +3,10 @@
 	"type": "registry:tool",
 	"title": "Bash",
 	"description": "Executes shell commands with real-time output streaming.",
+	"dependencies": [
+		"ai",
+		"zod"
+	],
 	"files": [
 		{
 			"path": "tools/bash.ts",
@@ -14,9 +18,5 @@
 			"type": "registry:lib",
 			"content": "import { z } from \"zod\"\n\n/**\n * Creates a union schema for tool output with pending, success, error, and optional streaming states.\n * This ensures consistent output structure across all tools.\n */\nexport function toolOutput<\n\tP extends Record<string, z.ZodTypeAny>,\n\tS extends Record<string, z.ZodTypeAny>,\n\tE extends Record<string, z.ZodTypeAny>,\n\tT extends Record<string, z.ZodTypeAny> | undefined = undefined,\n>({\n\tpending,\n\tsuccess,\n\terror,\n\tstreaming,\n}: {\n\tpending: P\n\tsuccess: S\n\terror: E\n\tstreaming?: T\n}) {\n\treturn z.union([\n\t\tz.object({\n\t\t\tstatus: z.literal(\"pending\"),\n\t\t\tmessage: z.string(),\n\t\t\t...pending,\n\t\t}),\n\t\tz.object({\n\t\t\tstatus: z.literal(\"success\"),\n\t\t\tmessage: z.string(),\n\t\t\t...success,\n\t\t}),\n\t\tz.object({\n\t\t\tstatus: z.literal(\"error\"),\n\t\t\tmessage: z.string(),\n\t\t\terror: z.string(),\n\t\t\t...error,\n\t\t}),\n\t\t...(streaming\n\t\t\t? [\n\t\t\t\t\tz.object({\n\t\t\t\t\t\tstatus: z.literal(\"streaming\"),\n\t\t\t\t\t\tmessage: z.string(),\n\t\t\t\t\t\t...streaming,\n\t\t\t\t\t}),\n\t\t\t\t]\n\t\t\t: []),\n\t])\n}\n"
 		}
-	],
-	"dependencies": [
-		"ai",
-		"zod"
 	]
 }

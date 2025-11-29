@@ -6,7 +6,8 @@
 		"dev": "turbo run dev",
 		"lint": "turbo run lint",
 		"test": "turbo run test",
-		"format": "biome check"
+		"format": "biome check",
+		"build:registry": "pnpm --filter=@awesome-ai/registry build:registry"
 	},
 	"devDependencies": {
 		"@biomejs/biome": "latest",

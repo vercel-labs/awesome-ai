@@ -1,4 +1,5 @@
 import { Experimental_Agent as Agent, type LanguageModel } from "ai"
+import { summarizeMessages } from "@/agents/lib/context"
 import {
 	FILE_READ_COMMANDS,
 	GIT_READ_COMMANDS,
@@ -57,6 +58,22 @@ export function createAgent({
 		model,
 		instructions,
 		tools,
+		async prepareStep({ steps, messages }) {
+			const threshold = 200_000
+			const lastStep = steps.at(-1)
+			const inputTokens = lastStep?.usage?.inputTokens
+
+			if (!inputTokens || inputTokens < threshold) {
+				return {}
+			}
+
+			const summarized = await summarizeMessages(messages, model, {
+				threshold,
+				keepRecent: 8,
+				protectTokens: 40_000,
+			})
+			return summarized ? { messages: summarized } : {}
+		},
 		providerOptions: {
 			openai: {
 				reasoningEffort: "medium",

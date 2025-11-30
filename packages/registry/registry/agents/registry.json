@@ -9,6 +9,7 @@
 			"description": "Coding Agent - an AI agent",
 			"dependencies": ["ai"],
 			"registryDependencies": [
+				"agents:lib/context",
 				"agents:lib/permissions",
 				"prompts:coding-agent",
 				"tools:bash",
@@ -27,6 +28,7 @@
 			"description": "Planning Agent - an AI agent",
 			"dependencies": ["ai"],
 			"registryDependencies": [
+				"agents:lib/context",
 				"agents:lib/permissions",
 				"prompts:planning-agent",
 				"tools:bash",

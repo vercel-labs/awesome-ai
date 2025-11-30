@@ -194,7 +194,7 @@ describe("readTool", () => {
 			}
 			expect(finalResult?.status).toBe("success")
 			// Line should be truncated to 2000 chars + "..."
-			expect(finalResult?.content).toContain("x".repeat(2000) + "...")
+			expect(finalResult?.content).toContain(`${"x".repeat(2000)}...`)
 			expect(finalResult?.content).not.toContain("x".repeat(2001))
 		})
 	})

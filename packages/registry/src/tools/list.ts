@@ -106,8 +106,7 @@ function buildTree(files: string[], rootPath: string): string {
 	return `${rootPath}/\n${renderDir(".", 0)}`
 }
 
-export const listTool = tool({
-	description: `Lists files and directories in a given path.
+const description = `Lists files and directories in a given path.
 
 Usage:
 - Lists files in a directory recursively
@@ -115,7 +114,10 @@ Usage:
 - Automatically ignores common build and dependency directories
 - Respects .gitignore rules
 - Results are limited to 100 files
-- Displays directory structure in a tree format`,
+- Displays directory structure in a tree format`
+
+export const listTool = tool({
+	description,
 	inputSchema: z.object({
 		path: z
 			.string()

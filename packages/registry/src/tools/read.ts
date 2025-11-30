@@ -148,8 +148,7 @@ async function isBinaryFile(filepath: string): Promise<boolean> {
 	}
 }
 
-export const readTool = tool({
-	description: `Reads a file from the local filesystem. You can access any file directly by using this tool.
+const description = `Reads a file from the local filesystem. You can access any file directly by using this tool.
 Assume this tool is able to read all files on the machine. If the User provides a path to a file assume that path is valid. It is okay to read a file that does not exist; an error will be returned.
 
 Usage:
@@ -161,7 +160,10 @@ Usage:
 - You have the capability to call multiple tools in a single response. It is always better to speculatively read multiple files as a batch that are potentially useful.
 - If you read a file that exists but has empty contents you will receive a system reminder warning in place of file contents.
 - Sensitive files like .env are blocked for security (but .env.example, .env.sample are allowed).
-- Binary files cannot be read and will return an error.`,
+- Binary files cannot be read and will return an error.`
+
+export const readTool = tool({
+	description,
 	inputSchema: z.object({
 		filePath: z.string().describe("The path to the file to read"),
 		offset: z

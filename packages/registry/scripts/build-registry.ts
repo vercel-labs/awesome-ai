@@ -86,14 +86,16 @@ function extractImports(content: string): {
 	const libFiles: string[] = []
 
 	// Match import statements
-	const importRegex = /import\s+(?:(?:\{[^}]*\}|\*\s+as\s+\w+|\w+)\s+from\s+)?["']([^"']+)["']/g
-	let match
+	const importRegex =
+		/import\s+(?:(?:\{[^}]*\}|\*\s+as\s+\w+|\w+)\s+from\s+)?["']([^"']+)["']/g
+	let match = importRegex.exec(content)
 
-	while ((match = importRegex.exec(content)) !== null) {
-		const importPath = match[1]
+	while (match !== null) {
+		const importPath = match[1]!
 
 		// Skip relative imports (handled separately for lib files)
 		if (importPath.startsWith("./") || importPath.startsWith("../")) {
+			match = importRegex.exec(content)
 			continue
 		}
 
@@ -111,16 +113,20 @@ function extractImports(content: string): {
 		} else if (importPath.startsWith("@/agents/")) {
 			const agentName = importPath.replace("@/agents/", "")
 			registryDeps.push(`agents:${agentName}`)
-		} else if (!importPath.startsWith("node:") && !importPath.startsWith("@/")) {
+		} else if (
+			!importPath.startsWith("node:") &&
+			!importPath.startsWith("@/")
+		) {
 			// External npm package
 			const packageName = importPath.startsWith("@")
 				? importPath.split("/").slice(0, 2).join("/")
-				: importPath.split("/")[0]
+				: importPath.split("/")[0]!
 
 			if (NPM_PACKAGES.has(packageName)) {
 				npmDeps.push(packageName)
 			}
 		}
+		match = importRegex.exec(content)
 	}
 
 	return {
@@ -135,38 +141,28 @@ function extractDescription(
 	name: string,
 	type: "tools" | "agents" | "prompts",
 ): string {
-	// For tools: Extract from tool({ description: "..." }) - handles multiline template literals
+	// For tools: Look for const description = `...`
 	if (type === "tools") {
-		// Match description in tool() call - handles backtick strings with newlines
-		const toolDescMatch = content.match(
-			/tool\(\s*\{\s*description:\s*`([^`]+)`/s,
-		)
-		if (toolDescMatch) {
-			// Get first line/sentence of the description
-			const fullDesc = toolDescMatch[1].trim()
-			const firstLine = fullDesc.split("\n")[0].trim()
-			// Truncate if too long
-			return firstLine.length > 100 ? firstLine.slice(0, 100) + "..." : firstLine
-		}
-
-		// Try single/double quoted description
-		const simpleDescMatch = content.match(
-			/tool\(\s*\{\s*description:\s*["']([^"']+)["']/,
-		)
-		if (simpleDescMatch) {
-			return simpleDescMatch[1]
+		const constDescMatch = content.match(/^const description\s*=\s*`([^`]+)`/m)
+		if (constDescMatch) {
+			const fullDesc = constDescMatch[1]!.trim()
+			const firstLine = fullDesc.split("\n")[0]!.trim()
+			return firstLine.length > 100
+				? `${firstLine.slice(0, 100)}...`
+				: firstLine
 		}
 	}
 
 	// For prompts: Extract from the prompt content (first meaningful line)
 	if (type === "prompts") {
-		// Look for the main prompt string
 		const promptMatch = content.match(/(?:PROMPT|prompt)\s*=\s*`\s*\n?([^`]+)/)
 		if (promptMatch) {
-			const lines = promptMatch[1].split("\n").filter((l) => l.trim())
+			const lines = promptMatch[1]!.split("\n").filter((l) => l.trim())
 			if (lines.length > 0) {
-				const firstLine = lines[0].trim()
-				return firstLine.length > 100 ? firstLine.slice(0, 100) + "..." : firstLine
+				const firstLine = lines[0]!.trim()
+				return firstLine.length > 100
+					? `${firstLine.slice(0, 100)}...`
+					: firstLine
 			}
 		}
 	}
@@ -175,14 +171,8 @@ function extractDescription(
 	if (type === "agents") {
 		const topJsdocMatch = content.match(/^\/\*\*\s*\n\s*\*\s*(.+?)(?:\n|\*\/)/s)
 		if (topJsdocMatch) {
-			return topJsdocMatch[1].trim()
+			return topJsdocMatch[1]!.trim()
 		}
-	}
-
-	// Fallback: Try to extract from any description property
-	const descMatch = content.match(/description:\s*["'`]([^"'`\n]+)["'`]/)
-	if (descMatch) {
-		return descMatch[1]
 	}
 
 	// Default descriptions based on type
@@ -194,7 +184,9 @@ function extractDescription(
 	return defaults[type] || `${toTitleCase(name)} for AI agents`
 }
 
-async function readLibFile(libName: string): Promise<{ path: string; content: string } | null> {
+async function readLibFile(
+	libName: string,
+): Promise<{ path: string; content: string } | null> {
 	const libPath = path.join(SRC_DIR, "tools/lib", `${libName}.ts`)
 	try {
 		const content = await fs.readFile(libPath, "utf-8")
@@ -214,7 +206,11 @@ async function processFile(
 	const name = path.basename(filePath, ".ts")
 
 	// Skip test files and lib directory
-	if (name.endsWith(".test") || filePath.includes("__tests__") || filePath.includes("/lib/")) {
+	if (
+		name.endsWith(".test") ||
+		filePath.includes("__tests__") ||
+		filePath.includes("/lib/")
+	) {
 		return null
 	}
 
@@ -263,7 +259,9 @@ async function processFile(
 	return item
 }
 
-async function processDirectory(type: "tools" | "agents" | "prompts"): Promise<RegistryItem[]> {
+async function processDirectory(
+	type: "tools" | "agents" | "prompts",
+): Promise<RegistryItem[]> {
 	const dirPath = path.join(SRC_DIR, type)
 	const items: RegistryItem[] = []
 
@@ -271,7 +269,11 @@ async function processDirectory(type: "tools" | "agents" | "prompts"): Promise<R
 		const entries = await fs.readdir(dirPath, { withFileTypes: true })
 
 		for (const entry of entries) {
-			if (entry.isFile() && entry.name.endsWith(".ts") && !entry.name.includes(".test.")) {
+			if (
+				entry.isFile() &&
+				entry.name.endsWith(".ts") &&
+				!entry.name.includes(".test.")
+			) {
 				const filePath = path.join(dirPath, entry.name)
 				const item = await processFile(filePath, type)
 				if (item) {
@@ -286,7 +288,10 @@ async function processDirectory(type: "tools" | "agents" | "prompts"): Promise<R
 	return items
 }
 
-async function writeRegistryItem(item: RegistryItem, type: string): Promise<void> {
+async function writeRegistryItem(
+	item: RegistryItem,
+	type: string,
+): Promise<void> {
 	// Validate item against schema
 	const result = registryItemSchema.safeParse(item)
 	if (!result.success) {
@@ -299,11 +304,14 @@ async function writeRegistryItem(item: RegistryItem, type: string): Promise<void
 
 	const outputPath = path.join(OUTPUT_DIR, type, `${item.name}.json`)
 	await fs.mkdir(path.dirname(outputPath), { recursive: true })
-	await fs.writeFile(outputPath, JSON.stringify(result.data, null, "\t") + "\n")
+	await fs.writeFile(outputPath, `${JSON.stringify(result.data, null, "\t")}\n`)
 	console.log(`  ✓ ${type}/${item.name}.json`)
 }
 
-async function writeRegistryIndex(items: RegistryItem[], type: string): Promise<void> {
+async function writeRegistryIndex(
+	items: RegistryItem[],
+	type: string,
+): Promise<void> {
 	const index: RegistryIndex = {
 		name: `@awesome-ai/${type}`,
 		homepage: "https://awesome-ai.com",
@@ -330,7 +338,10 @@ async function writeRegistryIndex(items: RegistryItem[], type: string): Promise<
 	// Also create registry.json (used by list command)
 	const registryPath = path.join(OUTPUT_DIR, type, "registry.json")
 	await fs.mkdir(path.dirname(registryPath), { recursive: true })
-	await fs.writeFile(registryPath, JSON.stringify(result.data, null, "\t") + "\n")
+	await fs.writeFile(
+		registryPath,
+		`${JSON.stringify(result.data, null, "\t")}\n`,
+	)
 	console.log(`  ✓ ${type}/registry.json`)
 }
 
@@ -339,7 +350,9 @@ async function main() {
 
 	// Load npm packages from package.json
 	NPM_PACKAGES = await loadNpmPackages()
-	console.log(`Detected ${NPM_PACKAGES.size} npm dependencies: ${[...NPM_PACKAGES].join(", ")}\n`)
+	console.log(
+		`Detected ${NPM_PACKAGES.size} npm dependencies: ${[...NPM_PACKAGES].join(", ")}\n`,
+	)
 
 	// Clean output directory
 	await fs.rm(OUTPUT_DIR, { recursive: true, force: true })
@@ -357,7 +370,7 @@ async function main() {
 			try {
 				await writeRegistryItem(item, type)
 				totalItems++
-			} catch (error) {
+			} catch (_error) {
 				totalErrors++
 				// Continue processing other items
 			}
@@ -366,7 +379,7 @@ async function main() {
 		if (items.length > 0) {
 			try {
 				await writeRegistryIndex(items, type)
-			} catch (error) {
+			} catch (_error) {
 				totalErrors++
 			}
 		}
@@ -386,4 +399,3 @@ main().catch((error) => {
 	console.error("Build failed:", error)
 	process.exit(1)
 })
-

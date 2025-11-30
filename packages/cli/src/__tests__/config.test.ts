@@ -94,6 +94,7 @@ describe("config loading", () => {
 							"@private": {
 								url: "https://private.com/{type}/{name}.json",
 								headers: {
+									// biome-ignore lint/suspicious/noTemplateCurlyInString: This is an intentional literal string, not a template
 									Authorization: "Bearer ${TOKEN}",
 								},
 							},
@@ -111,6 +112,7 @@ describe("config loading", () => {
 			if (typeof registry === "object" && registry !== null) {
 				expect(registry.url).toBe("https://private.com/{type}/{name}.json")
 				expect(registry.headers).toEqual({
+					// biome-ignore lint/suspicious/noTemplateCurlyInString: This is an intentional literal string, not a template
 					Authorization: "Bearer ${TOKEN}",
 				})
 			}

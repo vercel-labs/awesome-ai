@@ -209,7 +209,7 @@
 
 .skeleton {
 	* {
-		pointer-events: none !important;
+		pointer-events: none;
 	}
 
 	*[class^="text-"] {

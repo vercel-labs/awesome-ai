@@ -90,8 +90,7 @@ function formatMatches(matches: Match[]): string {
 	return outputLines.join("\n")
 }
 
-export const grepTool = tool({
-	description: `Searches for patterns in files using ripgrep.
+const description = `Searches for patterns in files using ripgrep.
 
 Usage:
 - Searches for regex patterns in file contents
@@ -99,7 +98,10 @@ Usage:
 - Results are sorted by file modification time (most recent first)
 - Results are limited to 100 matches
 - Respects .gitignore rules
-- Useful for finding specific code patterns, function definitions, variable usage, etc.`,
+- Useful for finding specific code patterns, function definitions, variable usage, etc.`
+
+export const grepTool = tool({
+	description,
 	inputSchema: z.object({
 		pattern: z
 			.string()

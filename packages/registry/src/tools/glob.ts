@@ -44,8 +44,7 @@ async function globFiles(
 	return files
 }
 
-export const globTool = tool({
-	description: `Searches for files matching a glob pattern.
+const description = `Searches for files matching a glob pattern.
 
 Usage:
 - Finds files by name pattern (e.g., "*.ts", "**/*.test.js")
@@ -53,7 +52,10 @@ Usage:
 - Results are limited to 100 files
 - Respects .gitignore rules
 - Supports full glob syntax: **, {a,b}, [abc]
-- Useful for finding files by name or extension`,
+- Useful for finding files by name or extension`
+
+export const globTool = tool({
+	description,
 	inputSchema: z.object({
 		pattern: z.string().describe("The glob pattern to match files against"),
 		path: z

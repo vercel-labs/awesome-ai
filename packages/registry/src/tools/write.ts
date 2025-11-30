@@ -8,7 +8,6 @@ import { trimDiff } from "@/tools/lib/trim-diff"
 import {
 	type Permission,
 	checkPermission,
-	DEFAULT_FILE_PERMISSIONS,
 	PermissionDeniedError,
 } from "@/agents/lib/permissions"
 
@@ -79,7 +78,7 @@ const outputSchema = toolOutput({
  * const permissiveWrite = createWriteTool("allow")
  */
 export function createWriteTool(
-	permissions: Permission | Record<string, Permission> = DEFAULT_FILE_PERMISSIONS,
+	permissions: Permission | Record<string, Permission> = "ask",
 ) {
 	const permissionPatterns =
 		typeof permissions === "string" ? { "*": permissions } : permissions

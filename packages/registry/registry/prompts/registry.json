@@ -7,6 +7,12 @@
 			"type": "registry:prompt",
 			"title": "Coding Agent",
 			"description": "You are a coding agent that helps users with software engineering tasks. Use the instructions below ..."
+		},
+		{
+			"name": "planning-agent",
+			"type": "registry:prompt",
+			"title": "Planning Agent",
+			"description": "You are a planning agent that helps users analyze code and create implementation plans. You can expl..."
 		}
 	]
 }

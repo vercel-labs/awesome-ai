@@ -3,9 +3,7 @@
 	"type": "registry:agent",
 	"title": "Planning Agent",
 	"description": "Planning Agent - an AI agent",
-	"dependencies": [
-		"ai"
-	],
+	"dependencies": ["ai"],
 	"registryDependencies": [
 		"agents:lib/permissions",
 		"prompts:planning-agent",

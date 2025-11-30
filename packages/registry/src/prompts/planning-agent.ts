@@ -161,4 +161,3 @@ export function getSystemPrompt(options?: {
 - Today's date: ${date}
 `
 }
-

@@ -1,5 +1,6 @@
-import { describe, expect, it } from "vitest"
-import { bashTool } from "../bash"
+import { assert, describe, expect, it } from "vitest"
+import { PermissionDeniedError } from "@/agents/lib/permissions"
+import { bashTool, createBashTool } from "../bash"
 import { executeTool } from "./lib/test-utils"
 
 describe("bashTool", () => {
@@ -292,4 +293,43 @@ describe("bashTool", () => {
 		expect(finalResult.output).toContain("second")
 		expect(finalResult.output).toContain("third")
 	}, 5000)
+
+	it("defaults to requiring approval for all commands", () => {
+		const { needsApproval } = bashTool
+		assert(typeof needsApproval === "function")
+
+		const opts = { toolCallId: "test", messages: [] }
+		expect(
+			needsApproval({ command: "echo hello", description: "" }, opts),
+		).toBe(true)
+		expect(needsApproval({ command: "ls", description: "" }, opts)).toBe(true)
+	})
+
+	it("respects custom permissions", () => {
+		const bash = createBashTool({
+			"echo*": "allow",
+			"rm*": "deny",
+			"*": "ask",
+		})
+
+		const { needsApproval } = bash
+		assert(typeof needsApproval === "function")
+
+		const opts = { toolCallId: "test", messages: [] }
+
+		// Allowed command
+		expect(
+			needsApproval({ command: "echo hello", description: "" }, opts),
+		).toBe(false)
+
+		// Ask command
+		expect(needsApproval({ command: "cat file", description: "" }, opts)).toBe(
+			true,
+		)
+
+		// Denied command
+		expect(() =>
+			needsApproval({ command: "rm -rf /", description: "" }, opts),
+		).toThrow(PermissionDeniedError)
+	})
 })

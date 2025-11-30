@@ -3,13 +3,13 @@ import { createTwoFilesPatch } from "diff"
 import { promises as fs } from "fs"
 import * as path from "path"
 import { z } from "zod"
-import { toolOutput } from "@/tools/lib/tool-output"
-import { trimDiff } from "@/tools/lib/trim-diff"
 import {
-	type Permission,
 	checkPermission,
+	type Permission,
 	PermissionDeniedError,
 } from "@/agents/lib/permissions"
+import { toolOutput } from "@/tools/lib/tool-output"
+import { trimDiff } from "@/tools/lib/trim-diff"
 
 /**
  * Check if a path is contained within a directory

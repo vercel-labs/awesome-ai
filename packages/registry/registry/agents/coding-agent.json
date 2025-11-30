@@ -3,9 +3,7 @@
 	"type": "registry:agent",
 	"title": "Coding Agent",
 	"description": "Coding Agent - an AI agent",
-	"dependencies": [
-		"ai"
-	],
+	"dependencies": ["ai"],
 	"registryDependencies": [
 		"agents:lib/permissions",
 		"prompts:coding-agent",

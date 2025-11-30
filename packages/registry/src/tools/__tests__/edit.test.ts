@@ -1,10 +1,12 @@
 import { promises as fs } from "fs"
 import * as os from "os"
 import * as path from "path"
-import { afterEach, beforeEach, describe, expect, it } from "vitest"
+import { afterEach, assert, beforeEach, describe, expect, it } from "vitest"
+import { PermissionDeniedError } from "@/agents/lib/permissions"
 import {
 	BlockAnchorReplacer,
 	ContextAwareReplacer,
+	createEditTool,
 	EscapeNormalizedReplacer,
 	editTool,
 	IndentationFlexibleReplacer,
@@ -471,5 +473,59 @@ describe("editTool", () => {
 		expect(finalResult?.diff).toBeDefined()
 		expect(finalResult?.diff).toContain("-old")
 		expect(finalResult?.diff).toContain("+new")
+	})
+
+	it("defaults to requiring approval for all files", () => {
+		const { needsApproval } = editTool
+		assert(typeof needsApproval === "function")
+
+		const opts = { toolCallId: "test", messages: [] }
+		expect(
+			needsApproval(
+				{ filePath: "/any/file.ts", oldString: "a", newString: "b" },
+				opts,
+			),
+		).toBe(true)
+	})
+
+	it("respects custom permissions", () => {
+		const edit = createEditTool({
+			"*.ts": "allow",
+			"*node_modules*": "deny",
+			"*": "ask",
+		})
+
+		const { needsApproval } = edit
+		assert(typeof needsApproval === "function")
+
+		const opts = { toolCallId: "test", messages: [] }
+
+		// Allowed file
+		expect(
+			needsApproval(
+				{ filePath: "/src/file.ts", oldString: "a", newString: "b" },
+				opts,
+			),
+		).toBe(false)
+
+		// Ask file
+		expect(
+			needsApproval(
+				{ filePath: "/src/file.js", oldString: "a", newString: "b" },
+				opts,
+			),
+		).toBe(true)
+
+		// Denied file
+		expect(() =>
+			needsApproval(
+				{
+					filePath: "/node_modules/pkg/index.js",
+					oldString: "a",
+					newString: "b",
+				},
+				opts,
+			),
+		).toThrow(PermissionDeniedError)
 	})
 })

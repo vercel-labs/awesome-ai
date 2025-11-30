@@ -1,8 +1,9 @@
 import { promises as fs } from "fs"
 import * as os from "os"
 import * as path from "path"
-import { afterEach, beforeEach, describe, expect, it } from "vitest"
-import { writeTool } from "../write"
+import { afterEach, assert, beforeEach, describe, expect, it } from "vitest"
+import { PermissionDeniedError } from "@/agents/lib/permissions"
+import { createWriteTool, writeTool } from "../write"
 import { executeTool } from "./lib/test-utils"
 
 describe("writeTool", () => {
@@ -92,13 +93,12 @@ describe("writeTool", () => {
 	it("calculates byte size correctly for unicode", async () => {
 		const filePath = path.join(tempDir, "unicode.txt")
 		const content = "Hello 世界 🌍"
-
 		const results = await executeTool(writeTool, { filePath, content })
-
 		const finalResult = results[results.length - 1] as {
 			status: string
 			byteSize: number
 		}
+
 		expect(finalResult?.status).toBe("success")
 		expect(finalResult?.byteSize).toBe(Buffer.byteLength(content, "utf-8"))
 	})
@@ -212,5 +212,43 @@ describe("writeTool", () => {
 		}
 		expect(finalResult?.status).toBe("success")
 		expect(finalResult?.result).toContain("overwritten")
+	})
+
+	it("defaults to requiring approval for all files", () => {
+		const { needsApproval } = writeTool
+		assert(typeof needsApproval === "function")
+
+		const opts = { toolCallId: "test", messages: [] }
+		expect(
+			needsApproval({ filePath: "/any/file.txt", content: "content" }, opts),
+		).toBe(true)
+	})
+
+	it("respects custom permissions", () => {
+		const write = createWriteTool({
+			"*.txt": "allow",
+			"*.env*": "deny",
+			"*": "ask",
+		})
+
+		const { needsApproval } = write
+		assert(typeof needsApproval === "function")
+
+		const opts = { toolCallId: "test", messages: [] }
+
+		// Allowed file
+		expect(
+			needsApproval({ filePath: "/data/file.txt", content: "content" }, opts),
+		).toBe(false)
+
+		// Ask file
+		expect(
+			needsApproval({ filePath: "/src/file.ts", content: "content" }, opts),
+		).toBe(true)
+
+		// Denied file
+		expect(() =>
+			needsApproval({ filePath: "/.env.local", content: "SECRET=value" }, opts),
+		).toThrow(PermissionDeniedError)
 	})
 })

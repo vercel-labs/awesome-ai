@@ -1,6 +1,6 @@
 import type { ModelMessage } from "ai"
 import { describe, expect, it } from "vitest"
-import { pruneToolOutputs } from "../context"
+import { pruneToolOutputs } from "@/agents/lib/context"
 
 describe("context management", () => {
 	describe("pruneToolOutputs", () => {

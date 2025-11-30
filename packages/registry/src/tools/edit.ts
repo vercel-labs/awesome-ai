@@ -3,6 +3,12 @@ import { createTwoFilesPatch } from "diff"
 import { promises as fs } from "fs"
 import * as path from "path"
 import { z } from "zod"
+import {
+	checkPermission,
+	DEFAULT_FILE_PERMISSIONS,
+	type Permission,
+	PermissionDeniedError,
+} from "@/agents/lib/permissions"
 import { toolOutput } from "@/tools/lib/tool-output"
 import { trimDiff } from "@/tools/lib/trim-diff"
 
@@ -549,8 +555,7 @@ function normalizeLineEndings(text: string): string {
 // Tool Definition
 // ============================================================================
 
-export const editTool = tool({
-	description: `Performs string replacements in files with fuzzy matching.
+const description = `Performs string replacements in files with fuzzy matching.
 
 Usage:
 - You must use your Read tool at least once in the conversation before editing. This tool will error if you attempt an edit without reading the file.
@@ -569,120 +574,173 @@ Matching strategies (tried in order):
 5. Indentation flexible match (ignores indentation level)
 6. Escape normalized match (handles \\n, \\t, etc.)
 7. Trimmed boundary match
-8. Context-aware match (uses surrounding lines)`,
-	inputSchema: z.object({
-		filePath: z.string().describe("The absolute path to the file to modify"),
-		oldString: z.string().describe("The text to replace"),
-		newString: z
-			.string()
-			.describe(
-				"The text to replace it with (must be different from oldString)",
-			),
-		replaceAll: z
-			.boolean()
-			.optional()
-			.describe("Replace all occurrences of oldString (default false)"),
-	}),
-	outputSchema: toolOutput({
-		pending: {
-			filePath: z.string(),
-			result: z.undefined(),
-		},
-		success: {
-			filePath: z.string(),
-			result: z.string(),
-			diff: z.string(),
-		},
-		error: {
-			filePath: z.string(),
-		},
-	}),
-	toModelOutput: (output) => {
-		if (output.status === "error") {
-			return {
-				type: "error-text",
-				value: `Error editing ${output.filePath}: ${output.error}`,
-			}
-		}
-		if (output.status === "success") {
-			return {
-				type: "text",
-				value: `${output.result}\n\nChanges:\n${output.diff}`,
-			}
-		}
-		throw new Error("Invalid output status in toModelOutput")
+8. Context-aware match (uses surrounding lines)`
+
+const inputSchema = z.object({
+	filePath: z.string().describe("The absolute path to the file to modify"),
+	oldString: z.string().describe("The text to replace"),
+	newString: z
+		.string()
+		.describe("The text to replace it with (must be different from oldString)"),
+	replaceAll: z
+		.boolean()
+		.optional()
+		.describe("Replace all occurrences of oldString (default false)"),
+})
+
+const outputSchema = toolOutput({
+	pending: {
+		filePath: z.string(),
+		result: z.undefined(),
 	},
-	async *execute({ filePath, oldString, newString, replaceAll = false }) {
-		if (oldString === newString) {
-			throw new Error("oldString and newString must be different")
-		}
-
-		const filepath = path.isAbsolute(filePath)
-			? filePath
-			: path.join(process.cwd(), filePath)
-
-		yield {
-			status: "pending",
-			message: `Editing file: ${filepath}`,
-			filePath: filepath,
-			result: undefined,
-		}
-
-		try {
-			try {
-				await fs.access(filepath)
-			} catch {
-				throw new Error(`File ${filepath} not found`)
-			}
-
-			const stats = await fs.stat(filepath)
-			if (stats.isDirectory()) {
-				throw new Error(`Path is a directory, not a file: ${filepath}`)
-			}
-
-			const contentRaw = await fs.readFile(filepath, "utf-8")
-			const content = normalizeLineEndings(contentRaw)
-
-			// Handle empty oldString as creating/overwriting file
-			if (oldString === "") {
-				await fs.writeFile(filepath, newString, "utf-8")
-				const diff = trimDiff(
-					createTwoFilesPatch(filepath, filepath, content, newString),
-				)
-				yield {
-					status: "success",
-					message: `File created: ${filepath}`,
-					filePath: filepath,
-					result: `File created: ${filepath}`,
-					diff,
-				}
-				return
-			}
-
-			// Use the replace function with all strategies
-			const result = replace(content, oldString, newString, replaceAll)
-
-			await fs.writeFile(filepath, result, "utf-8")
-
-			const message = `File edited: ${filepath}`
-			const diff = trimDiff(
-				createTwoFilesPatch(filepath, filepath, content, result),
-			)
-
-			yield {
-				status: "success",
-				message,
-				filePath: filepath,
-				result: message,
-				diff,
-			}
-		} catch (error) {
-			yield {
-				status: "error",
-				message: `Failed to edit ${filepath}`,
-				filePath: filepath,
-				error: error instanceof Error ? error.message : String(error),
-			}
-		}
+	success: {
+		filePath: z.string(),
+		result: z.string(),
+		diff: z.string(),
+	},
+	error: {
+		filePath: z.string(),
 	},
 })
+
+/**
+ * Create an edit tool with custom permission patterns.
+ *
+ * @param permissions - File path pattern to permission mapping, or a single
+ * permission for all files. Patterns support wildcards (*) for matching. By
+ * default requires approval for all edits.
+ *
+ * @example
+ * // Allow editing all .ts files without approval
+ * const tsEdit = createEditTool({ "*.ts": "allow", "*": "ask" })
+ *
+ * @example
+ * // Require approval for everything (default)
+ * const strictEdit = createEditTool({ "*": "ask" })
+ *
+ * @example
+ * // Allow all edits without approval
+ * const permissiveEdit = createEditTool("allow")
+ */
+export function createEditTool(
+	permissions:
+		| Permission
+		| Record<string, Permission> = DEFAULT_FILE_PERMISSIONS,
+) {
+	const permissionPatterns =
+		typeof permissions === "string" ? { "*": permissions } : permissions
+
+	return tool({
+		description,
+		inputSchema,
+		outputSchema,
+		needsApproval: ({ filePath }) => {
+			const filepath = path.isAbsolute(filePath)
+				? filePath
+				: path.join(process.cwd(), filePath)
+
+			const permission = checkPermission(filepath, permissionPatterns)
+
+			if (permission === "deny") {
+				throw new PermissionDeniedError("edit", filepath)
+			}
+
+			// Return true if approval needed (ask), false if auto-allowed
+			return permission === "ask"
+		},
+		toModelOutput: (output) => {
+			if (output.status === "error") {
+				return {
+					type: "error-text",
+					value: `Error editing ${output.filePath}: ${output.error}`,
+				}
+			}
+			if (output.status === "success") {
+				return {
+					type: "text",
+					value: `${output.result}\n\nChanges:\n${output.diff}`,
+				}
+			}
+			throw new Error("Invalid output status in toModelOutput")
+		},
+		async *execute({ filePath, oldString, newString, replaceAll = false }) {
+			if (oldString === newString) {
+				throw new Error("oldString and newString must be different")
+			}
+
+			const filepath = path.isAbsolute(filePath)
+				? filePath
+				: path.join(process.cwd(), filePath)
+
+			yield {
+				status: "pending",
+				message: `Editing file: ${filepath}`,
+				filePath: filepath,
+				result: undefined,
+			}
+
+			try {
+				try {
+					await fs.access(filepath)
+				} catch {
+					throw new Error(`File ${filepath} not found`)
+				}
+
+				const stats = await fs.stat(filepath)
+				if (stats.isDirectory()) {
+					throw new Error(`Path is a directory, not a file: ${filepath}`)
+				}
+
+				const contentRaw = await fs.readFile(filepath, "utf-8")
+				const content = normalizeLineEndings(contentRaw)
+
+				// Handle empty oldString as creating/overwriting file
+				if (oldString === "") {
+					await fs.writeFile(filepath, newString, "utf-8")
+					const diff = trimDiff(
+						createTwoFilesPatch(filepath, filepath, content, newString),
+					)
+					yield {
+						status: "success",
+						message: `File created: ${filepath}`,
+						filePath: filepath,
+						result: `File created: ${filepath}`,
+						diff,
+					}
+					return
+				}
+
+				// Use the replace function with all strategies
+				const result = replace(content, oldString, newString, replaceAll)
+
+				await fs.writeFile(filepath, result, "utf-8")
+
+				const message = `File edited: ${filepath}`
+				const diff = trimDiff(
+					createTwoFilesPatch(filepath, filepath, content, result),
+				)
+
+				yield {
+					status: "success",
+					message,
+					filePath: filepath,
+					result: message,
+					diff,
+				}
+			} catch (error) {
+				yield {
+					status: "error",
+					message: `Failed to edit ${filepath}`,
+					filePath: filepath,
+					error: error instanceof Error ? error.message : String(error),
+				}
+			}
+		},
+	})
+}
+
+/**
+ * Default edit tool with standard permissions.
+ * All file edits require approval by default.
+ */
+export const editTool = createEditTool()

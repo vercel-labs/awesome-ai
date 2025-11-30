@@ -1,6 +1,12 @@
 import { tool } from "ai"
 import { spawn } from "child_process"
 import { z } from "zod"
+import {
+	checkPermission,
+	DEFAULT_BASH_PERMISSIONS,
+	type Permission,
+	PermissionDeniedError,
+} from "@/agents/lib/permissions"
 import { toolOutput } from "@/tools/lib/tool-output"
 
 const MAX_OUTPUT_LENGTH = 30_000
@@ -97,8 +103,7 @@ async function killProcessTree(
 
 const shell = detectShell()
 
-export const bashTool = tool({
-	description: `Executes shell commands with real-time output streaming.
+const description = `Executes shell commands with real-time output streaming.
 
 Usage:
 - Commands are executed in the current working directory
@@ -106,205 +111,248 @@ Usage:
 - Commands have a default timeout of 1 minute, maximum 10 minutes
 - Output is truncated if it exceeds 30,000 characters
 - Use this tool for running builds, tests, installations, git commands, etc.
-- On timeout, processes are gracefully terminated (SIGTERM, then SIGKILL)`,
-	needsApproval: true,
-	inputSchema: z.object({
-		command: z.string().describe("The command to execute"),
-		timeout: z.number().optional().describe("Optional timeout in milliseconds"),
-		description: z
-			.string()
-			.describe(
-				"Clear, concise description of what this command does in 5-10 words",
-			),
-	}),
-	outputSchema: toolOutput({
-		pending: {
-			command: z.string(),
-			description: z.string(),
-			output: z.undefined(),
-		},
-		streaming: {
-			command: z.string(),
-			description: z.string(),
-			output: z.string(),
-		},
-		success: {
-			command: z.string(),
-			description: z.string(),
-			output: z.string(),
-			exitCode: z.number(),
-			timedOut: z.boolean().optional(),
-		},
-		error: {
-			command: z.string(),
-			description: z.string(),
-		},
-	}),
-	toModelOutput: (output) => {
-		if (output.status === "error") {
-			return {
-				type: "error-text",
-				value: `Error executing "${output.command}": ${output.error}`,
-			}
-		}
-		if (output.status === "success") {
-			return { type: "text", value: output.output }
-		}
-		// For streaming/pending, don't send to model yet
-		throw new Error("Invalid output status in toModelOutput")
+- On timeout, processes are gracefully terminated (SIGTERM, then SIGKILL)`
+
+const inputSchema = z.object({
+	command: z.string().describe("The command to execute"),
+	timeout: z.number().optional().describe("Optional timeout in milliseconds"),
+	description: z
+		.string()
+		.describe(
+			"Clear, concise description of what this command does in 5-10 words",
+		),
+})
+
+const outputSchema = toolOutput({
+	pending: {
+		command: z.string(),
+		description: z.string(),
+		output: z.undefined(),
 	},
-	async *execute({ command, timeout, description }) {
-		// Validate and constrain timeout
-		if (timeout !== undefined && timeout < 0) {
-			throw new Error(
-				`Invalid timeout value: ${timeout}. Timeout must be a positive number.`,
-			)
-		}
-		const effectiveTimeout = Math.min(timeout ?? DEFAULT_TIMEOUT, MAX_TIMEOUT)
+	streaming: {
+		command: z.string(),
+		description: z.string(),
+		output: z.string(),
+	},
+	success: {
+		command: z.string(),
+		description: z.string(),
+		output: z.string(),
+		exitCode: z.number(),
+		timedOut: z.boolean().optional(),
+	},
+	error: {
+		command: z.string(),
+		description: z.string(),
+	},
+})
 
-		yield {
-			status: "pending",
-			message: `Running: ${command}`,
-			command,
-			description,
-			output: undefined,
-		}
+/**
+ * Create a bash tool with custom permission patterns.
+ *
+ * @param permissions - Command pattern to permission mapping. Patterns support
+ * wildcards (*) for matching. Default allows safe read-only commands.
+ *
+ * @example
+ * // Allow all git commands without approval
+ * const gitBash = createBashTool({
+ *   ...DEFAULT_BASH_PERMISSIONS,
+ *   "git *": "allow",
+ * })
+ *
+ * @example
+ * // Require approval for everything
+ * const strictBash = createBashTool({ "*": "ask" })
+ */
+export function createBashTool(
+	permissions: Record<string, Permission> = DEFAULT_BASH_PERMISSIONS,
+) {
+	return tool({
+		description,
+		inputSchema,
+		outputSchema,
+		needsApproval: ({ command }) => {
+			const permission = checkPermission(command, permissions)
 
-		// Use an async iterator pattern with events
-		const proc = spawn(command, {
-			shell,
-			cwd: process.cwd(),
-			env: process.env,
-			stdio: ["ignore", "pipe", "pipe"],
-			// Detach on Unix to create process group for clean killing
-			detached: process.platform !== "win32",
-		})
+			if (permission === "deny") {
+				throw new PermissionDeniedError("bash", command)
+			}
 
-		let output = ""
-		let timedOut = false
-		const exited = { value: false }
-		let lastStreamTime = 0
-
-		// Create a queue for streaming updates
-		const streamQueue: string[] = []
-		let resolveStream: (() => void) | null = null
-
-		const queueStreamUpdate = () => {
-			const now = Date.now()
-			// Throttle updates to avoid overwhelming
-			if (now - lastStreamTime >= STREAM_THROTTLE_MS) {
-				lastStreamTime = now
-				streamQueue.push(output)
-				if (resolveStream) {
-					resolveStream()
-					resolveStream = null
+			// Return true if approval needed (ask), false if auto-allowed
+			return permission === "ask"
+		},
+		toModelOutput: (output) => {
+			if (output.status === "error") {
+				return {
+					type: "error-text",
+					value: `Error executing "${output.command}": ${output.error}`,
 				}
 			}
-		}
+			if (output.status === "success") {
+				return { type: "text", value: output.output }
+			}
+			// For streaming/pending, don't send to model yet
+			throw new Error("Invalid output status in toModelOutput")
+		},
+		async *execute({ command, timeout, description: desc }) {
+			// Validate and constrain timeout
+			if (timeout !== undefined && timeout < 0) {
+				throw new Error(
+					`Invalid timeout value: ${timeout}. Timeout must be a positive number.`,
+				)
+			}
+			const effectiveTimeout = Math.min(timeout ?? DEFAULT_TIMEOUT, MAX_TIMEOUT)
 
-		// Capture stdout
-		proc.stdout?.on("data", (chunk: Buffer) => {
-			output += chunk.toString()
-			queueStreamUpdate()
-		})
+			yield {
+				status: "pending",
+				message: `Running: ${command}`,
+				command,
+				description: desc,
+				output: undefined,
+			}
 
-		// Capture stderr
-		proc.stderr?.on("data", (chunk: Buffer) => {
-			output += chunk.toString()
-			queueStreamUpdate()
-		})
-
-		// Set up timeout
-		const timeoutTimer = setTimeout(() => {
-			timedOut = true
-			void killProcessTree(proc, exited)
-		}, effectiveTimeout)
-
-		// Create promise for process completion
-		const exitPromise = new Promise<number | null>((resolve, reject) => {
-			proc.once("close", (code) => {
-				exited.value = true
-				clearTimeout(timeoutTimer)
-				// Signal any pending stream wait
-				if (resolveStream) {
-					resolveStream()
-					resolveStream = null
-				}
-				resolve(code)
+			// Use an async iterator pattern with events
+			const proc = spawn(command, {
+				shell,
+				cwd: process.cwd(),
+				env: process.env,
+				stdio: ["ignore", "pipe", "pipe"],
+				// Detach on Unix to create process group for clean killing
+				detached: process.platform !== "win32",
 			})
 
-			proc.once("error", (error) => {
-				exited.value = true
-				clearTimeout(timeoutTimer)
-				if (resolveStream) {
-					resolveStream()
-					resolveStream = null
-				}
-				reject(new Error(`Failed to execute command: ${error.message}`))
-			})
-		})
+			let output = ""
+			let timedOut = false
+			const exited = { value: false }
+			let lastStreamTime = 0
 
-		// Stream output while process is running
-		try {
-			while (!exited.value) {
-				// Wait for either new output or process exit
-				await Promise.race([
-					new Promise<void>((resolve) => {
-						resolveStream = resolve
-					}),
-					exitPromise.catch(() => {}), // Don't throw here, handle below
-					sleep(STREAM_THROTTLE_MS * 2), // Fallback timeout
-				])
+			// Create a queue for streaming updates
+			const streamQueue: string[] = []
+			let resolveStream: (() => void) | null = null
 
-				// Yield streaming update if we have new output
-				if (streamQueue.length > 0) {
-					const latestOutput = streamQueue[streamQueue.length - 1]!
-					streamQueue.length = 0 // Clear queue
-
-					// Only yield if we have actual content
-					if (latestOutput.length > 0) {
-						yield {
-							status: "streaming",
-							message: `Running: ${command}`,
-							command,
-							description,
-							output: latestOutput,
-						}
+			const queueStreamUpdate = () => {
+				const now = Date.now()
+				// Throttle updates to avoid overwhelming
+				if (now - lastStreamTime >= STREAM_THROTTLE_MS) {
+					lastStreamTime = now
+					streamQueue.push(output)
+					if (resolveStream) {
+						resolveStream()
+						resolveStream = null
 					}
 				}
 			}
 
-			// Wait for exit and get code
-			const exitCode = await exitPromise
+			// Capture stdout
+			proc.stdout?.on("data", (chunk: Buffer) => {
+				output += chunk.toString()
+				queueStreamUpdate()
+			})
 
-			// Truncate output if too long
-			if (output.length > MAX_OUTPUT_LENGTH) {
-				output = output.slice(0, MAX_OUTPUT_LENGTH)
-				output += "\n\n(Output was truncated due to length limit)"
-			}
+			// Capture stderr
+			proc.stderr?.on("data", (chunk: Buffer) => {
+				output += chunk.toString()
+				queueStreamUpdate()
+			})
 
-			// Add timeout notice
-			if (timedOut) {
-				output += `\n\n(Command timed out after ${effectiveTimeout}ms)`
-			}
+			// Set up timeout
+			const timeoutTimer = setTimeout(() => {
+				timedOut = true
+				void killProcessTree(proc, exited)
+			}, effectiveTimeout)
 
-			yield {
-				status: "success",
-				message: `Command completed with exit code ${exitCode ?? -1}`,
-				command,
-				description,
-				output: `Command: ${command}\nDescription: ${description}\nExit code: ${exitCode ?? -1}\n\n${output}`,
-				exitCode: exitCode ?? -1,
-				timedOut: timedOut || undefined,
+			// Create promise for process completion
+			const exitPromise = new Promise<number | null>((resolve, reject) => {
+				proc.once("close", (code) => {
+					exited.value = true
+					clearTimeout(timeoutTimer)
+					// Signal any pending stream wait
+					if (resolveStream) {
+						resolveStream()
+						resolveStream = null
+					}
+					resolve(code)
+				})
+
+				proc.once("error", (error) => {
+					exited.value = true
+					clearTimeout(timeoutTimer)
+					if (resolveStream) {
+						resolveStream()
+						resolveStream = null
+					}
+					reject(new Error(`Failed to execute command: ${error.message}`))
+				})
+			})
+
+			// Stream output while process is running
+			try {
+				while (!exited.value) {
+					// Wait for either new output or process exit
+					await Promise.race([
+						new Promise<void>((resolve) => {
+							resolveStream = resolve
+						}),
+						exitPromise.catch(() => {}), // Don't throw here, handle below
+						sleep(STREAM_THROTTLE_MS * 2), // Fallback timeout
+					])
+
+					// Yield streaming update if we have new output
+					if (streamQueue.length > 0) {
+						const latestOutput = streamQueue[streamQueue.length - 1]!
+						streamQueue.length = 0 // Clear queue
+
+						// Only yield if we have actual content
+						if (latestOutput.length > 0) {
+							yield {
+								status: "streaming",
+								message: `Running: ${command}`,
+								command,
+								description: desc,
+								output: latestOutput,
+							}
+						}
+					}
+				}
+
+				// Wait for exit and get code
+				const exitCode = await exitPromise
+
+				// Truncate output if too long
+				if (output.length > MAX_OUTPUT_LENGTH) {
+					output = output.slice(0, MAX_OUTPUT_LENGTH)
+					output += "\n\n(Output was truncated due to length limit)"
+				}
+
+				// Add timeout notice
+				if (timedOut) {
+					output += `\n\n(Command timed out after ${effectiveTimeout}ms)`
+				}
+
+				yield {
+					status: "success",
+					message: `Command completed with exit code ${exitCode ?? -1}`,
+					command,
+					description: desc,
+					output: `Command: ${command}\nDescription: ${desc}\nExit code: ${exitCode ?? -1}\n\n${output}`,
+					exitCode: exitCode ?? -1,
+					timedOut: timedOut || undefined,
+				}
+			} catch (error) {
+				yield {
+					status: "error",
+					message: `Failed to execute: ${command}`,
+					command,
+					description: desc,
+					error: error instanceof Error ? error.message : String(error),
+				}
 			}
-		} catch (error) {
-			yield {
-				status: "error",
-				message: `Failed to execute: ${command}`,
-				command,
-				description,
-				error: error instanceof Error ? error.message : String(error),
-			}
-		}
-	},
-})
+		},
+	})
+}
+
+/**
+ * Default bash tool with standard permissions.
+ * Safe read-only commands are auto-allowed, others require approval.
+ */
+export const bashTool = createBashTool()

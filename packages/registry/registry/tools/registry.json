@@ -10,6 +10,9 @@
 			"dependencies": [
 				"ai",
 				"zod"
+			],
+			"registryDependencies": [
+				"agents:lib/permissions"
 			]
 		},
 		{
@@ -21,6 +24,9 @@
 				"ai",
 				"diff",
 				"zod"
+			],
+			"registryDependencies": [
+				"agents:lib/permissions"
 			]
 		},
 		{
@@ -72,6 +78,9 @@
 				"ai",
 				"diff",
 				"zod"
+			],
+			"registryDependencies": [
+				"agents:lib/permissions"
 			]
 		}
 	]

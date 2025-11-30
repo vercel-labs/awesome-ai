@@ -11,6 +11,7 @@
 				"ai"
 			],
 			"registryDependencies": [
+				"agents:lib/permissions",
 				"prompts:coding-agent",
 				"tools:bash",
 				"tools:edit",

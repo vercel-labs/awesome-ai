@@ -123,7 +123,7 @@ describe("diff command", () => {
 		const originalContent = await project.readFile("tools/test-tool.ts")
 		await project.writeFile(
 			"tools/test-tool.ts",
-			originalContent + "\n// Local modification\n",
+			`${originalContent}\n// Local modification\n`,
 		)
 
 		// Then check diff

@@ -253,7 +253,7 @@ async function resolveDependenciesRecursively(
 		} else {
 			try {
 				const [item] = await fetchRegistryItems([dep], type, config, options)
-				if (item && item.registryDependencies) {
+				if (item?.registryDependencies) {
 					const resolvedDeps = config?.registries
 						? resolveRegistryItemsFromRegistries(
 								item.registryDependencies,

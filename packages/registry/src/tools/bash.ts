@@ -3,7 +3,6 @@ import { spawn } from "child_process"
 import { z } from "zod"
 import {
 	checkPermission,
-	DEFAULT_BASH_PERMISSIONS,
 	type Permission,
 	PermissionDeniedError,
 } from "@/agents/lib/permissions"
@@ -154,18 +153,15 @@ const outputSchema = toolOutput({
  * wildcards (*) for matching. Default allows safe read-only commands.
  *
  * @example
- * // Allow all git commands without approval
- * const gitBash = createBashTool({
- *   ...DEFAULT_BASH_PERMISSIONS,
- *   "git *": "allow",
+ * // Allow read commands, ask for everything else
+ * const bash = createBashTool({
+ *   ...FILE_READ_COMMANDS,
+ *   ...SEARCH_COMMANDS,
+ *   "*": "ask",
  * })
- *
- * @example
- * // Require approval for everything
- * const strictBash = createBashTool({ "*": "ask" })
  */
 export function createBashTool(
-	permissions: Record<string, Permission> = DEFAULT_BASH_PERMISSIONS,
+	permissions: Record<string, Permission> = { "*": "ask" },
 ) {
 	return tool({
 		description,

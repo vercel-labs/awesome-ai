@@ -5,7 +5,6 @@ import * as path from "path"
 import { z } from "zod"
 import {
 	checkPermission,
-	DEFAULT_FILE_PERMISSIONS,
 	type Permission,
 	PermissionDeniedError,
 } from "@/agents/lib/permissions"
@@ -623,9 +622,7 @@ const outputSchema = toolOutput({
  * const permissiveEdit = createEditTool("allow")
  */
 export function createEditTool(
-	permissions:
-		| Permission
-		| Record<string, Permission> = DEFAULT_FILE_PERMISSIONS,
+	permissions: Permission | Record<string, Permission> = "ask",
 ) {
 	const permissionPatterns =
 		typeof permissions === "string" ? { "*": permissions } : permissions

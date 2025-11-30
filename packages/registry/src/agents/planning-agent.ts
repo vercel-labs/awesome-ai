@@ -1,34 +1,28 @@
 import { Experimental_Agent as Agent, type LanguageModel } from "ai"
 import {
-	DANGEROUS_COMMANDS,
 	FILE_READ_COMMANDS,
 	GIT_READ_COMMANDS,
 	type Permission,
 	SEARCH_COMMANDS,
 	TEXT_PROCESSING_COMMANDS,
 } from "@/agents/lib/permissions"
-import { getSystemPrompt } from "@/prompts/coding-agent"
+import { getSystemPrompt } from "@/prompts/planning-agent"
 import { createBashTool } from "@/tools/bash"
-import { createEditTool } from "@/tools/edit"
 import { globTool } from "@/tools/glob"
 import { grepTool } from "@/tools/grep"
 import { listTool } from "@/tools/list"
 import { readTool } from "@/tools/read"
-import { createWriteTool } from "@/tools/write"
 
 /**
- * Bash permissions for the coding agent.
- * - Read commands: auto-allowed
- * - Dangerous commands: denied
- * - Everything else: ask for approval
+ * Bash permissions for the planning agent.
+ * Read-only: all read commands allowed, everything else denied.
  */
 const BASH_PERMISSIONS: Record<string, Permission> = {
 	...FILE_READ_COMMANDS,
 	...SEARCH_COMMANDS,
 	...TEXT_PROCESSING_COMMANDS,
 	...GIT_READ_COMMANDS,
-	...DANGEROUS_COMMANDS,
-	"*": "ask",
+	"*": "deny",
 }
 
 export interface AgentSettings {
@@ -50,10 +44,9 @@ export function createAgent({
 		date,
 	})
 
+	// Read-only tools only - no write or edit
 	const tools = {
 		read: readTool,
-		write: createWriteTool(),
-		edit: createEditTool(),
 		bash: createBashTool(BASH_PERMISSIONS),
 		list: listTool,
 		grep: grepTool,

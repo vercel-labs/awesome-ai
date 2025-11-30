@@ -21,6 +21,24 @@
 				"tools:read",
 				"tools:write"
 			]
+		},
+		{
+			"name": "planning-agent",
+			"type": "registry:agent",
+			"title": "Planning Agent",
+			"description": "Planning Agent - an AI agent",
+			"dependencies": [
+				"ai"
+			],
+			"registryDependencies": [
+				"agents:lib/permissions",
+				"prompts:planning-agent",
+				"tools:bash",
+				"tools:glob",
+				"tools:grep",
+				"tools:list",
+				"tools:read"
+			]
 		}
 	]
 }

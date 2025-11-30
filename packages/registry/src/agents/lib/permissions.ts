@@ -6,25 +6,7 @@
  */
 export type Permission = "allow" | "deny" | "ask"
 
-/**
- * Permission configuration for all tools.
- */
-export interface ToolPermissions {
-	/** Bash command patterns (e.g., "ls*": "allow") */
-	bash?: Record<string, Permission>
-	/** Edit file path patterns */
-	edit?: Permission | Record<string, Permission>
-	/** Write file path patterns */
-	write?: Permission | Record<string, Permission>
-	/** Operations on files outside working directory */
-	externalDirectory?: Permission
-}
-
-/**
- * Default bash permissions - auto-allow safe read-only commands.
- */
-export const DEFAULT_BASH_PERMISSIONS: Record<string, Permission> = {
-	// File listing and info
+export const FILE_READ_COMMANDS: Record<string, Permission> = {
 	"ls*": "allow",
 	"pwd*": "allow",
 	"cat*": "allow",
@@ -36,22 +18,25 @@ export const DEFAULT_BASH_PERMISSIONS: Record<string, Permission> = {
 	"file*": "allow",
 	"stat*": "allow",
 	"du*": "allow",
+}
 
-	// Search commands
+export const SEARCH_COMMANDS: Record<string, Permission> = {
 	"grep*": "allow",
 	"rg*": "allow",
 	"find*": "allow",
 	"tree*": "allow",
 	"which*": "allow",
 	"whereis*": "allow",
+}
 
-	// Text processing (read-only)
+export const TEXT_PROCESSING_COMMANDS: Record<string, Permission> = {
 	"sort*": "allow",
 	"uniq*": "allow",
 	"cut*": "allow",
 	"diff*": "allow",
+}
 
-	// Git read-only commands
+export const GIT_READ_COMMANDS: Record<string, Permission> = {
 	"git status*": "allow",
 	"git diff*": "allow",
 	"git log*": "allow",
@@ -60,22 +45,15 @@ export const DEFAULT_BASH_PERMISSIONS: Record<string, Permission> = {
 	"git branch -v": "allow",
 	"git branch -a": "allow",
 	"git remote -v": "allow",
+	"git blame*": "allow",
+}
 
-	// Dangerous commands - explicitly deny
+/** Dangerous commands that should always be denied */
+export const DANGEROUS_COMMANDS: Record<string, Permission> = {
 	"rm -rf /*": "deny",
 	"rm -rf /": "deny",
 	"sudo rm*": "deny",
 	"chmod 777*": "deny",
-
-	// Everything else requires approval
-	"*": "ask",
-}
-
-/**
- * Default file permissions for edit/write operations.
- */
-export const DEFAULT_FILE_PERMISSIONS: Record<string, Permission> = {
-	"*": "ask",
 }
 
 /**
@@ -154,4 +132,3 @@ export class PermissionDeniedError extends Error {
 		this.name = "PermissionDeniedError"
 	}
 }
-

@@ -1,0 +1,25 @@
+{
+	"name": "planning-agent",
+	"type": "registry:agent",
+	"title": "Planning Agent",
+	"description": "Planning Agent - an AI agent",
+	"dependencies": [
+		"ai"
+	],
+	"registryDependencies": [
+		"agents:lib/permissions",
+		"prompts:planning-agent",
+		"tools:bash",
+		"tools:glob",
+		"tools:grep",
+		"tools:list",
+		"tools:read"
+	],
+	"files": [
+		{
+			"path": "agents/planning-agent.ts",
+			"type": "registry:agent",
+			"content": "import { Experimental_Agent as Agent, type LanguageModel } from \"ai\"\nimport {\n\tFILE_READ_COMMANDS,\n\tGIT_READ_COMMANDS,\n\ttype Permission,\n\tSEARCH_COMMANDS,\n\tTEXT_PROCESSING_COMMANDS,\n} from \"@/agents/lib/permissions\"\nimport { getSystemPrompt } from \"@/prompts/planning-agent\"\nimport { createBashTool } from \"@/tools/bash\"\nimport { globTool } from \"@/tools/glob\"\nimport { grepTool } from \"@/tools/grep\"\nimport { listTool } from \"@/tools/list\"\nimport { readTool } from \"@/tools/read\"\n\n/**\n * Bash permissions for the planning agent.\n * Read-only: all read commands allowed, everything else denied.\n */\nconst BASH_PERMISSIONS: Record<string, Permission> = {\n\t...FILE_READ_COMMANDS,\n\t...SEARCH_COMMANDS,\n\t...TEXT_PROCESSING_COMMANDS,\n\t...GIT_READ_COMMANDS,\n\t\"*\": \"deny\",\n}\n\nexport interface AgentSettings {\n\tmodel: LanguageModel\n\tworkingDirectory?: string\n\tplatform?: string\n\tdate?: string\n}\n\nexport function createAgent({\n\tmodel,\n\tworkingDirectory,\n\tplatform,\n\tdate,\n}: AgentSettings) {\n\tconst instructions = getSystemPrompt({\n\t\tworkingDirectory,\n\t\tplatform,\n\t\tdate,\n\t})\n\n\t// Read-only tools only - no write or edit\n\tconst tools = {\n\t\tread: readTool,\n\t\tbash: createBashTool(BASH_PERMISSIONS),\n\t\tlist: listTool,\n\t\tgrep: grepTool,\n\t\tglob: globTool,\n\t}\n\n\tconst agent = new Agent({\n\t\tmodel,\n\t\tinstructions,\n\t\ttools,\n\t\tproviderOptions: {\n\t\t\topenai: {\n\t\t\t\treasoningEffort: \"medium\",\n\t\t\t\treasoningSummary: \"detailed\",\n\t\t\t},\n\t\t},\n\t\tstopWhen: ({ steps }) => {\n\t\t\tif (steps.length === 0) return false\n\n\t\t\tconst lastStep = steps[steps.length - 1]\n\t\t\tif (!lastStep) return false\n\n\t\t\t// Continue if last step had tool calls (agent is still working)\n\t\t\tif (lastStep.toolCalls && lastStep.toolCalls.length > 0) {\n\t\t\t\treturn false\n\t\t\t}\n\n\t\t\t// Default: Agent generated text, so stop.\n\t\t\treturn true\n\t\t},\n\t})\n\n\treturn agent\n}\n"
+		}
+	]
+}

@@ -3,14 +3,8 @@
 	"type": "registry:tool",
 	"title": "Write",
 	"description": "Writes a file to the local filesystem.",
-	"dependencies": [
-		"ai",
-		"diff",
-		"zod"
-	],
-	"registryDependencies": [
-		"agents:lib/permissions"
-	],
+	"dependencies": ["ai", "diff", "zod"],
+	"registryDependencies": ["agents:lib/permissions"],
 	"files": [
 		{
 			"path": "tools/write.ts",

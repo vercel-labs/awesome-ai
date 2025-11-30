@@ -3,13 +3,8 @@
 	"type": "registry:tool",
 	"title": "Bash",
 	"description": "Executes shell commands with real-time output streaming.",
-	"dependencies": [
-		"ai",
-		"zod"
-	],
-	"registryDependencies": [
-		"agents:lib/permissions"
-	],
+	"dependencies": ["ai", "zod"],
+	"registryDependencies": ["agents:lib/permissions"],
 	"files": [
 		{
 			"path": "tools/bash.ts",

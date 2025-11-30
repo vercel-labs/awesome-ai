@@ -3,10 +3,7 @@
 	"type": "registry:tool",
 	"title": "Read",
 	"description": "Reads a file from the local filesystem. You can access any file directly by using this tool.",
-	"dependencies": [
-		"ai",
-		"zod"
-	],
+	"dependencies": ["ai", "zod"],
 	"files": [
 		{
 			"path": "tools/read.ts",

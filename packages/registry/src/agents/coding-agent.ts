@@ -1,6 +1,10 @@
 import { Experimental_Agent as Agent, type LanguageModel } from "ai"
 import { summarizeMessages } from "@/agents/lib/context"
 import {
+	type EnvironmentOptions,
+	getEnvironmentContext,
+} from "@/agents/lib/environment"
+import {
 	DANGEROUS_COMMANDS,
 	FILE_READ_COMMANDS,
 	GIT_READ_COMMANDS,
@@ -17,12 +21,6 @@ import { listTool } from "@/tools/list"
 import { readTool } from "@/tools/read"
 import { createWriteTool } from "@/tools/write"
 
-/**
- * Bash permissions for the coding agent.
- * - Read commands: auto-allowed
- * - Dangerous commands: denied
- * - Everything else: ask for approval
- */
 const BASH_PERMISSIONS: Record<string, Permission> = {
 	...FILE_READ_COMMANDS,
 	...SEARCH_COMMANDS,
@@ -34,23 +32,13 @@ const BASH_PERMISSIONS: Record<string, Permission> = {
 
 export interface AgentSettings {
 	model: LanguageModel
-	workingDirectory?: string
-	platform?: string
-	date?: string
+	cwd?: string
+	environment?: EnvironmentOptions
 }
 
-export function createAgent({
-	model,
-	workingDirectory,
-	platform,
-	date,
-}: AgentSettings) {
-	const instructions = getSystemPrompt({
-		workingDirectory,
-		platform,
-		date,
-	})
-
+export async function createAgent({ model, cwd, environment }: AgentSettings) {
+	const env = await getEnvironmentContext({ cwd, ...environment })
+	const instructions = getSystemPrompt(env)
 	const tools = {
 		read: readTool,
 		write: createWriteTool(),

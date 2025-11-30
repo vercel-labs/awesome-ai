@@ -10,6 +10,7 @@
 			"dependencies": ["ai"],
 			"registryDependencies": [
 				"agents:lib/context",
+				"agents:lib/environment",
 				"agents:lib/permissions",
 				"prompts:coding-agent",
 				"tools:bash",
@@ -29,6 +30,7 @@
 			"dependencies": ["ai"],
 			"registryDependencies": [
 				"agents:lib/context",
+				"agents:lib/environment",
 				"agents:lib/permissions",
 				"prompts:planning-agent",
 				"tools:bash",

@@ -1,6 +1,11 @@
 import { Experimental_Agent as Agent, type LanguageModel } from "ai"
 import { summarizeMessages } from "@/agents/lib/context"
 import {
+	type EnvironmentContext,
+	type EnvironmentOptions,
+	getEnvironmentContext,
+} from "@/agents/lib/environment"
+import {
 	FILE_READ_COMMANDS,
 	GIT_READ_COMMANDS,
 	type Permission,
@@ -14,10 +19,6 @@ import { grepTool } from "@/tools/grep"
 import { listTool } from "@/tools/list"
 import { readTool } from "@/tools/read"
 
-/**
- * Bash permissions for the planning agent.
- * Read-only: all read commands allowed, everything else denied.
- */
 const BASH_PERMISSIONS: Record<string, Permission> = {
 	...FILE_READ_COMMANDS,
 	...SEARCH_COMMANDS,
@@ -28,23 +29,16 @@ const BASH_PERMISSIONS: Record<string, Permission> = {
 
 export interface AgentSettings {
 	model: LanguageModel
-	workingDirectory?: string
-	platform?: string
-	date?: string
+	cwd?: string
+	environment?: EnvironmentOptions
 }
 
-export function createAgent({
-	model,
-	workingDirectory,
-	platform,
-	date,
-}: AgentSettings) {
-	const instructions = getSystemPrompt({
-		workingDirectory,
-		platform,
-		date,
+export async function createAgent({ model, cwd, environment }: AgentSettings) {
+	const env: EnvironmentContext = await getEnvironmentContext({
+		cwd,
+		...environment,
 	})
-
+	const instructions = getSystemPrompt(env)
 	// Read-only tools only - no write or edit
 	const tools = {
 		read: readTool,

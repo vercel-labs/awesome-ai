@@ -1,4 +1,6 @@
-const PLANNING_AGENT_SYSTEM_PROMPT = `
+import type { EnvironmentContext } from "@/agents/lib/environment"
+
+export const PLANNING_AGENT_PROMPT = `
 You are a planning agent that helps users analyze code and create implementation plans. You can explore and understand codebases but cannot make changes.
 
 # Core Identity
@@ -144,20 +146,29 @@ Example: "The error handling is in src/services/api.ts:142"
 - Focus on creating actionable plans and insights
 `.trim()
 
-export function getSystemPrompt(options?: {
-	workingDirectory?: string
-	platform?: string
-	date?: string
-}): string {
-	const workingDir = options?.workingDirectory || process.cwd()
-	const platform = options?.platform || process.platform
-	const date = options?.date || new Date().toDateString()
+export function getSystemPrompt(env: EnvironmentContext): string {
+	const sections: string[] = [PLANNING_AGENT_PROMPT]
 
-	return `${PLANNING_AGENT_SYSTEM_PROMPT}
+	sections.push(`# Environment
 
-# Environment
-- Working directory: ${workingDir}
-- Platform: ${platform}
-- Today's date: ${date}
-`
+<env>
+Working directory: ${env.workingDirectory}
+Platform: ${env.platform}
+Date: ${env.date}
+Git repository: ${env.isGitRepo ? "yes" : "no"}
+</env>`)
+
+	if (env.fileTree) {
+		sections.push(`# Project Files
+
+<files>
+${env.fileTree}
+</files>`)
+	}
+
+	if (env.customRules && env.customRules.length > 0) {
+		sections.push(env.customRules.join("\n\n"))
+	}
+
+	return sections.join("\n\n")
 }

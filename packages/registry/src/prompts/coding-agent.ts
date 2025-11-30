@@ -1,4 +1,6 @@
-const CODING_AGENT_SYSTEM_PROMPT = `
+import type { EnvironmentContext } from "@/agents/lib/environment"
+
+export const CODING_AGENT_PROMPT = `
 You are a coding agent that helps users with software engineering tasks. Use the instructions below to assist the user.
 
 # Core Identity
@@ -136,13 +138,6 @@ Example: "The error handling is in src/services/api.ts:142"
 - Don't re-read files you've already seen unless they've changed
 - Use context from previous reads when available
 
-# Environment Information
-
-When working with code, consider:
-- Platform: ${process.platform}
-- Current date: ${new Date().toDateString()}
-- Working with modern JavaScript/TypeScript and Bun runtime
-
 # Important Constraints
 
 - You cannot browse the internet in real-time
@@ -160,20 +155,29 @@ When working with code, consider:
 - Keep responses focused and actionable
 `.trim()
 
-export function getSystemPrompt(options?: {
-	workingDirectory?: string
-	platform?: string
-	date?: string
-}): string {
-	const workingDir = options?.workingDirectory || process.cwd()
-	const platform = options?.platform || process.platform
-	const date = options?.date || new Date().toDateString()
+export function getSystemPrompt(env: EnvironmentContext): string {
+	const sections: string[] = [CODING_AGENT_PROMPT]
 
-	return `${CODING_AGENT_SYSTEM_PROMPT}
+	sections.push(`# Environment
 
-# Environment
-- Working directory: ${workingDir}
-- Platform: ${platform}
-- Today's date: ${date}
-`
+<env>
+Working directory: ${env.workingDirectory}
+Platform: ${env.platform}
+Date: ${env.date}
+Git repository: ${env.isGitRepo ? "yes" : "no"}
+</env>`)
+
+	if (env.fileTree) {
+		sections.push(`# Project Files
+
+<files>
+${env.fileTree}
+</files>`)
+	}
+
+	if (env.customRules && env.customRules.length > 0) {
+		sections.push(env.customRules.join("\n\n"))
+	}
+
+	return sections.join("\n\n")
 }

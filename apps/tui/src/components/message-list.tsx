@@ -123,10 +123,7 @@ export function MessageList() {
 											>
 												<text>
 													<span fg={colors.green}>{toolName}</span>
-													<span fg={colors.muted}>
-														{" "}
-														({toolPart.state})
-													</span>
+													<span fg={colors.muted}> ({toolPart.state})</span>
 												</text>
 											</box>
 										)

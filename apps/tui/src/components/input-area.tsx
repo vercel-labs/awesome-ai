@@ -11,8 +11,10 @@ import {
 	isLoadingAtom,
 	messagesAtom,
 	selectedCommandAtom,
+	selectedModelAtom,
 	showAgentSelectorAtom,
 	showCommandsAtom,
+	showModelSelectorAtom,
 } from "./atoms"
 
 const chatKeyBindings = [
@@ -34,6 +36,9 @@ function executeCommand(commandName: string) {
 		case "/agent":
 			showAgentSelectorAtom.set(true)
 			break
+		case "/model":
+			showModelSelectorAtom.set(true)
+			break
 		case "/help":
 			addSystemMessage(
 				`Available commands:\n${COMMANDS.map((c) => `  ${c.name} - ${c.description}`).join("\n")}`,
@@ -52,9 +57,13 @@ function executeCommand(commandName: string) {
 		case "/time":
 			addSystemMessage(`Current time: ${new Date().toLocaleString()}`)
 			break
-		case "/version":
-			addSystemMessage(`Agent: ${currentAgent || "none"}\nVersion: 1.0.0`)
+		case "/version": {
+			const model = selectedModelAtom.get()
+			addSystemMessage(
+				`Agent: ${currentAgent || "none"}\nModel: ${model}\nVersion: 1.0.0`,
+			)
 			break
+		}
 		default:
 			addSystemMessage(`Unknown command: ${commandName}`)
 	}

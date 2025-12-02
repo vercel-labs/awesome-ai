@@ -64,7 +64,11 @@ export const add = new Command()
 			}
 
 			// Determine the type: --tool -> tools, --prompt -> prompts, default -> agents
-			const type = options.tool ? "tools" : options.prompt ? "prompts" : "agents"
+			const type = options.tool
+				? "tools"
+				: options.prompt
+					? "prompts"
+					: "agents"
 			const { errors } = await preFlightAdd(options)
 
 			if (errors[ERRORS.MISSING_CONFIG]) {

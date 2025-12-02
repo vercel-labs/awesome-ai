@@ -1,6 +1,5 @@
 import { useAtom } from "@lfades/atom"
 import type { KeyEvent, ScrollBoxRenderable } from "@opentui/core"
-import { useTerminalDimensions } from "@opentui/react"
 import { useEffect, useRef } from "react"
 import { colors } from "../theme"
 import {
@@ -10,14 +9,13 @@ import {
 	selectedAgentIndexAtom,
 	showAgentSelectorAtom,
 } from "./atoms"
+import { Dialog, DialogSpacer, DialogText, DialogTitle } from "./ui/dialog"
 
 export function AgentSelector() {
 	const [agents] = useAtom(availableAgentsAtom)
 	const [selectedIndex] = useAtom(selectedAgentIndexAtom)
 	const [currentAgent] = useAtom(currentAgentAtom)
-	const { width, height } = useTerminalDimensions()
 	const scrollRef = useRef<ScrollBoxRenderable>(null)
-	const panelWidth = 50
 	const panelHeight = Math.min(agents.length + 6, 20)
 
 	// Auto-scroll to keep selected item visible
@@ -38,63 +36,30 @@ export function AgentSelector() {
 
 	if (agents.length === 0) {
 		return (
-			<box
-				style={{
-					position: "absolute",
-					top: Math.floor(height / 2) - 4,
-					left: Math.floor(width / 2) - Math.floor(panelWidth / 2),
-					width: panelWidth,
-					height: 8,
-					backgroundColor: colors.bg,
-					border: true,
-					borderStyle: "single",
-					borderColor: colors.border,
-					paddingLeft: 1,
-					paddingRight: 1,
-					flexDirection: "column",
-				}}
-			>
-				<text>
-					<span fg={colors.green}>Select Agent</span>
-					<span fg={colors.muted}> (Esc to close)</span>
-				</text>
-				<box style={{ height: 1 }} />
-				<text fg={colors.muted}>No agents found.</text>
-				<text fg={colors.muted}>
+			<Dialog>
+				<DialogTitle color={colors.green}>Select Agent</DialogTitle>
+				<DialogText muted>No agents found.</DialogText>
+				<DialogText muted>
 					Make sure agents.json exists and has agents defined.
-				</text>
-			</box>
+				</DialogText>
+			</Dialog>
 		)
 	}
 
 	return (
-		<box
-			style={{
-				position: "absolute",
-				top: Math.floor(height / 2) - Math.floor(panelHeight / 2),
-				left: Math.floor(width / 2) - Math.floor(panelWidth / 2),
-				width: panelWidth,
-				height: panelHeight,
-				backgroundColor: colors.bg,
-				border: true,
-				borderStyle: "single",
-				borderColor: colors.border,
-				paddingLeft: 1,
-				paddingRight: 1,
-				flexDirection: "column",
-			}}
-		>
-			<text>
-				<span fg={colors.green}>Select Agent</span>
-				<span fg={colors.muted}> (↑↓ navigate, Enter select, Esc close)</span>
-			</text>
-			<box style={{ height: 1 }} />
+		<Dialog height={panelHeight} maxHeight={20}>
+			<DialogTitle
+				color={colors.green}
+				hint="↑↓ navigate, Enter select, Esc close"
+			>
+				Select Agent
+			</DialogTitle>
 			{currentAgent && (
 				<>
 					<text fg={colors.muted}>
 						Current: <span fg={colors.green}>{currentAgent}</span>
 					</text>
-					<box style={{ height: 1 }} />
+					<DialogSpacer />
 				</>
 			)}
 			<scrollbox
@@ -136,7 +101,7 @@ export function AgentSelector() {
 					</box>
 				))}
 			</scrollbox>
-		</box>
+		</Dialog>
 	)
 }
 

@@ -12,6 +12,7 @@ import {
 	showAgentSelectorAtom,
 	showCommandsAtom,
 	showDebugAtom,
+	showModelSelectorAtom,
 	showShortcutsAtom,
 } from "./components/atoms"
 import { CommandPalette } from "./components/command-palette"
@@ -20,6 +21,10 @@ import { Footer } from "./components/footer"
 import { Header } from "./components/header"
 import { InputArea } from "./components/input-area"
 import { MessageList } from "./components/message-list"
+import {
+	handleModelSelectorKey,
+	ModelSelector,
+} from "./components/model-selector"
 import { ShortcutsPanel } from "./components/shortcuts-panel"
 import { colors } from "./theme"
 import { createSystemMessage } from "./types"
@@ -32,12 +37,19 @@ function Chat() {
 	const [showShortcuts] = useAtom(showShortcutsAtom)
 	const [showCommands] = useAtom(showCommandsAtom)
 	const [showAgentSelector] = useAtom(showAgentSelectorAtom)
+	const [showModelSelector] = useAtom(showModelSelectorAtom)
 	const [currentAgent] = useAtom(currentAgentAtom)
 	const renderer = useRenderer()
 
 	useKeyboard((key) => {
 		// Handle agent selector keyboard events first
 		if (handleAgentSelectorKey(key)) {
+			key.preventDefault()
+			return
+		}
+
+		// Handle model selector keyboard events
+		if (handleModelSelectorKey(key)) {
 			key.preventDefault()
 			return
 		}
@@ -53,6 +65,13 @@ function Chat() {
 		if (key.name === "a" && (key.meta || key.option)) {
 			key.preventDefault()
 			showAgentSelectorAtom.set(!showAgentSelectorAtom.get())
+			return
+		}
+
+		// Alt+M to toggle model selector
+		if (key.name === "m" && (key.meta || key.option)) {
+			key.preventDefault()
+			showModelSelectorAtom.set(!showModelSelectorAtom.get())
 			return
 		}
 
@@ -112,6 +131,7 @@ function Chat() {
 			{showDebug && <DebugOverlay />}
 			{showShortcuts && <ShortcutsPanel />}
 			{showAgentSelector && <AgentSelector />}
+			{showModelSelector && <ModelSelector />}
 		</box>
 	)
 }

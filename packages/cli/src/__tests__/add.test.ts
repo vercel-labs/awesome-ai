@@ -84,10 +84,9 @@ describe("add command", () => {
 	it("adds tool files to correct location", async () => {
 		const project = await createProjectWithRegistry()
 
-		const result = await runCLI(
-			["add", "@test/test-tool", "--tool", "--yes"],
-			{ cwd: project.path },
-		)
+		const result = await runCLI(["add", "@test/test-tool", "--tool", "--yes"], {
+			cwd: project.path,
+		})
 
 		expect(result.exitCode).toBe(0)
 		expect(await project.exists("tools/test-tool.ts")).toBe(true)
@@ -111,10 +110,9 @@ describe("add command", () => {
 	it("adds agent files to correct location", async () => {
 		const project = await createProjectWithRegistry()
 
-		const result = await runCLI(
-			["add", "@test/simple-agent", "--yes"],
-			{ cwd: project.path },
-		)
+		const result = await runCLI(["add", "@test/simple-agent", "--yes"], {
+			cwd: project.path,
+		})
 
 		expect(result.exitCode).toBe(0)
 		expect(await project.exists("agents/simple-agent.ts")).toBe(true)
@@ -189,13 +187,7 @@ describe("add command", () => {
 		const project = await createProjectWithRegistry()
 
 		const result = await runCLI(
-			[
-				"add",
-				"@test/test-tool",
-				"@test/tool-with-lib",
-				"--tool",
-				"--yes",
-			],
+			["add", "@test/test-tool", "@test/tool-with-lib", "--tool", "--yes"],
 			{ cwd: project.path },
 		)
 
@@ -269,10 +261,9 @@ describe("add command", () => {
 			},
 		})
 
-		const result = await runCLI(
-			["add", "@test/agent-with-lib", "--yes"],
-			{ cwd: project.path },
-		)
+		const result = await runCLI(["add", "@test/agent-with-lib", "--yes"], {
+			cwd: project.path,
+		})
 
 		expect(result.exitCode).toBe(0)
 
@@ -290,10 +281,9 @@ describe("add command", () => {
 	it("adds agent with lib files to correct locations", async () => {
 		const project = await createProjectWithRegistry()
 
-		const result = await runCLI(
-			["add", "@test/agent-with-lib", "--yes"],
-			{ cwd: project.path },
-		)
+		const result = await runCLI(["add", "@test/agent-with-lib", "--yes"], {
+			cwd: project.path,
+		})
 
 		expect(result.exitCode).toBe(0)
 
@@ -317,10 +307,9 @@ describe("add command", () => {
 	it("handles agent and prompt with same name correctly", async () => {
 		const project = await createProjectWithRegistry()
 
-		const result = await runCLI(
-			["add", "@test/full-agent", "--yes"],
-			{ cwd: project.path },
-		)
+		const result = await runCLI(["add", "@test/full-agent", "--yes"], {
+			cwd: project.path,
+		})
 
 		expect(result.exitCode).toBe(0)
 
@@ -363,10 +352,9 @@ describe("add command", () => {
 	it("resolves registry dependencies recursively", async () => {
 		const project = await createProjectWithRegistry()
 
-		const result = await runCLI(
-			["add", "@test/test-agent", "--yes"],
-			{ cwd: project.path },
-		)
+		const result = await runCLI(["add", "@test/test-agent", "--yes"], {
+			cwd: project.path,
+		})
 
 		expect(result.exitCode).toBe(0)
 
@@ -394,10 +382,9 @@ describe("add command with missing agents.json", () => {
 			// No agents.json file - simulates missing config
 		})
 
-		const result = await runCLI(
-			["add", "test-tool", "--tool", "--yes"],
-			{ cwd: project.path },
-		)
+		const result = await runCLI(["add", "test-tool", "--tool", "--yes"], {
+			cwd: project.path,
+		})
 
 		// The output should mention agents.json when config is missing
 		expect(result.stdout).toContain("agents.json")
@@ -442,10 +429,9 @@ describe("add command with circular dependencies", () => {
 			},
 		})
 
-		const result = await runCLI(
-			["add", "@test/circular-agent-a", "--yes"],
-			{ cwd: project.path },
-		)
+		const result = await runCLI(["add", "@test/circular-agent-a", "--yes"], {
+			cwd: project.path,
+		})
 
 		// Should succeed despite circular dependencies
 		expect(result.exitCode).toBe(0)
@@ -485,15 +471,12 @@ describe("add command with environment variable override", () => {
 		})
 
 		// Use env var to point to local fixtures instead of GitHub
-		const result = await runCLI(
-			["add", "simple-agent", "--yes"],
-			{
-				cwd: project.path,
-				env: {
-					AWESOME_AI_REGISTRY_URL: FIXTURES_DIR,
-				},
+		const result = await runCLI(["add", "simple-agent", "--yes"], {
+			cwd: project.path,
+			env: {
+				AWESOME_AI_REGISTRY_URL: FIXTURES_DIR,
 			},
-		)
+		})
 
 		expect(result.exitCode).toBe(0)
 		expect(await project.exists("agents/simple-agent.ts")).toBe(true)
@@ -526,15 +509,12 @@ describe("add command with environment variable override", () => {
 		})
 
 		// Use REGISTRY_URL as fallback
-		const result = await runCLI(
-			["add", "test-tool", "--tool", "--yes"],
-			{
-				cwd: project.path,
-				env: {
-					REGISTRY_URL: FIXTURES_DIR,
-				},
+		const result = await runCLI(["add", "test-tool", "--tool", "--yes"], {
+			cwd: project.path,
+			env: {
+				REGISTRY_URL: FIXTURES_DIR,
 			},
-		)
+		})
 
 		expect(result.exitCode).toBe(0)
 		expect(await project.exists("tools/test-tool.ts")).toBe(true)
@@ -569,10 +549,9 @@ describe("add command with local file registry", () => {
 			},
 		})
 
-		const result = await runCLI(
-			["add", "@local/simple-agent", "--yes"],
-			{ cwd: project.path },
-		)
+		const result = await runCLI(["add", "@local/simple-agent", "--yes"], {
+			cwd: project.path,
+		})
 
 		expect(result.exitCode).toBe(0)
 		expect(await project.exists("agents/simple-agent.ts")).toBe(true)
@@ -607,10 +586,9 @@ describe("add command with local file registry", () => {
 			},
 		})
 
-		const result = await runCLI(
-			["add", "@local/agent-with-lib", "--yes"],
-			{ cwd: project.path },
-		)
+		const result = await runCLI(["add", "@local/agent-with-lib", "--yes"], {
+			cwd: project.path,
+		})
 
 		expect(result.exitCode).toBe(0)
 

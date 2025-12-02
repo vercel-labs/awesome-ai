@@ -5,6 +5,7 @@ import {
 	debugLog,
 	isLoadingAtom,
 	messagesAtom,
+	selectedModelAtom,
 } from "../components/atoms"
 import {
 	createAssistantMessage,
@@ -48,7 +49,8 @@ export async function loadAgent(agentName: string): Promise<boolean> {
 		// Agents typically export a createAgent function
 		if (typeof agentModule.createAgent === "function") {
 			const { gateway } = await import("@ai-sdk/gateway")
-			const model = gateway("anthropic/claude-sonnet-4-20250514")
+			const modelId = selectedModelAtom.get()
+			const model = gateway(modelId)
 
 			const agent = await agentModule.createAgent({
 				model,

@@ -2,6 +2,7 @@ import { atom } from "@lfades/atom"
 import type { TextareaRenderable } from "@opentui/core"
 import type { TUIMessage } from "../types"
 import type { DiscoveredAgent } from "../utils/agent-discovery"
+import type { AvailableModel } from "../utils/models"
 
 // Test conversation for development using UIMessage structure
 const testConversation: TUIMessage[] = [
@@ -277,6 +278,12 @@ export const showAgentSelectorAtom = atom(false)
 export const availableAgentsAtom = atom<DiscoveredAgent[]>([])
 export const selectedAgentIndexAtom = atom(0)
 export const currentAgentAtom = atom<string | null>(null)
+
+// Model selection
+export const showModelSelectorAtom = atom(false)
+export const availableModelsAtom = atom<AvailableModel[]>([])
+export const selectedModelIndexAtom = atom(0)
+export const isLoadingModelsAtom = atom(false)
 
 export function debugLog(...args: unknown[]) {
 	const msg = args

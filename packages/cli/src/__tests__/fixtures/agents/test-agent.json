@@ -3,7 +3,7 @@
 	"type": "registry:agent",
 	"title": "Test Agent",
 	"description": "A test agent for CLI testing",
-	"registryDependencies": ["test-tool", "test-prompt"],
+	"registryDependencies": ["tools:test-tool", "prompts:test-prompt"],
 	"dependencies": ["ai", "zod"],
 	"files": [
 		{

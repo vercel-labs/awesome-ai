@@ -7,16 +7,14 @@
 			"type": "registry:tool",
 			"title": "Bash",
 			"description": "Executes shell commands with real-time output streaming.",
-			"dependencies": ["ai", "zod"],
-			"registryDependencies": ["agents:lib/permissions"]
+			"dependencies": ["ai", "zod"]
 		},
 		{
 			"name": "edit",
 			"type": "registry:tool",
 			"title": "Edit",
 			"description": "Performs string replacements in files with fuzzy matching.",
-			"dependencies": ["ai", "diff", "zod"],
-			"registryDependencies": ["agents:lib/permissions"]
+			"dependencies": ["ai", "diff", "zod"]
 		},
 		{
 			"name": "glob",
@@ -58,8 +56,7 @@
 			"type": "registry:tool",
 			"title": "Write",
 			"description": "Writes a file to the local filesystem.",
-			"dependencies": ["ai", "diff", "zod"],
-			"registryDependencies": ["agents:lib/permissions"]
+			"dependencies": ["ai", "diff", "zod"]
 		}
 	]
 }

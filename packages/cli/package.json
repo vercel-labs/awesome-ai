@@ -3,13 +3,8 @@
 	"version": "0.0.0",
 	"type": "module",
 	"description": "Add agents, tools, and prompts to your projects.",
-	"bin": "./dist/index.js",
-	"files": [
-		"dist"
-	],
+	"bin": "./src/index.ts",
 	"scripts": {
-		"dev": "tsup --watch",
-		"build": "tsup",
 		"typecheck": "tsc --noEmit",
 		"test": "vitest run",
 		"test:watch": "vitest"
@@ -28,12 +23,13 @@
 		"prompts": "^2.4.2",
 		"ts-morph": "^27.0.2",
 		"tsconfig-paths": "^4.2.0",
+		"tui": "workspace:*",
 		"zod": "^4.1.13"
 	},
 	"devDependencies": {
+		"@types/bun": "latest",
 		"@types/fs-extra": "^11.0.4",
 		"@types/prompts": "^2.4.9",
-		"tsup": "^8.5.1",
 		"typescript": "catalog:",
 		"vitest": "catalog:"
 	}

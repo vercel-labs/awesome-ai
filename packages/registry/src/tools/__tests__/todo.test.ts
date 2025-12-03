@@ -1,12 +1,15 @@
+import type { Tool } from "ai"
 import { describe, expect, it } from "vitest"
 import { createTodoTools, type TodoItem, type TodoStorage } from "../todo"
+import { executeTool } from "./lib/test-utils"
 
-// Helper to execute a tool and get the result
-async function execute<T>(
-	tool: { execute: (input: T) => Promise<unknown> },
-	input: T,
+// Helper to execute a non-streaming tool and get the single result
+async function execute<T extends Tool>(
+	tool: T,
+	input: Parameters<NonNullable<T["execute"]>>[0],
 ) {
-	return tool.execute(input)
+	const results = await executeTool(tool, input)
+	return results[0]
 }
 
 describe("createTodoTools", () => {

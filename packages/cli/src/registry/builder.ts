@@ -4,7 +4,7 @@ import { expandEnvVars } from "@/src/registry/env"
 import { RegistryNotConfiguredError } from "@/src/registry/errors"
 import { parseRegistryAndItemFromString } from "@/src/registry/parser"
 import type { registryConfigItemSchema } from "@/src/registry/schema"
-import { isUrl } from "@/src/registry/utils"
+import { isLocalFile, isUrl } from "@/src/registry/utils"
 import { validateRegistryConfig } from "@/src/registry/validator"
 import type { Config } from "@/src/schema"
 
@@ -127,7 +127,7 @@ function shouldIncludeHeader(originalValue: string, expandedValue: string) {
 }
 
 export function resolveRegistryUrl(pathOrUrl: string) {
-	if (isUrl(pathOrUrl)) {
+	if (isUrl(pathOrUrl) || isLocalFile(pathOrUrl)) {
 		return pathOrUrl
 	}
 

@@ -1,9 +1,10 @@
-#!/usr/bin/env node
+#!/usr/bin/env bun
 import { Command } from "commander"
 import { add } from "@/src/commands/add"
 import { diff } from "@/src/commands/diff"
 import { init } from "@/src/commands/init"
 import { list } from "@/src/commands/list"
+import { run } from "@/src/commands/run"
 import { search } from "@/src/commands/search"
 import { view } from "@/src/commands/view"
 import packageJson from "../package.json"
@@ -27,6 +28,7 @@ async function main() {
 		.addCommand(init)
 		.addCommand(add)
 		.addCommand(list)
+		.addCommand(run)
 		.addCommand(search)
 		.addCommand(view)
 		.addCommand(diff)

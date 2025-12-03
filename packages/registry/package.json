@@ -9,17 +9,10 @@
 		"test": "vitest run",
 		"test:watch": "vitest"
 	},
-	"exports": {
-		".": {
-			"types": "./dist/index.d.ts",
-			"default": "./dist/index.js"
-		}
-	},
 	"dependencies": {
 		"ai": "catalog:",
 		"diff": "^8.0.2",
 		"unzipper": "^0.12.3",
-		"uuid": "^13.0.0",
 		"zod": "catalog:"
 	},
 	"devDependencies": {

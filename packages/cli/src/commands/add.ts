@@ -15,7 +15,8 @@ import { logger } from "@/src/utils/logger"
 
 export const addOptionsSchema = z.object({
 	items: z.array(z.string()).optional(),
-	type: z.enum(["agents", "tools", "prompts"]).optional(),
+	tool: z.boolean(),
+	prompt: z.boolean(),
 	yes: z.boolean(),
 	overwrite: z.boolean(),
 	cwd: z.string(),
@@ -34,13 +35,15 @@ export const add = new Command()
 		process.cwd(),
 	)
 	.option("-s, --silent", "mute output.", false)
-	.option("-t, --type <type>", "the type of item (agents, tools, prompts)")
+	.option("--tool", "add a tool (default: agent)")
+	.option("--prompt", "add a prompt (default: agent)")
 	.action(async (items, opts) => {
 		try {
 			const options = addOptionsSchema.parse({
 				items,
 				cwd: path.resolve(opts.cwd),
-				type: opts.type,
+				tool: opts.tool ?? false,
+				prompt: opts.prompt ?? false,
 				...opts,
 			})
 
@@ -60,13 +63,12 @@ export const add = new Command()
 				process.exit(1)
 			}
 
-			if (!options.type) {
-				logger.error(
-					"Please specify the type using --type (agents, tools, or prompts).",
-				)
-				process.exit(1)
-			}
-
+			// Determine the type: --tool -> tools, --prompt -> prompts, default -> agents
+			const type = options.tool
+				? "tools"
+				: options.prompt
+					? "prompts"
+					: "agents"
 			const { errors } = await preFlightAdd(options)
 
 			if (errors[ERRORS.MISSING_CONFIG]) {
@@ -99,7 +101,7 @@ export const add = new Command()
 				)
 			}
 
-			await addItems(options.items, options.type, config, {
+			await addItems(options.items, type, config, {
 				overwrite: options.overwrite,
 				silent: options.silent,
 			})

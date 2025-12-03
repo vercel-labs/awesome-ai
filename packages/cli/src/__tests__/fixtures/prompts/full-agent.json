@@ -1,0 +1,13 @@
+{
+	"name": "full-agent",
+	"type": "registry:prompt",
+	"title": "Full Agent Prompt",
+	"description": "A prompt for the full agent - tests same-name handling",
+	"files": [
+		{
+			"path": "prompts/full-agent.ts",
+			"type": "registry:prompt",
+			"content": "export function getSystemPrompt() {\n\treturn `You are the full agent assistant.\n\nYour job is to help with complex tasks.`\n}\n"
+		}
+	]
+}

@@ -4,6 +4,7 @@ export const registryItemTypeSchema = z.enum([
 	"registry:agent",
 	"registry:tool",
 	"registry:prompt",
+	"registry:lib",
 ])
 
 export const registryItemFileSchema = z.object({

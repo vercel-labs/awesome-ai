@@ -39,7 +39,8 @@
 			},
 			"a11y": {
 				"noSvgWithoutTitle": "off",
-				"useKeyWithClickEvents": "off"
+				"useKeyWithClickEvents": "off",
+				"noStaticElementInteractions": "off"
 			}
 		}
 	},

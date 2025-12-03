@@ -1,0 +1,14 @@
+{
+	"name": "circular-agent-b",
+	"type": "registry:agent",
+	"title": "Circular Agent B",
+	"description": "An agent that depends on agent A (circular dependency test)",
+	"registryDependencies": ["@test/circular-agent-a"],
+	"files": [
+		{
+			"path": "agents/circular-agent-b.ts",
+			"type": "registry:agent",
+			"content": "import { circularAgentA } from \"@/agents/circular-agent-a\"\n\nexport const circularAgentB = {\n\tname: \"circular-agent-b\",\n\tdependsOn: circularAgentA,\n}\n"
+		}
+	]
+}

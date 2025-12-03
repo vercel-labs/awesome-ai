@@ -3,7 +3,8 @@ import { promises as fs } from "fs"
 import { tmpdir } from "os"
 import path from "path"
 
-const CLI_PATH = path.resolve(__dirname, "../../../dist/index.js")
+// Use TypeScript source directly with bun
+const CLI_PATH = path.resolve(__dirname, "../../index.ts")
 
 interface TestProject {
 	path: string
@@ -120,9 +121,9 @@ export async function runCLI(
 	} = {},
 ): Promise<CLIResult> {
 	try {
-		const result = await execa("node", [CLI_PATH, ...args], {
+		const result = await execa("bun", [CLI_PATH, ...args], {
 			cwd: options.cwd,
-			timeout: options.timeout ?? 5000, // 5 second timeout by default
+			timeout: options.timeout ?? 10000, // 10 second timeout by default
 			env: {
 				...process.env,
 				...options.env,

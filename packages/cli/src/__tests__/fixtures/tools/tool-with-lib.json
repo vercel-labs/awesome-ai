@@ -11,7 +11,7 @@
 		},
 		{
 			"path": "tools/lib/helper.ts",
-			"type": "registry:tool",
+			"type": "registry:lib",
 			"content": "export function helper() {\n\treturn \"helper result\"\n}\n"
 		}
 	]

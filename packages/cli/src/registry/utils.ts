@@ -1,7 +1,8 @@
 export function isUrl(string: string): boolean {
 	try {
-		new URL(string)
-		return true
+		const url = new URL(string)
+		// Only accept http and https protocols
+		return url.protocol === "http:" || url.protocol === "https:"
 	} catch {
 		return false
 	}

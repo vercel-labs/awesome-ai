@@ -2,30 +2,59 @@
 
 Add agents, tools, and prompts from registries to your project.
 
-## Installation
+## Prerequisites
+
+The CLI requires [Bun](https://bun.sh) to be installed.
 
 ```bash
-pnpm add -D cli
+# Install Bun (macOS, Linux, WSL)
+curl -fsSL https://bun.sh/install | bash
 ```
 
-Or run directly with npx:
+For other installation methods, see the [Bun installation docs](https://bun.sh/docs/installation).
+
+## Installation
+
+Install globally (recommended):
 
 ```bash
-npx awesome-ai <command>
+pnpm add -g awesome-ai
+```
+
+Any package manager works (npm, yarn, bun):
+
+```bash
+npm install -g awesome-ai
+yarn global add awesome-ai
+bun add -g awesome-ai
+```
+
+Installing it locally is also possible:
+
+```bash
+pnpm add -D awesome-ai
 ```
 
 ## Quick Start
 
 ```bash
 # Initialize your project
-npx awesome-ai init
+awesome-ai init
 
 # Add an agent
-npx awesome-ai add coding-agent --type agents
+awesome-ai add coding-agent
 
 # Add a tool
-npx awesome-ai add bash --type tools
+awesome-ai add bash --tool
+
+# Add a prompt
+awesome-ai add coding-agent --prompt
+
+# Run an agent interactively
+awesome-ai run coding-agent
 ```
+
+---
 
 ## Commands
 
@@ -34,7 +63,7 @@ npx awesome-ai add bash --type tools
 Initialize your project and create an `agents.json` configuration file.
 
 ```bash
-npx awesome-ai init [options]
+awesome-ai init [options]
 ```
 
 **Options:**
@@ -43,7 +72,6 @@ npx awesome-ai init [options]
 |--------|-------------|---------|
 | `-y, --yes` | Skip confirmation prompt | `true` |
 | `-d, --defaults` | Use default configuration | `false` |
-| `-f, --force` | Force overwrite of existing configuration | `false` |
 | `-c, --cwd <path>` | Working directory | Current directory |
 | `-s, --silent` | Mute output | `false` |
 
@@ -51,16 +79,13 @@ npx awesome-ai init [options]
 
 ```bash
 # Interactive initialization
-npx awesome-ai init
+awesome-ai init
 
 # Non-interactive with defaults
-npx awesome-ai init --defaults
+awesome-ai init --defaults
 
 # Initialize in a specific directory
-npx awesome-ai init --cwd ./my-project
-
-# Force overwrite existing config
-npx awesome-ai init --force
+awesome-ai init --cwd ./my-project
 ```
 
 ---
@@ -70,7 +95,7 @@ npx awesome-ai init --force
 Add an agent, tool, or prompt to your project.
 
 ```bash
-npx awesome-ai add <items...> --type <type> [options]
+awesome-ai add <items...> [options]
 ```
 
 **Arguments:**
@@ -83,26 +108,38 @@ npx awesome-ai add <items...> --type <type> [options]
 
 | Option | Description | Default |
 |--------|-------------|---------|
-| `-t, --type <type>` | Type of item: `agents`, `tools`, or `prompts` | Required |
+| `--tool` | Add a tool instead of an agent | `false` |
+| `--prompt` | Add a prompt instead of an agent | `false` |
 | `-y, --yes` | Skip confirmation prompt | `false` |
 | `-o, --overwrite` | Overwrite existing files | `false` |
 | `-c, --cwd <path>` | Working directory | Current directory |
 | `-s, --silent` | Mute output | `false` |
 
+> **Note:** By default, items are added as agents. Use `--tool` or `--prompt` to add other types.
+
 **Examples:**
 
 ```bash
-# Add a single agent
-npx awesome-ai add coding-agent --type agents
+# Add a single agent (default type)
+awesome-ai add coding-agent
+
+# Add multiple agents
+awesome-ai add coding-agent research-agent planning-agent
+
+# Add a tool
+awesome-ai add bash --tool
 
 # Add multiple tools
-npx awesome-ai add bash python javascript --type tools
+awesome-ai add bash edit write grep --tool
+
+# Add a prompt
+awesome-ai add coding-agent --prompt
 
 # Add with overwrite
-npx awesome-ai add coding-agent --type agents --overwrite
+awesome-ai add coding-agent --overwrite
 
 # Add to a specific directory
-npx awesome-ai add coding-agent --type agents --cwd ./my-project
+awesome-ai add coding-agent --cwd ./my-project
 ```
 
 ---
@@ -112,7 +149,7 @@ npx awesome-ai add coding-agent --type agents --cwd ./my-project
 List available items from registries.
 
 ```bash
-npx awesome-ai list [options]
+awesome-ai list [options]
 ```
 
 **Options:**
@@ -120,19 +157,23 @@ npx awesome-ai list [options]
 | Option | Description | Default |
 |--------|-------------|---------|
 | `-t, --type <type>` | Type to list: `agents`, `tools`, or `prompts` | `agents` |
+| `-r, --registry <registry>` | Registry to list from | `@awesome-ai` |
 | `-c, --cwd <path>` | Working directory | Current directory |
 
 **Examples:**
 
 ```bash
 # List all agents
-npx awesome-ai list
+awesome-ai list
 
 # List all tools
-npx awesome-ai list --type tools
+awesome-ai list --type tools
 
 # List all prompts
-npx awesome-ai list --type prompts
+awesome-ai list --type prompts
+
+# List from a custom registry
+awesome-ai list --registry @my-registry
 ```
 
 ---
@@ -142,7 +183,7 @@ npx awesome-ai list --type prompts
 Search items from registries by name or description.
 
 ```bash
-npx awesome-ai search [options]
+awesome-ai search [options]
 ```
 
 **Options:**
@@ -151,16 +192,20 @@ npx awesome-ai search [options]
 |--------|-------------|---------|
 | `-q, --query <query>` | Search query string | - |
 | `-t, --type <type>` | Type to search: `agents`, `tools`, or `prompts` | `agents` |
+| `-r, --registry <registry>` | Registry to search from | `@awesome-ai` |
 | `-c, --cwd <path>` | Working directory | Current directory |
 
 **Examples:**
 
 ```bash
 # Search for agents with "coding" in name or description
-npx awesome-ai search --query coding
+awesome-ai search --query coding
 
 # Search for tools
-npx awesome-ai search --query bash --type tools
+awesome-ai search --query bash --type tools
+
+# Search a custom registry
+awesome-ai search --query planning --registry @my-registry
 ```
 
 ---
@@ -170,7 +215,7 @@ npx awesome-ai search --query bash --type tools
 View detailed information about specific items from the registry.
 
 ```bash
-npx awesome-ai view <items...> --type <type> [options]
+awesome-ai view <items...> [options]
 ```
 
 **Arguments:**
@@ -190,10 +235,13 @@ npx awesome-ai view <items...> --type <type> [options]
 
 ```bash
 # View an agent's details
-npx awesome-ai view coding-agent --type agents
+awesome-ai view coding-agent --type agents
 
 # View multiple tools
-npx awesome-ai view bash python --type tools
+awesome-ai view bash edit --type tools
+
+# View a prompt
+awesome-ai view coding-agent --type prompts
 ```
 
 ---
@@ -203,7 +251,7 @@ npx awesome-ai view bash python --type tools
 Check for updates by comparing local files against the registry.
 
 ```bash
-npx awesome-ai diff <item> --type <type> [options]
+awesome-ai diff <item> [options]
 ```
 
 **Arguments:**
@@ -223,10 +271,50 @@ npx awesome-ai diff <item> --type <type> [options]
 
 ```bash
 # Check if an agent has updates
-npx awesome-ai diff coding-agent --type agents
+awesome-ai diff coding-agent --type agents
 
 # Check a tool for updates
-npx awesome-ai diff bash --type tools
+awesome-ai diff bash --type tools
+
+# Check a prompt for updates
+awesome-ai diff coding-agent --type prompts
+```
+
+---
+
+### `run`
+
+Start an interactive TUI (Terminal User Interface) chat session with an agent.
+
+```bash
+awesome-ai run [agent] [options]
+```
+
+**Arguments:**
+
+| Argument | Description |
+|----------|-------------|
+| `agent` | Name of the agent to run (optional) |
+
+**Options:**
+
+| Option | Description | Default |
+|--------|-------------|---------|
+| `-c, --cwd <path>` | Working directory | Current directory |
+
+> **Note:** Requires an initialized project with `agents.json` configuration.
+
+**Examples:**
+
+```bash
+# Run the default agent interactively
+awesome-ai run
+
+# Run a specific agent
+awesome-ai run coding-agent
+
+# Run an agent in a specific directory
+awesome-ai run coding-agent --cwd ./my-project
 ```
 
 ---
@@ -276,6 +364,9 @@ You can add custom registries to your `agents.json`:
     "@my-registry": "https://my-registry.com/{type}/{name}.json",
     "@private": {
       "url": "https://private-registry.com/{type}/{name}.json",
+      "params": {
+        "version": "latest"
+      },
       "headers": {
         "Authorization": "Bearer ${MY_AUTH_TOKEN}"
       }
@@ -284,19 +375,24 @@ You can add custom registries to your `agents.json`:
 }
 ```
 
-Registry URLs must include `{type}` and `{name}` placeholders.
+**Registry URL Requirements:**
+- Registry names must start with `@` (e.g., `@my-registry`)
+- URLs must include `{type}` and `{name}` placeholders
+- Headers can reference environment variables using `${VAR_NAME}` syntax
 
 ---
 
 ## Environment Variables
 
-### `REGISTRY_URL`
+### `AWESOME_AI_REGISTRY_URL` / `REGISTRY_URL`
 
 Override the default registry URL:
 
 ```bash
-REGISTRY_URL=https://my-registry.com npx awesome-ai list
+AWESOME_AI_REGISTRY_URL=https://my-registry.com awesome-ai list
 ```
+
+The CLI checks `AWESOME_AI_REGISTRY_URL` first, then falls back to `REGISTRY_URL`.
 
 ### Authentication
 
@@ -315,7 +411,40 @@ For private registries, use environment variables in headers:
 }
 ```
 
-The CLI will load environment variables from `.env` files in your project.
+---
+
+## Available Registry Items
+
+### Agents
+
+| Agent | Description |
+|-------|-------------|
+| `coding-agent` | Full-featured coding assistant with read, write, edit, bash, and search tools |
+| `research-agent` | Read-only agent for exploring and understanding codebases |
+| `planning-agent` | Agent for planning tasks with read-only bash access |
+| `migration-planning-agent` | Specialized agent for planning code migrations |
+
+### Tools
+
+| Tool | Description |
+|------|-------------|
+| `read` | Read files with line numbers, binary detection, and partial reads |
+| `write` | Create or overwrite files with diff output |
+| `edit` | Search and replace with fuzzy matching and multiple strategies |
+| `bash` | Execute shell commands with streaming output and timeout |
+| `list` | List directory contents using ripgrep |
+| `grep` | Search file contents with regex patterns |
+| `glob` | Find files matching glob patterns |
+| `todo` | Task management for tracking work items |
+
+### Prompts
+
+| Prompt | Description |
+|--------|-------------|
+| `coding-agent` | System prompt for the coding agent |
+| `research-agent` | System prompt for the research agent |
+| `planning-agent` | System prompt for the planning agent |
+| `migration-planning-agent` | System prompt for the migration planning agent |
 
 ---
 
@@ -326,9 +455,9 @@ Items in the registry follow this schema:
 ```typescript
 {
   name: string           // Item name (required)
-  type: string           // "registry:agent" | "registry:tool" | "registry:prompt"
+  type: string           // "registry:agent" | "registry:tool" | "registry:prompt" | "registry:lib"
   title?: string         // Display title
-  author?: string        // Author name
+  author?: string        // Author name (min 2 chars)
   description?: string   // Description
   dependencies?: string[]      // npm dependencies
   devDependencies?: string[]   // npm dev dependencies
@@ -336,11 +465,11 @@ Items in the registry follow this schema:
   files?: {
     path: string         // File path
     content?: string     // File content
-    type: string         // File type
+    type: string         // File type (registry:agent, registry:tool, etc.)
     target?: string      // Target path override
   }[]
   meta?: Record<string, any>   // Additional metadata
-  docs?: string          // Documentation URL
+  docs?: string          // Documentation/usage notes
   categories?: string[]  // Categories for organization
 }
 ```
@@ -349,12 +478,16 @@ Items in the registry follow this schema:
 
 ## Features
 
-- **Automatic Dependency Resolution**: When adding an agent, the CLI automatically downloads any tools and prompts it depends on
-- **Import Transformation**: Automatically transforms imports to use your configured path aliases
+- **Automatic Dependency Resolution**: When adding an agent, the CLI automatically downloads any tools, prompts, and library dependencies it requires
+- **Topological Sorting**: Dependencies are resolved in the correct order, handling complex dependency trees
+- **Circular Dependency Detection**: Warns when circular dependencies are detected
+- **Import Transformation**: Automatically transforms imports to use your configured path aliases (`@/tools`, `@/agents`, etc.)
 - **Package Manager Detection**: Detects your package manager (npm, pnpm, yarn, bun, deno) and installs npm dependencies automatically
-- **TypeScript Support**: Full TypeScript support with automatic detection
-- **File Conflict Handling**: Prompts for confirmation before overwriting existing files, with diff preview
+- **TypeScript Support**: Full TypeScript support with `.ts` and `.tsx` file handling
+- **File Conflict Handling**: Prompts for confirmation before overwriting existing files
+- **Diff Preview**: Shows colorized diff output when checking for updates
 - **Custom Registries**: Support for multiple registries with authentication
+- **Interactive TUI**: Built-in terminal UI for chatting with agents
 
 ---
 
@@ -365,34 +498,116 @@ Items in the registry follow this schema:
 ```bash
 # Create a new project
 mkdir my-ai-project && cd my-ai-project
-npm init -y
+pnpm init
 
 # Initialize the CLI
-npx awesome-ai init
+awesome-ai init
 
-# Add an agent with its dependencies
-npx awesome-ai add coding-agent --type agents
+# Add the coding agent with all its dependencies
+awesome-ai add coding-agent
 ```
 
-### Working with Multiple Items
+### Working with Tools
 
 ```bash
-# Add multiple tools at once
-npx awesome-ai add bash python javascript --type tools
+# List available tools
+awesome-ai list --type tools
 
-# List and search
-npx awesome-ai list --type tools
-npx awesome-ai search --query "code" --type agents
+# Add multiple tools at once
+awesome-ai add bash edit write grep --tool
+
+# View tool details
+awesome-ai view edit --type tools
+
+# Check for tool updates
+awesome-ai diff edit --type tools
+
+# Update a tool
+awesome-ai add edit --tool --overwrite
+```
+
+### Using Multiple Registries
+
+```bash
+# Add an agent from a custom registry
+awesome-ai add @my-registry/custom-agent
+
+# List items from a specific registry
+awesome-ai list --registry @my-registry
+```
+
+### Running Agents Interactively
+
+```bash
+# Start an interactive session with the coding agent
+awesome-ai run coding-agent
+
+# Start with a different working directory
+awesome-ai run coding-agent --cwd ./my-project
 ```
 
 ### Checking for Updates
 
 ```bash
 # See what changed in an agent
-npx awesome-ai diff coding-agent --type agents
+awesome-ai diff coding-agent --type agents
 
 # Update by overwriting
-npx awesome-ai add coding-agent --type agents --overwrite
+awesome-ai add coding-agent --overwrite
+```
+
+---
+
+## Using Agents Programmatically
+
+After adding an agent via the CLI, you can use it in your code:
+
+```typescript
+import { createAgent } from "@/agents/coding-agent"
+import { openai } from "@ai-sdk/openai"
+
+const agent = await createAgent({
+  model: openai("gpt-4o"),
+  cwd: process.cwd(),
+})
+
+// The agent is ready to use with the Vercel AI SDK
+```
+
+### Using Tools Directly
+
+```typescript
+import { readTool, editTool, bashTool } from "@/tools"
+import { generateText } from "ai"
+
+const result = await generateText({
+  model: yourModel,
+  tools: {
+    read: readTool,
+    edit: editTool,
+    bash: bashTool,
+  },
+  prompt: "Read the package.json file",
+})
+```
+
+### Standalone Tool Execution
+
+```typescript
+import { readTool } from "@/tools/read"
+
+// Execute a tool directly using its generator
+const generator = readTool.execute({
+  filePath: "/path/to/file.ts",
+  offset: 0,
+  limit: 100,
+})
+
+for await (const output of generator) {
+  if (output.status === "success") {
+    console.log(output.content)
+  }
+}
 ```
 
 ---
@@ -400,4 +615,3 @@ npx awesome-ai add coding-agent --type agents --overwrite
 ## License
 
 MIT
-

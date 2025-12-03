@@ -1,8 +1,9 @@
 import { gateway } from "@ai-sdk/gateway"
-import { createAgent, generateId } from "@awesome-ai/registry"
 import { convertToModelMessages } from "ai"
+import { createAgent } from "@/agents/coding-agent"
 import { agentDB } from "@/lib/agent"
 import { DEFAULT_CHAT_MODEL } from "@/lib/ai/models"
+import { generateId } from "@/lib/storage/utils"
 import type { AgentMessage } from "@/lib/types"
 
 export async function POST(request: Request) {
@@ -25,7 +26,7 @@ export async function POST(request: Request) {
 		)
 	}
 
-	const agent = createAgent({ model: gateway(selectedChatModel) })
+	const agent = await createAgent({ model: gateway(selectedChatModel) })
 	const messages = convertToModelMessages(uiMessages, {
 		tools: agent.tools,
 	})

@@ -1,6 +1,6 @@
-import type { Message } from "@awesome-ai/registry"
 import { type ClassValue, clsx } from "clsx"
 import { twMerge } from "tailwind-merge"
+import type { Message } from "./storage/file-storage"
 import type { AgentMessage } from "./types"
 
 export function cn(...inputs: ClassValue[]) {

@@ -9,9 +9,6 @@
 			"description": "Coding Agent - an AI agent",
 			"dependencies": ["ai"],
 			"registryDependencies": [
-				"agents:lib/context",
-				"agents:lib/environment",
-				"agents:lib/permissions",
 				"prompts:coding-agent",
 				"tools:bash",
 				"tools:edit",
@@ -24,17 +21,45 @@
 			]
 		},
 		{
+			"name": "migration-planning-agent",
+			"type": "registry:agent",
+			"title": "Migration Planning Agent",
+			"description": "Migration Planning Agent - an AI agent",
+			"dependencies": ["ai"],
+			"registryDependencies": [
+				"prompts:migration-planning-agent",
+				"tools:bash",
+				"tools:glob",
+				"tools:grep",
+				"tools:list",
+				"tools:read",
+				"tools:todo"
+			]
+		},
+		{
 			"name": "planning-agent",
 			"type": "registry:agent",
 			"title": "Planning Agent",
 			"description": "Planning Agent - an AI agent",
 			"dependencies": ["ai"],
 			"registryDependencies": [
-				"agents:lib/context",
-				"agents:lib/environment",
-				"agents:lib/permissions",
 				"prompts:planning-agent",
 				"tools:bash",
+				"tools:glob",
+				"tools:grep",
+				"tools:list",
+				"tools:read",
+				"tools:todo"
+			]
+		},
+		{
+			"name": "research-agent",
+			"type": "registry:agent",
+			"title": "Research Agent",
+			"description": "Research Agent - an AI agent",
+			"dependencies": ["ai"],
+			"registryDependencies": [
+				"prompts:research-agent",
 				"tools:glob",
 				"tools:grep",
 				"tools:list",

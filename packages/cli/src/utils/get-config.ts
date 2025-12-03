@@ -33,9 +33,10 @@ export async function resolveConfigPaths(
 	cwd: string,
 	config: RawConfig,
 ): Promise<Config> {
+	// User registries come first so the first one is used as default for unnamespaced deps
 	config.registries = {
-		...BUILTIN_REGISTRIES,
 		...(config.registries || {}),
+		...BUILTIN_REGISTRIES,
 	}
 
 	const tsConfig = await loadConfig(cwd)

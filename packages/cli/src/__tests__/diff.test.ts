@@ -41,183 +41,150 @@ describe("diff command", () => {
 		})
 	}
 
-	it("requires item name", async () => {
-		// Simple test - doesn't need registry
-		const project = await createTestProject({
-			packageJson: { name: "test-project" },
-			tsconfig: true,
-			files: {
-				"agents.json": JSON.stringify({
-					tsx: true,
-					aliases: {
-						agents: "@/agents",
-						tools: "@/tools",
-						prompts: "@/prompts",
-					},
-				}),
-			},
+	// Validation tests - share a simple project
+	describe("validation", () => {
+		let project: Awaited<ReturnType<typeof createTestProject>>
+
+		beforeAll(async () => {
+			project = await createTestProject({
+				packageJson: { name: "test-project" },
+				tsconfig: true,
+				files: {
+					"agents.json": JSON.stringify({
+						tsx: true,
+						aliases: {
+							agents: "@/agents",
+							tools: "@/tools",
+							prompts: "@/prompts",
+						},
+					}),
+				},
+			})
 		})
 
-		const result = await runCLI(["diff", "--type", "tools"], {
-			cwd: project.path,
-		})
-
-		expect(result.exitCode).toBe(1)
-		// CLI outputs errors to stdout via logger
-		expect(result.stdout).toContain("specify both item name and type")
-	})
-
-	it("requires --type option", async () => {
-		// Simple test - doesn't need registry
-		const project = await createTestProject({
-			packageJson: { name: "test-project" },
-			tsconfig: true,
-			files: {
-				"agents.json": JSON.stringify({
-					tsx: true,
-					aliases: {
-						agents: "@/agents",
-						tools: "@/tools",
-						prompts: "@/prompts",
-					},
-				}),
-			},
-		})
-
-		const result = await runCLI(["diff", "test-tool"], { cwd: project.path })
-
-		expect(result.exitCode).toBe(1)
-		// CLI outputs errors to stdout via logger
-		expect(result.stdout).toContain("specify both item name and type")
-	})
-
-	it("shows no diff for identical files", async () => {
-		const project = await createProjectWithRegistry()
-
-		// First add the tool
-		await runCLI(["add", "@test/test-tool", "--type", "tools", "--yes"], {
-			cwd: project.path,
-		})
-
-		// Then check diff
-		const result = await runCLI(
-			["diff", "@test/test-tool", "--type", "tools"],
-			{
+		it("requires item name", async () => {
+			const result = await runCLI(["diff", "--type", "tools"], {
 				cwd: project.path,
-			},
-		)
+			})
 
-		expect(result.exitCode).toBe(0)
-		// Should have minimal output since files are identical
-	})
-
-	it("shows diff for modified files", async () => {
-		const project = await createProjectWithRegistry()
-
-		// First add the tool
-		await runCLI(["add", "@test/test-tool", "--type", "tools", "--yes"], {
-			cwd: project.path,
+			expect(result.exitCode).toBe(1)
+			expect(result.stdout).toContain("specify both item name and type")
 		})
 
-		// Modify the file
-		const originalContent = await project.readFile("tools/test-tool.ts")
-		await project.writeFile(
-			"tools/test-tool.ts",
-			`${originalContent}\n// Local modification\n`,
-		)
-
-		// Then check diff
-		const result = await runCLI(
-			["diff", "@test/test-tool", "--type", "tools"],
-			{
+		it("requires --type option", async () => {
+			const result = await runCLI(["diff", "test-tool"], {
 				cwd: project.path,
-			},
-		)
+			})
 
-		expect(result.exitCode).toBe(0)
-		// Should show the difference
-		expect(result.stdout).toContain("Local modification")
+			expect(result.exitCode).toBe(1)
+			expect(result.stdout).toContain("specify both item name and type")
+		})
 	})
 
-	it("handles missing local files gracefully", async () => {
-		const project = await createProjectWithRegistry()
+	// Tests that don't add items first - share a project
+	describe("without local files", () => {
+		let project: Awaited<ReturnType<typeof createTestProject>>
 
-		// Don't add the tool, just check diff
-		const result = await runCLI(
-			["diff", "@test/test-tool", "--type", "tools"],
-			{
-				cwd: project.path,
-			},
-		)
-
-		expect(result.exitCode).toBe(0)
-		expect(result.stdout).toContain("does not exist locally")
-	})
-
-	it("handles nonexistent registry item", async () => {
-		const project = await createProjectWithRegistry()
-
-		const result = await runCLI(
-			["diff", "@test/nonexistent-tool", "--type", "tools"],
-			{ cwd: project.path },
-		)
-
-		expect(result.exitCode).toBe(1)
-		// CLI outputs errors to stdout via logger
-		expect(result.stdout).toContain("not found")
-	})
-
-	it("shows diff for prompts", async () => {
-		const project = await createProjectWithRegistry()
-
-		// Add the prompt
-		await runCLI(["add", "@test/test-prompt", "--type", "prompts", "--yes"], {
-			cwd: project.path,
+		beforeAll(async () => {
+			project = await createProjectWithRegistry()
 		})
 
-		// Modify it
-		await project.writeFile(
-			"prompts/test-prompt.ts",
-			'export const testPrompt = "Modified prompt"',
-		)
+		it("handles missing local files gracefully", async () => {
+			const result = await runCLI(
+				["diff", "@test/test-tool", "--type", "tools"],
+				{ cwd: project.path },
+			)
 
-		// Check diff
-		const result = await runCLI(
-			["diff", "@test/test-prompt", "--type", "prompts"],
-			{
-				cwd: project.path,
-			},
-		)
-
-		expect(result.exitCode).toBe(0)
-		// Should show a diff
-		expect(result.stdout.length).toBeGreaterThan(0)
-	})
-
-	it("shows diff for agents", async () => {
-		const project = await createProjectWithRegistry()
-
-		// Add a simple agent (no dependencies)
-		await runCLI(["add", "@test/simple-agent", "--type", "agents", "--yes"], {
-			cwd: project.path,
+			expect(result.exitCode).toBe(0)
+			expect(result.stdout).toContain("does not exist locally")
 		})
 
-		// Modify it
-		const content = await project.readFile("agents/simple-agent.ts")
-		await project.writeFile(
-			"agents/simple-agent.ts",
-			content.replace("simple-agent", "modified-agent"),
-		)
+		it("handles nonexistent registry item", async () => {
+			const result = await runCLI(
+				["diff", "@test/nonexistent-tool", "--type", "tools"],
+				{ cwd: project.path },
+			)
 
-		// Check diff
-		const result = await runCLI(
-			["diff", "@test/simple-agent", "--type", "agents"],
-			{
+			expect(result.exitCode).toBe(1)
+			expect(result.stdout).toContain("not found")
+		})
+	})
+
+	// Tests that add items then diff - share a project
+	describe("with added registry items", () => {
+		let project: Awaited<ReturnType<typeof createTestProject>>
+		let identicalDiffResult: Awaited<ReturnType<typeof runCLI>>
+
+		beforeAll(async () => {
+			project = await createProjectWithRegistry()
+
+			// Add all items upfront
+			await runCLI(["add", "@test/test-tool", "--tool", "--yes"], {
 				cwd: project.path,
-			},
-		)
+			})
+			await runCLI(["add", "@test/test-prompt", "--prompt", "--yes"], {
+				cwd: project.path,
+			})
+			await runCLI(["add", "@test/simple-agent", "--yes"], {
+				cwd: project.path,
+			})
 
-		expect(result.exitCode).toBe(0)
+			// Capture diff result before any modifications (for identical test)
+			identicalDiffResult = await runCLI(
+				["diff", "@test/test-tool", "--type", "tools"],
+				{ cwd: project.path },
+			)
+		})
+
+		it("shows no diff for identical files", () => {
+			expect(identicalDiffResult.exitCode).toBe(0)
+		})
+
+		it("shows diff for modified tool files", async () => {
+			const originalContent = await project.readFile("tools/test-tool.ts")
+			await project.writeFile(
+				"tools/test-tool.ts",
+				`${originalContent}\n// Local modification\n`,
+			)
+
+			const result = await runCLI(
+				["diff", "@test/test-tool", "--type", "tools"],
+				{ cwd: project.path },
+			)
+
+			expect(result.exitCode).toBe(0)
+			expect(result.stdout).toContain("Local modification")
+		})
+
+		it("shows diff for modified prompts", async () => {
+			await project.writeFile(
+				"prompts/test-prompt.ts",
+				'export const testPrompt = "Modified prompt"',
+			)
+
+			const result = await runCLI(
+				["diff", "@test/test-prompt", "--type", "prompts"],
+				{ cwd: project.path },
+			)
+
+			expect(result.exitCode).toBe(0)
+			expect(result.stdout.length).toBeGreaterThan(0)
+		})
+
+		it("shows diff for modified agents", async () => {
+			const content = await project.readFile("agents/simple-agent.ts")
+			await project.writeFile(
+				"agents/simple-agent.ts",
+				content.replace("simple-agent", "modified-agent"),
+			)
+
+			const result = await runCLI(
+				["diff", "@test/simple-agent", "--type", "agents"],
+				{ cwd: project.path },
+			)
+
+			expect(result.exitCode).toBe(0)
+		})
 	})
 
 	it("respects --cwd option", async () => {
@@ -253,8 +220,7 @@ describe("diff command", () => {
 			[
 				"add",
 				"@test/test-tool",
-				"--type",
-				"tools",
+				"--tool",
 				"--yes",
 				"--cwd",
 				`${project.path}/subdir`,

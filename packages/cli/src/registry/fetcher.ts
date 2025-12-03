@@ -13,11 +13,41 @@ import {
 	RegistryUnauthorizedError,
 } from "@/src/registry/errors"
 import { registryItemSchema } from "@/src/registry/schema"
+import { isLocalFile } from "@/src/registry/utils"
 
 const registryCache = new Map<string, Promise<any>>()
 
 export function clearRegistryCache() {
 	registryCache.clear()
+}
+
+async function fetchLocalJson(filePath: string) {
+	let expandedPath = filePath
+
+	// Strip file:// protocol if present
+	if (expandedPath.startsWith("file://")) {
+		expandedPath = expandedPath.slice(7)
+	}
+
+	if (expandedPath.startsWith("~/")) {
+		expandedPath = path.join(homedir(), expandedPath.slice(2))
+	}
+
+	const resolvedPath = path.resolve(expandedPath)
+
+	try {
+		const content = await fs.readFile(resolvedPath, "utf8")
+		return JSON.parse(content)
+	} catch (error) {
+		if (
+			error instanceof Error &&
+			(error.message.includes("ENOENT") ||
+				error.message.includes("no such file"))
+		) {
+			throw new RegistryLocalFileError(filePath, error)
+		}
+		throw new RegistryLocalFileError(filePath, error)
+	}
 }
 
 export async function fetchRegistry(
@@ -35,6 +65,14 @@ export async function fetchRegistry(
 
 			if (options.useCache && registryCache.has(url)) {
 				return registryCache.get(url)
+			}
+
+			if (isLocalFile(url)) {
+				const fetchPromise = fetchLocalJson(url)
+				if (options.useCache) {
+					registryCache.set(url, fetchPromise)
+				}
+				return fetchPromise
 			}
 
 			const fetchPromise = (async () => {

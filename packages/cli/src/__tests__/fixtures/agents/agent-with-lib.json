@@ -1,0 +1,24 @@
+{
+	"name": "agent-with-lib",
+	"type": "registry:agent",
+	"title": "Agent with Lib",
+	"description": "An agent that includes lib files",
+	"dependencies": ["ai"],
+	"files": [
+		{
+			"path": "agents/agent-with-lib.ts",
+			"type": "registry:agent",
+			"content": "import { createContext } from \"@/agents/lib/context\"\nimport { getPermissions } from \"@/agents/lib/permissions\"\n\nexport const agentWithLib = {\n\tname: \"agent-with-lib\",\n\tcreateContext,\n\tgetPermissions,\n}\n"
+		},
+		{
+			"path": "agents/lib/context.ts",
+			"type": "registry:lib",
+			"content": "export function createContext() {\n\treturn { environment: \"test\" }\n}\n"
+		},
+		{
+			"path": "agents/lib/permissions.ts",
+			"type": "registry:lib",
+			"content": "export type Permission = \"allow\" | \"deny\" | \"ask\"\n\nexport function getPermissions(): Permission[] {\n\treturn [\"allow\", \"deny\"]\n}\n"
+		}
+	]
+}

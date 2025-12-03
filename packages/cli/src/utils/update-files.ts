@@ -153,10 +153,32 @@ function resolveFilePath(
 		fileIndex: number
 	},
 ): string | null {
-	const basePath = options.path || config.resolvedPaths[type]
+	// Determine the actual type from the file's type property
+	// file.type is like "registry:agent", "registry:tool", "registry:prompt", "registry:lib"
+	let fileType: "agents" | "tools" | "prompts" = type
 	const filePath = file.path
 
-	const relativePath = filePath.replace(new RegExp(`^${type}/`), "")
+	if (file.type === "registry:agent") {
+		fileType = "agents"
+	} else if (file.type === "registry:tool") {
+		fileType = "tools"
+	} else if (file.type === "registry:prompt") {
+		fileType = "prompts"
+	} else if (file.type === "registry:lib") {
+		// For lib files, determine the type from the file path itself
+		// e.g., "tools/lib/tool-output.ts" -> tools, "agents/lib/context.ts" -> agents
+		if (filePath.startsWith("tools/")) {
+			fileType = "tools"
+		} else if (filePath.startsWith("agents/")) {
+			fileType = "agents"
+		} else if (filePath.startsWith("prompts/")) {
+			fileType = "prompts"
+		}
+	}
+
+	const basePath = options.path || config.resolvedPaths[fileType]
+
+	const relativePath = filePath.replace(new RegExp(`^${fileType}/`), "")
 
 	const targetPath = path.resolve(basePath, relativePath)
 

@@ -1,0 +1,15 @@
+{
+	"name": "full-agent",
+	"type": "registry:agent",
+	"title": "Full Agent",
+	"description": "An agent with a prompt dependency that has the same name",
+	"dependencies": ["ai"],
+	"registryDependencies": ["prompts:full-agent"],
+	"files": [
+		{
+			"path": "agents/full-agent.ts",
+			"type": "registry:agent",
+			"content": "import { getSystemPrompt } from \"@/prompts/full-agent\"\n\nexport const fullAgent = {\n\tname: \"full-agent\",\n\tgetPrompt: getSystemPrompt,\n\trun: async () => {\n\t\treturn \"Agent executed\"\n\t},\n}\n"
+		}
+	]
+}

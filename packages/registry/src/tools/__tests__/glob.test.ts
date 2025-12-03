@@ -19,7 +19,7 @@ describe("globTool", () => {
 		await fs.rm(tempDir, { recursive: true, force: true })
 	})
 
-	it.only(
+	it(
 		"finds files in nested directories",
 		async () => {
 			await fs.mkdir(path.join(tempDir, "subdir"), { recursive: true })
@@ -29,18 +29,16 @@ describe("globTool", () => {
 				"nested",
 			)
 
-			console.log("bro!!!!")
 			const results = await executeTool(globTool, {
 				pattern: "**/*.nestedtest",
 				path: tempDir,
 			})
-			console.log("results", results)
-
 			const finalResult = results[results.length - 1] as {
 				status: string
 				result: string
 				fileCount: number
 			}
+
 			expect(finalResult?.status).toBe("success")
 			expect(finalResult?.fileCount).toBe(2)
 			expect(finalResult?.result).toContain("root.nestedtest")

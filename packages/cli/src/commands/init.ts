@@ -17,7 +17,6 @@ export const initOptionsSchema = z.object({
 	cwd: z.string(),
 	yes: z.boolean(),
 	defaults: z.boolean(),
-	force: z.boolean(),
 	silent: z.boolean(),
 })
 
@@ -26,7 +25,6 @@ export const init = new Command()
 	.description("initialize your project and install dependencies")
 	.option("-y, --yes", "skip confirmation prompt.", true)
 	.option("-d, --defaults", "use default configuration.", false)
-	.option("-f, --force", "force overwrite of existing configuration.", false)
 	.option(
 		"-c, --cwd <cwd>",
 		"the working directory. defaults to the current directory.",
@@ -158,8 +156,8 @@ async function promptForMinimalConfig(
 	existingConfig: z.infer<typeof rawConfigSchema>,
 	opts: z.infer<typeof initOptionsSchema>,
 ) {
-	// If --defaults is passed with --force, use default values
-	if (opts.defaults && opts.force) {
+	// If --defaults is passed, use default values
+	if (opts.defaults) {
 		return rawConfigSchema.parse({
 			$schema: "https://awesome-ai.com/schema.json",
 			tsx: true,
@@ -172,38 +170,33 @@ async function promptForMinimalConfig(
 		})
 	}
 
-	// If --defaults without --force, keep existing config
-	if (opts.defaults) {
-		return existingConfig
-	}
-
 	const options = await prompts([
 		{
 			type: "text",
 			name: "agents",
 			message: `Configure the import alias for ${highlighter.info("agents")}:`,
-			initial: defaultConfig.aliases.agents,
+			initial: existingConfig.aliases.agents,
 		},
 		{
 			type: "text",
 			name: "tools",
 			message: `Configure the import alias for ${highlighter.info("tools")}:`,
-			initial: defaultConfig.aliases.tools,
+			initial: existingConfig.aliases.tools,
 		},
 		{
 			type: "text",
 			name: "prompts",
 			message: `Configure the import alias for ${highlighter.info("prompts")}:`,
-			initial: defaultConfig.aliases.prompts,
+			initial: existingConfig.aliases.prompts,
 		},
 	])
 
 	return rawConfigSchema.parse({
-		...defaultConfig,
+		...existingConfig,
 		aliases: {
-			agents: options.agents ?? defaultConfig.aliases.agents,
-			tools: options.tools ?? defaultConfig.aliases.tools,
-			prompts: options.prompts ?? defaultConfig.aliases.prompts,
+			agents: options.agents ?? existingConfig.aliases.agents,
+			tools: options.tools ?? existingConfig.aliases.tools,
+			prompts: options.prompts ?? existingConfig.aliases.prompts,
 		},
 	})
 }

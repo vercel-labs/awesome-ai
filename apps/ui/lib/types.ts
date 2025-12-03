@@ -1,6 +1,12 @@
-import type { tools } from "@awesome-ai/registry"
 import type { InferUITool, UIMessage } from "ai"
 import { z } from "zod"
+import { bashTool } from "@/tools/bash"
+import { editTool } from "@/tools/edit"
+import { globTool } from "@/tools/glob"
+import { grepTool } from "@/tools/grep"
+import { listTool } from "@/tools/list"
+import { readTool } from "@/tools/read"
+import { writeTool } from "@/tools/write"
 
 // Message metadata
 export const messageMetadataSchema = z.object({
@@ -10,6 +16,17 @@ export const messageMetadataSchema = z.object({
 })
 
 export type MessageMetadata = z.infer<typeof messageMetadataSchema>
+
+// Tools object for type inference
+const tools = {
+	read: readTool,
+	write: writeTool,
+	edit: editTool,
+	bash: bashTool,
+	list: listTool,
+	grep: grepTool,
+	glob: globTool,
+}
 
 // Infer tool types from agent tools
 type ReadTool = InferUITool<(typeof tools)["read"]>

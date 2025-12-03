@@ -35,12 +35,27 @@ export function resolveRegistryItemsFromRegistries(
 		return resolvedItems
 	}
 
+	// Get the default registry (first one in the config) for unnamespaced dependencies
+	const defaultRegistry = Object.keys(config.registries)[0]
+
 	for (let i = 0; i < resolvedItems.length; i++) {
-		const resolved = buildUrlAndHeadersForRegistryItem(
-			resolvedItems[i],
-			type,
-			config,
-		)
+		let item = resolvedItems[i]
+		let itemType = type
+
+		// If item doesn't start with @ but has a type prefix (e.g., "tools:test-tool"),
+		// add the default registry namespace to resolve it
+		if (!item.startsWith("@") && item.includes(":") && defaultRegistry) {
+			const colonIndex = item.indexOf(":")
+			const prefix = item.substring(0, colonIndex)
+			if (prefix === "agents" || prefix === "tools" || prefix === "prompts") {
+				// Transform "tools:test-tool" to "@defaultRegistry/test-tool" and extract type
+				const itemName = item.substring(colonIndex + 1)
+				item = `${defaultRegistry}/${itemName}`
+				itemType = prefix as "agents" | "tools" | "prompts"
+			}
+		}
+
+		const resolved = buildUrlAndHeadersForRegistryItem(item, itemType, config)
 
 		if (resolved) {
 			resolvedItems[i] = resolved.url
@@ -87,7 +102,19 @@ export async function fetchRegistryItems(
 				}
 			}
 
-			const path = `${type}/${item}.json`
+			// Handle type:item format (e.g., "agents:lib/context", "tools:bash")
+			let itemType = type
+			let itemName = item
+			const colonIndex = item.indexOf(":")
+			if (colonIndex > 0) {
+				const prefix = item.substring(0, colonIndex)
+				if (prefix === "agents" || prefix === "tools" || prefix === "prompts") {
+					itemType = prefix
+					itemName = item.substring(colonIndex + 1)
+				}
+			}
+
+			const path = `${itemType}/${itemName}.json`
 			const [result] = await fetchRegistry([path], options)
 			try {
 				return registryItemSchema.parse(result)
@@ -191,7 +218,7 @@ async function resolveDependenciesRecursively(
 	options: { useCache?: boolean } = {},
 	visited: Set<string> = new Set(),
 ) {
-	const items: RegistryItem[] = []
+	const items: z.infer<typeof registryItemWithSourceSchema>[] = []
 
 	for (const dep of dependencies) {
 		if (visited.has(dep)) {
@@ -202,7 +229,8 @@ async function resolveDependenciesRecursively(
 		if (isUrl(dep) || isLocalFile(dep)) {
 			const [item] = await fetchRegistryItems([dep], type, config, options)
 			if (item) {
-				items.push(item)
+				// Add _source to distinguish items with the same name
+				items.push({ ...item, _source: dep })
 				if (item.registryDependencies) {
 					const resolvedDeps = config?.registries
 						? resolveRegistryItemsFromRegistries(
@@ -230,7 +258,8 @@ async function resolveDependenciesRecursively(
 
 			const [item] = await fetchRegistryItems([dep], type, config, options)
 			if (item) {
-				items.push(item)
+				// Add _source to distinguish items with the same name
+				items.push({ ...item, _source: dep })
 				if (item.registryDependencies) {
 					const resolvedDeps = config?.registries
 						? resolveRegistryItemsFromRegistries(
@@ -253,23 +282,27 @@ async function resolveDependenciesRecursively(
 		} else {
 			try {
 				const [item] = await fetchRegistryItems([dep], type, config, options)
-				if (item?.registryDependencies) {
-					const resolvedDeps = config?.registries
-						? resolveRegistryItemsFromRegistries(
-								item.registryDependencies,
-								type,
-								config,
-							)
-						: item.registryDependencies
+				if (item) {
+					// Add _source to distinguish items with the same name
+					items.push({ ...item, _source: dep })
+					if (item.registryDependencies) {
+						const resolvedDeps = config?.registries
+							? resolveRegistryItemsFromRegistries(
+									item.registryDependencies,
+									type,
+									config,
+								)
+							: item.registryDependencies
 
-					const nested = await resolveDependenciesRecursively(
-						resolvedDeps,
-						type,
-						config,
-						options,
-						visited,
-					)
-					items.push(...nested.items)
+						const nested = await resolveDependenciesRecursively(
+							resolvedDeps,
+							type,
+							config,
+							options,
+							visited,
+						)
+						items.push(...nested.items)
+					}
 				}
 			} catch {
 				// If we can't fetch the registry item, that's okay
@@ -421,6 +454,13 @@ function topologicalSortRegistryItems(
 		console.warn(
 			`Warning: Circular dependencies detected. Some items may not be sorted correctly: ${missingHashes.join(", ")}`,
 		)
+
+		// Add remaining items that couldn't be sorted due to circular dependencies
+		for (const [hash, item] of itemMap.entries()) {
+			if (!sorted.some((s) => computeItemHash(s, sourceMap.get(s)) === hash)) {
+				sorted.push(item as z.infer<typeof registryItemWithSourceSchema>)
+			}
+		}
 	}
 
 	return sorted

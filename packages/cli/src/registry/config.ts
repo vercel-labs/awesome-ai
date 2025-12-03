@@ -20,8 +20,9 @@ export function configWithDefaults(config?: Partial<Config> | Config): Config {
 			...(config?.aliases || {}),
 		},
 		registries: {
-			...BUILTIN_REGISTRIES,
+			// User registries come first so the first one is used as default for unnamespaced deps
 			...(config?.registries || {}),
+			...BUILTIN_REGISTRIES,
 		},
 	}
 

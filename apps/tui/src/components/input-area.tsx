@@ -13,6 +13,7 @@ import {
 	inputAtom,
 	isLoadingAtom,
 	messagesAtom,
+	scrollToBottom,
 	selectedCommandAtom,
 	selectedModelAtom,
 	showAgentSelectorAtom,
@@ -116,6 +117,9 @@ export function InputArea() {
 		setCommandFilter("")
 		setSelectedCommand(0)
 
+		// Reset scroll to bottom when sending a new message
+		scrollToBottom()
+
 		if (value.startsWith("/")) {
 			const commandName = value.split(" ")[0]
 			executeCommand(commandName)
@@ -179,19 +183,19 @@ export function InputArea() {
 
 	return (
 		<box
-			onMouseDown={() => {
-				inputAtom.get()?.focus()
-			}}
-			style={{
-				height: boxHeight,
-				border: true,
-				borderStyle: "single",
-				borderColor: showCommands ? colors.green : colors.border,
-				paddingLeft: 1,
-				flexDirection: "row",
-				alignItems: "flex-start",
-			}}
-		>
+				onMouseDown={() => {
+					inputAtom.get()?.focus()
+				}}
+				style={{
+					height: boxHeight,
+					border: true,
+					borderStyle: "single",
+					borderColor: showCommands ? colors.green : colors.border,
+					paddingLeft: 1,
+					flexDirection: "row",
+					alignItems: "flex-start",
+				}}
+			>
 			{isLoading ? (
 				<text
 					fg={colors.pink}

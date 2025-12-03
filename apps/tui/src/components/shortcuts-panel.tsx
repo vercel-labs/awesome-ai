@@ -11,6 +11,7 @@ const SHORTCUTS = {
 		{ action: "Approve pending tool", keys: ["⌥ Y"] },
 		{ action: "Deny pending tool", keys: ["⌥ N"] },
 		{ action: "Stop generation", keys: ["⌥ X"] },
+		{ action: "Scroll to bottom", keys: ["⌥ B"] },
 		{ action: "Previous command in history", keys: ["↑"] },
 		{ action: "Next command in history", keys: ["↓"] },
 		{ action: "Autocomplete command", keys: ["Tab"] },

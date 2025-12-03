@@ -2,7 +2,11 @@ import { useAtom } from "@lfades/atom"
 import { RGBA, SyntaxStyle } from "@opentui/core"
 import { colors } from "../theme"
 import { formatTimestamp, getMessageReasoning, getMessageText } from "../types"
-import { type MessageAtom, messagesAtom } from "./atoms"
+import {
+	type MessageAtom,
+	messageListScrollboxAtom,
+	messagesAtom,
+} from "./atoms"
 import { ThinkingSection } from "./thinking-section"
 import { type ToolData, ToolPart } from "./tool-part"
 import { StreamingIndicator } from "./ui/streaming-indicator"
@@ -86,14 +90,20 @@ function Message({ messageAtom }: { messageAtom: MessageAtom }) {
 				<box style={{ flexDirection: "column" }}>
 					{reasoning && <ThinkingSection thinking={reasoning} />}
 					<box style={{ flexDirection: "row", width: "100%" }}>
-						<code
-							content={text}
-							filetype="markdown"
-							syntaxStyle={syntaxStyle}
-						/>
+						{/* <code */}
+						{/* 	content={text} */}
+						{/* 	filetype="markdown" */}
+						{/* 	syntaxStyle={syntaxStyle} */}
+						{/* 	style={{ flexShrink: 1 }} */}
+						{/* /> */}
+						<text fg={colors.text}>{text}</text>
 						{streaming && <StreamingIndicator color={colors.muted} />}
 					</box>
-					{!streaming && <text fg={colors.muted}>{timestamp}</text>}
+					{!streaming && (
+						<text fg={colors.muted} style={{ width: "100%" }}>
+							{timestamp}
+						</text>
+					)}
 
 					{/* Render tool parts */}
 					{msg.parts
@@ -122,6 +132,9 @@ export function MessageList() {
 
 	return (
 		<scrollbox
+			ref={(ref) => messageListScrollboxAtom.set(ref)}
+			stickyScroll
+			stickyStart="bottom"
 			style={{
 				flexGrow: 1,
 				paddingLeft: 1,

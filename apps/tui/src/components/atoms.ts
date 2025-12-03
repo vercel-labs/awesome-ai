@@ -1,5 +1,5 @@
 import { type Atom, atom } from "@lfades/atom"
-import type { TextareaRenderable } from "@opentui/core"
+import type { ScrollBoxRenderable, TextareaRenderable } from "@opentui/core"
 import testConversationData from "../test-conversation.json"
 import type { TUIMessage } from "../types"
 import type { DiscoveredAgent } from "../utils/agent-discovery"
@@ -38,6 +38,22 @@ export const commandFilterAtom = atom("")
 export const selectedCommandAtom = atom(0)
 export const showShortcutsAtom = atom(false)
 export const inputAtom = atom<TextareaRenderable | null>(null)
+export const messageListScrollboxAtom = atom<ScrollBoxRenderable | null>(null)
+
+export function scrollToBottom() {
+	const scrollbox = messageListScrollboxAtom.get()
+	if (scrollbox) {
+		// Reset manual scroll flag to re-enable sticky behavior
+		;(scrollbox as unknown as { _hasManualScroll: boolean })._hasManualScroll =
+			false
+		// Scroll to the bottom
+		const maxScrollTop = Math.max(
+			0,
+			scrollbox.scrollHeight - scrollbox.viewport.height,
+		)
+		scrollbox.scrollTop = maxScrollTop
+	}
+}
 
 // Agent selection
 export const showAgentSelectorAtom = atom(false)

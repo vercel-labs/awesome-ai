@@ -9,6 +9,7 @@ import {
 	addMessage,
 	availableAgentsAtom,
 	currentAgentAtom,
+	scrollToBottom,
 	showAgentSelectorAtom,
 	showAlert,
 	showCommandsAtom,
@@ -109,6 +110,13 @@ function Chat() {
 		if (key.name === "x" && (key.meta || key.option)) {
 			key.preventDefault()
 			stopGeneration()
+			return
+		}
+
+		// Alt+B to scroll to bottom
+		if (key.name === "b" && (key.meta || key.option)) {
+			key.preventDefault()
+			scrollToBottom()
 			return
 		}
 

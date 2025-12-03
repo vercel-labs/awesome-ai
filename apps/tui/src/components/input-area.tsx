@@ -183,19 +183,19 @@ export function InputArea() {
 
 	return (
 		<box
-				onMouseDown={() => {
-					inputAtom.get()?.focus()
-				}}
-				style={{
-					height: boxHeight,
-					border: true,
-					borderStyle: "single",
-					borderColor: showCommands ? colors.green : colors.border,
-					paddingLeft: 1,
-					flexDirection: "row",
-					alignItems: "flex-start",
-				}}
-			>
+			onMouseDown={() => {
+				inputAtom.get()?.focus()
+			}}
+			style={{
+				height: boxHeight,
+				border: true,
+				borderStyle: "single",
+				borderColor: showCommands ? colors.green : colors.border,
+				paddingLeft: 1,
+				flexDirection: "row",
+				alignItems: "flex-start",
+			}}
+		>
 			{isLoading ? (
 				<text
 					fg={colors.pink}

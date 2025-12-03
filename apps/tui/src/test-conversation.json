@@ -1,167 +1,108 @@
 [
 	{
-		"id": "msg-1",
+		"id": "msg-system",
 		"role": "system",
 		"metadata": { "timestamp": 1700000001000 },
-		"parts": [
-			{ "type": "text", "text": "agent v1.0.0 initialized. ready for input." }
-		]
+		"parts": [{ "type": "text", "text": "Test: System message display" }]
 	},
 	{
-		"id": "msg-2",
+		"id": "msg-user-1",
 		"role": "user",
-		"metadata": { "timestamp": 1700000015000 },
+		"metadata": { "timestamp": 1700000010000 },
+		"parts": [{ "type": "text", "text": "Show me markdown rendering" }]
+	},
+	{
+		"id": "msg-text-only",
+		"role": "assistant",
+		"metadata": { "timestamp": 1700000011000 },
 		"parts": [
-			{ "type": "text", "text": "Help me create a todo app in TypeScript" }
+			{
+				"type": "text",
+				"text": "Test: **Markdown** rendering with `inline code` and:\n\n```typescript\nconst example = 'code block';\n```"
+			}
 		]
 	},
 	{
-		"id": "msg-3",
+		"id": "msg-user-2",
+		"role": "user",
+		"metadata": { "timestamp": 1700000020000 },
+		"parts": [{ "type": "text", "text": "Show me reasoning/thinking" }]
+	},
+	{
+		"id": "msg-reasoning",
 		"role": "assistant",
-		"metadata": { "timestamp": 1700000018000 },
+		"metadata": { "timestamp": 1700000021000 },
 		"parts": [
 			{
 				"type": "reasoning",
-				"text": "The user wants to create a todo app in TypeScript. I should:\n1. Start with project setup - they'll need npm init and typescript\n2. Define the core Todo interface first - this establishes the data model\n3. Keep it simple initially - id, title, completed, createdAt are the essentials\n4. Ask if they want to continue before diving into implementation details\n5. Use TypeScript best practices like proper typing"
+				"text": "Test: Collapsible reasoning/thinking section.\nThis should be expandable and show the model's chain of thought."
 			},
 			{
 				"type": "text",
-				"text": "I'd be happy to help you create a todo app! Let's start with the basic structure.\n\n## Project Setup\n\nFirst, create a new directory and initialize the project:\n\n```bash\nmkdir todo-app && cd todo-app\nnpm init -y\nnpm install typescript @types/node\n```\n\n## Todo Interface\n\nHere's the core interface for our todos:\n\n```typescript\ninterface Todo {\n  id: string;\n  title: string;\n  completed: boolean;\n  createdAt: Date;\n}\n```\n\nWould you like me to continue with the implementation?"
+				"text": "Test: Message with reasoning section above."
 			}
 		]
 	},
 	{
-		"id": "msg-4",
+		"id": "msg-user-3",
 		"role": "user",
-		"metadata": { "timestamp": 1700000045000 },
-		"parts": [
-			{
-				"type": "text",
-				"text": "Yes, show me how to implement the CRUD operations"
-			}
-		]
+		"metadata": { "timestamp": 1700000030000 },
+		"parts": [{ "type": "text", "text": "Show me tool states" }]
 	},
 	{
-		"id": "msg-5",
+		"id": "msg-tools",
 		"role": "assistant",
-		"metadata": { "timestamp": 1700000052000 },
-		"parts": [
-			{
-				"type": "reasoning",
-				"text": "User wants CRUD operations. Let me think about the best approach:\n\nData structure choice:\n- Array: Simple but O(n) for lookups by id\n- Map: O(1) lookups, perfect for id-based operations\n- Object: Similar to Map but Map is cleaner in TypeScript\n\nGoing with Map<string, Todo> for:\n- Fast lookups: get(id) is O(1)\n- Easy iteration: values() for listing\n- Built-in delete: delete(id) returns boolean\n\nFor update, I'll use Partial<Todo> to allow updating any subset of fields.\nShould return null for missing items to distinguish from undefined fields.\n\ncrypto.randomUUID() is available in modern Node.js and browsers - good choice for IDs."
-			},
-			{
-				"type": "text",
-				"text": "Here's a complete **TodoService** class with all CRUD operations:\n\n```typescript\nclass TodoService {\n  private todos: Map<string, Todo> = new Map();\n\n  create(title: string): Todo {\n    const todo: Todo = {\n      id: crypto.randomUUID(),\n      title,\n      completed: false,\n      createdAt: new Date(),\n    };\n    this.todos.set(todo.id, todo);\n    return todo;\n  }\n\n  read(id: string): Todo | undefined {\n    return this.todos.get(id);\n  }\n\n  update(id: string, updates: Partial<Todo>): Todo | null {\n    const todo = this.todos.get(id);\n    if (!todo) return null;\n\n    const updated = { ...todo, ...updates };\n    this.todos.set(id, updated);\n    return updated;\n  }\n\n  delete(id: string): boolean {\n    return this.todos.delete(id);\n  }\n\n  list(): Todo[] {\n    return Array.from(this.todos.values());\n  }\n}\n```\n\n### Key Features:\n- Uses `Map` for O(1) lookups\n- Generates unique IDs with `crypto.randomUUID()`\n- Supports partial updates\n- Returns `null`/`undefined` for missing items"
-			}
-		]
-	},
-	{
-		"id": "msg-6",
-		"role": "user",
-		"metadata": { "timestamp": 1700000080000 },
-		"parts": [
-			{ "type": "text", "text": "Can you add filtering by completed status?" }
-		]
-	},
-	{
-		"id": "msg-7",
-		"role": "assistant",
-		"metadata": { "timestamp": 1700000085000 },
+		"metadata": { "timestamp": 1700000031000 },
 		"parts": [
 			{
 				"type": "text",
-				"text": "Sure! Here's an enhanced `list` method with filtering:\n\n```typescript\nlist(filter?: { completed?: boolean }): Todo[] {\n  const todos = Array.from(this.todos.values());\n\n  if (filter?.completed !== undefined) {\n    return todos.filter(t => t.completed === filter.completed);\n  }\n\n  return todos;\n}\n```\n\n**Usage examples:**\n- `service.list()` → all todos\n- `service.list({ completed: true })` → only completed\n- `service.list({ completed: false })` → only pending\n\nWould you also like me to add **sorting** or **search** functionality?"
+				"text": "Test: Tool states below ↓"
 			},
 			{
 				"type": "tool-read",
-				"toolCallId": "call-1",
+				"toolCallId": "tool-success",
 				"state": "output-available",
-				"input": {
-					"filePath": "/src/todo-service.ts",
-					"offset": 0,
-					"limit": 100
-				},
+				"input": { "filePath": "/example.ts" },
 				"output": {
 					"status": "success",
-					"message": "Successfully read 45 lines from /src/todo-service.ts",
-					"filePath": "/src/todo-service.ts",
-					"content": "// TodoService implementation...",
-					"linesRead": 45,
-					"totalLines": 45
+					"message": "Read 10 lines from /example.ts"
 				}
 			},
 			{
 				"type": "tool-read",
-				"toolCallId": "call-2",
+				"toolCallId": "tool-error",
 				"state": "output-error",
-				"input": { "filePath": "/src/missing-file.ts" },
+				"input": { "filePath": "/missing.ts" },
 				"output": {
 					"status": "error",
-					"message": "Failed to read /src/missing-file.ts",
-					"filePath": "/src/missing-file.ts",
-					"error": "File not found: /src/missing-file.ts"
+					"message": "File not found"
 				},
-				"errorText": "File not found: /src/missing-file.ts"
-			}
-		]
-	},
-	{
-		"id": "msg-8",
-		"role": "user",
-		"metadata": { "timestamp": 1700000110000 },
-		"parts": [{ "type": "text", "text": "Yes, add search by title" }]
-	},
-	{
-		"id": "msg-9",
-		"role": "assistant",
-		"metadata": { "timestamp": 1700000115000 },
-		"parts": [
-			{
-				"type": "reasoning",
-				"text": "Adding search to the existing filter method. Design considerations:\n\n1. Should I create a separate search method?\n   - No, better to combine with existing list() for flexibility\n\n2. Search behavior:\n   - Case-insensitive (toLowerCase on both)\n   - Partial match (includes not equals)\n   - Only search title for now, could add description later\n\n3. Interface design:\n   - Create ListOptions interface for type safety\n   - Both filters optional\n   - Chainable - apply completed filter first, then search\n\n4. Performance:\n   - For small lists (<1000), chained filters are fine\n   - For larger lists, might want to combine into single pass\n   - Current approach is more readable"
-			},
-			{
-				"type": "text",
-				"text": "Here's the updated method with both filtering and search:\n\n```typescript\ninterface ListOptions {\n  completed?: boolean;\n  search?: string;\n}\n\nlist(options?: ListOptions): Todo[] {\n  let todos = Array.from(this.todos.values());\n\n  if (options?.completed !== undefined) {\n    todos = todos.filter(t => t.completed === options.completed);\n  }\n\n  if (options?.search) {\n    const query = options.search.toLowerCase();\n    todos = todos.filter(t =>\n      t.title.toLowerCase().includes(query)\n    );\n  }\n\n  return todos;\n}\n```\n\nThe search is **case-insensitive** and matches partial titles. You can combine both filters:\n\n```typescript\n// Find incomplete todos containing \"bug\"\nservice.list({ completed: false, search: \"bug\" })\n```"
+				"errorText": "File not found: /missing.ts"
 			},
 			{
 				"type": "tool-bash",
-				"toolCallId": "call-3",
+				"toolCallId": "tool-pending",
 				"state": "input-available",
-				"input": {
-					"command": "npm run build",
-					"description": "Build the project"
-				},
+				"input": { "command": "npm run build" },
 				"output": {
 					"status": "pending",
-					"message": "Running: npm run build",
-					"command": "npm run build",
-					"description": "Build the project"
+					"message": "Running command..."
 				}
 			},
 			{
 				"type": "tool-bash",
-				"toolCallId": "call-4",
+				"toolCallId": "tool-approval",
 				"state": "approval-requested",
-				"input": {
-					"command": "echo 'Hello, World!'",
-					"description": "Print a greeting"
-				},
-				"approval": {
-					"id": "approval-4"
-				}
+				"input": { "command": "echo 'needs approval'" },
+				"approval": { "id": "approval-1" }
 			},
 			{
 				"type": "tool-bash",
-				"toolCallId": "call-5",
+				"toolCallId": "tool-denied",
 				"state": "output-denied",
-				"input": {
-					"command": "sudo rm -rf /",
-					"description": "Dangerous command"
-				},
+				"input": { "command": "rm -rf /" },
 				"approval": {
-					"id": "approval-5",
+					"id": "approval-2",
 					"approved": false,
 					"reason": "Denied by user"
 				}
@@ -169,23 +110,47 @@
 			{
 				"type": "dynamic-tool",
 				"toolName": "web_search",
-				"toolCallId": "call-6",
+				"toolCallId": "tool-dynamic",
 				"state": "output-available",
-				"input": { "query": "TypeScript todo app best practices" },
+				"input": { "query": "test query" },
 				"output": {
 					"status": "success",
-					"message": "Found 5 relevant results",
-					"results": [
-						{
-							"title": "Building a Todo App with TypeScript",
-							"url": "https://example.com/1"
-						},
-						{
-							"title": "TypeScript Best Practices 2024",
-							"url": "https://example.com/2"
-						}
-					]
+					"message": "Test: Dynamic/custom tool display"
 				}
+			}
+		]
+	},
+	{
+		"id": "msg-user-4",
+		"role": "user",
+		"metadata": { "timestamp": 1700000040000 },
+		"parts": [{ "type": "text", "text": "Show me streaming with content" }]
+	},
+	{
+		"id": "msg-streaming",
+		"role": "assistant",
+		"metadata": { "timestamp": 1700000041000, "streaming": true },
+		"parts": [
+			{
+				"type": "text",
+				"text": "Test: Streaming with content (blinking cursor) →"
+			}
+		]
+	},
+	{
+		"id": "msg-user-5",
+		"role": "user",
+		"metadata": { "timestamp": 1700000050000 },
+		"parts": [{ "type": "text", "text": "Show me thinking state" }]
+	},
+	{
+		"id": "msg-thinking",
+		"role": "assistant",
+		"metadata": { "timestamp": 1700000051000, "streaming": true },
+		"parts": [
+			{
+				"type": "text",
+				"text": ""
 			}
 		]
 	}

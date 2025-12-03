@@ -3,6 +3,7 @@ import type { UIMessage, UIMessagePart } from "ai"
 // Message metadata includes timestamp for display
 export interface TUIMessageMetadata {
 	timestamp: number
+	streaming?: true
 }
 
 export type TUIMessage = UIMessage<TUIMessageMetadata>
@@ -33,7 +34,7 @@ export function createUserMessage(text: string): TUIMessage {
 }
 
 export function createAssistantMessage(
-	text: string,
+	text: string = "",
 	reasoning?: string,
 ): TUIMessage {
 	const parts: TUIMessagePart[] = []

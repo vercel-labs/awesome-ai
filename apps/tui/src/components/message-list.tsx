@@ -2,9 +2,11 @@ import { useAtom } from "@lfades/atom"
 import { RGBA, SyntaxStyle } from "@opentui/core"
 import { colors } from "../theme"
 import { formatTimestamp, getMessageReasoning, getMessageText } from "../types"
-import { isLoadingAtom, type MessageAtom, messagesAtom } from "./atoms"
+import { type MessageAtom, messagesAtom } from "./atoms"
 import { ThinkingSection } from "./thinking-section"
 import { type ToolData, type ToolPartProps, ToolPart } from "./tool-part"
+import { StreamingIndicator } from "./ui/streaming-indicator"
+import { ThinkingDots } from "./ui/thinking-dots"
 
 // GitHub Dark-inspired syntax style for markdown
 const syntaxStyle = SyntaxStyle.fromStyles({
@@ -53,9 +55,12 @@ function Message({ messageAtom }: { messageAtom: MessageAtom }) {
 	const [msg] = useAtom(messageAtom)
 	const text = getMessageText(msg)
 	const reasoning = getMessageReasoning(msg)
+	const streaming = msg.metadata?.streaming
 	const timestamp = msg.metadata?.timestamp
 		? formatTimestamp(msg.metadata.timestamp)
 		: ""
+	// When streaming with no content yet, show "thinking..."
+	const showThinking = streaming && !text && !reasoning
 
 	return (
 		<box
@@ -75,11 +80,21 @@ function Message({ messageAtom }: { messageAtom: MessageAtom }) {
 					<span fg={colors.text}>{text}</span>
 					<span fg={colors.muted}> {timestamp}</span>
 				</text>
+			) : showThinking ? (
+				<ThinkingDots />
 			) : (
 				<box style={{ flexDirection: "column" }}>
 					{reasoning && <ThinkingSection thinking={reasoning} />}
-					<code content={text} filetype="markdown" syntaxStyle={syntaxStyle} />
-					<text fg={colors.muted}>{timestamp}</text>
+					<box style={{ flexDirection: "row" }}>
+						<code
+							content={text}
+							filetype="markdown"
+							syntaxStyle={syntaxStyle}
+						/>
+						{streaming && <StreamingIndicator color={colors.muted} />}
+					</box>
+
+					{!streaming && <text fg={colors.muted}>{timestamp}</text>}
 
 					{/* Render tool parts */}
 					{msg.parts
@@ -105,7 +120,6 @@ function Message({ messageAtom }: { messageAtom: MessageAtom }) {
 
 export function MessageList() {
 	const [messageAtoms] = useAtom(messagesAtom)
-	const [isLoading] = useAtom(isLoadingAtom)
 
 	return (
 		<scrollbox
@@ -120,17 +134,6 @@ export function MessageList() {
 			{messageAtoms.map((msgAtom) => (
 				<Message key={msgAtom.get().id} messageAtom={msgAtom} />
 			))}
-			{isLoading && (
-				<box
-					style={{
-						backgroundColor: colors.bgLight,
-						paddingLeft: 1,
-						paddingRight: 1,
-					}}
-				>
-					<text fg={colors.muted}>thinking...</text>
-				</box>
-			)}
 		</scrollbox>
 	)
 }

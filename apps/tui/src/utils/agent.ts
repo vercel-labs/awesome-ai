@@ -83,6 +83,13 @@ async function streamAgentResponse(messageAtom: MessageAtom): Promise<void> {
 		}
 	}
 
+	// Mark streaming as complete (remove streaming flag)
+	const finalMsg = messageAtom.get()
+	messageAtom.set({
+		...finalMsg,
+		metadata: { timestamp: finalMsg.metadata?.timestamp ?? Date.now() },
+	})
+
 	const response = await result.response
 	conversationMessages.push(...response.messages)
 }
@@ -143,7 +150,13 @@ export async function sendMessage(userPrompt: string): Promise<void> {
 
 	try {
 		conversationMessages.push({ role: "user", content: userPrompt })
-		const messageAtom = addMessage(createAssistantMessage("", undefined))
+		// Create assistant message with streaming flag already set
+		const assistantMsg = createAssistantMessage()
+		assistantMsg.metadata = {
+			timestamp: assistantMsg.metadata?.timestamp ?? Date.now(),
+			streaming: true,
+		}
+		const messageAtom = addMessage(assistantMsg)
 		await streamAgentResponse(messageAtom)
 	} catch (error) {
 		addMessage(

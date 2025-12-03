@@ -16,6 +16,7 @@ import {
 	selectedCommandAtom,
 	selectedModelAtom,
 	showAgentSelectorAtom,
+	showAlert,
 	showCommandsAtom,
 	showModelSelectorAtom,
 } from "./atoms"
@@ -71,9 +72,9 @@ function executeCommand(commandName: string) {
 
 			copyToClipboard(json).then((success) => {
 				if (success) {
-					addSystemMsg(`Exported ${messages.length} messages to clipboard.`)
+					showAlert("Chat saved to clipboard")
 				} else {
-					addSystemMsg("Failed to copy to clipboard.")
+					showAlert("Failed to export", "error")
 				}
 			})
 			break

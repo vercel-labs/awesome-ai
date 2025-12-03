@@ -10,6 +10,7 @@ import {
 	availableAgentsAtom,
 	currentAgentAtom,
 	showAgentSelectorAtom,
+	showAlert,
 	showCommandsAtom,
 	showDebugAtom,
 	showModelSelectorAtom,
@@ -26,6 +27,7 @@ import {
 	ModelSelector,
 } from "./components/model-selector"
 import { ShortcutsPanel } from "./components/shortcuts-panel"
+import { AlertContainer } from "./components/ui/alert"
 import { colors } from "./theme"
 import { createSystemMessage } from "./types"
 import { handleToolApproval, setCwd, stopGeneration } from "./utils/agent"
@@ -124,7 +126,13 @@ function Chat() {
 				const selectedText = globalSelection.getSelectedText()
 				if (selectedText) {
 					key.preventDefault()
-					copyToClipboard(selectedText)
+					copyToClipboard(selectedText).then((success) => {
+						if (success) {
+							showAlert("Copied to clipboard")
+						} else {
+							showAlert("Failed to copy", "error")
+						}
+					})
 					return
 				}
 			}
@@ -153,6 +161,7 @@ function Chat() {
 			{showShortcuts && <ShortcutsPanel />}
 			{showAgentSelector && <AgentSelector />}
 			{showModelSelector && <ModelSelector />}
+			<AlertContainer />
 		</box>
 	)
 }

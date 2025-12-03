@@ -79,3 +79,36 @@ export function debugLog(...args: unknown[]) {
 
 	debugLogsAtom.set([...debugLogsAtom.get().slice(-99), msg])
 }
+
+// Alert system for toast notifications
+export interface AlertMessage {
+	id: string
+	message: string
+	type: "success" | "info" | "error"
+}
+
+export const alertsAtom = atom<AlertMessage[]>([])
+
+let alertIdCounter = 0
+
+export function showAlert(
+	message: string,
+	type: AlertMessage["type"] = "success",
+	duration = 2500,
+) {
+	const id = `alert-${++alertIdCounter}`
+	const alert: AlertMessage = { id, message, type }
+
+	alertsAtom.set([...alertsAtom.get(), alert])
+
+	// Auto-dismiss after duration
+	setTimeout(() => {
+		alertsAtom.set(alertsAtom.get().filter((a) => a.id !== id))
+	}, duration)
+
+	return id
+}
+
+export function dismissAlert(id: string) {
+	alertsAtom.set(alertsAtom.get().filter((a) => a.id !== id))
+}

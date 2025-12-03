@@ -14,104 +14,71 @@ describe("list command", () => {
 		await stopMockRegistry()
 	})
 
-	it("lists agents by default", async () => {
-		const project = await createTestProject({
-			packageJson: { name: "test-project" },
-			tsconfig: true,
-			files: {
-				"agents.json": JSON.stringify({
-					tsx: true,
-					aliases: {
-						agents: "@/agents",
-						tools: "@/tools",
-						prompts: "@/prompts",
-					},
-					registries: {
-						"@test": `${registryUrl}/{type}/{name}.json`,
-					},
-				}),
-			},
+	// Tests with standard registry - share a single project (list is read-only)
+	describe("with standard registry", () => {
+		let project: Awaited<ReturnType<typeof createTestProject>>
+
+		beforeAll(async () => {
+			project = await createTestProject({
+				packageJson: { name: "test-project" },
+				tsconfig: true,
+				files: {
+					"agents.json": JSON.stringify({
+						tsx: true,
+						aliases: {
+							agents: "@/agents",
+							tools: "@/tools",
+							prompts: "@/prompts",
+						},
+						registries: {
+							"@test": `${registryUrl}/{type}/{name}.json`,
+						},
+					}),
+				},
+			})
 		})
 
-		const result = await runCLI(["list", "--registry", "@test"], {
-			cwd: project.path,
-		})
-
-		expect(result.exitCode).toBe(0)
-		const output = JSON.parse(result.stdout)
-		expect(Array.isArray(output)).toBe(true)
-		expect(output.length).toBeGreaterThan(0)
-		expect(output[0].name).toBeDefined()
-	})
-
-	it("lists tools with --type tools", async () => {
-		const project = await createTestProject({
-			packageJson: { name: "test-project" },
-			tsconfig: true,
-			files: {
-				"agents.json": JSON.stringify({
-					tsx: true,
-					aliases: {
-						agents: "@/agents",
-						tools: "@/tools",
-						prompts: "@/prompts",
-					},
-					registries: {
-						"@test": `${registryUrl}/{type}/{name}.json`,
-					},
-				}),
-			},
-		})
-
-		const result = await runCLI(
-			["list", "--type", "tools", "--registry", "@test"],
-			{
+		it("lists agents by default", async () => {
+			const result = await runCLI(["list", "--registry", "@test"], {
 				cwd: project.path,
-			},
-		)
+			})
 
-		expect(result.exitCode).toBe(0)
-		const output = JSON.parse(result.stdout)
-		expect(Array.isArray(output)).toBe(true)
-		// All items should be tools
-		for (const item of output) {
-			expect(item.type).toBe("registry:tool")
-		}
-	})
-
-	it("lists prompts with --type prompts", async () => {
-		const project = await createTestProject({
-			packageJson: { name: "test-project" },
-			tsconfig: true,
-			files: {
-				"agents.json": JSON.stringify({
-					tsx: true,
-					aliases: {
-						agents: "@/agents",
-						tools: "@/tools",
-						prompts: "@/prompts",
-					},
-					registries: {
-						"@test": `${registryUrl}/{type}/{name}.json`,
-					},
-				}),
-			},
+			expect(result.exitCode).toBe(0)
+			const output = JSON.parse(result.stdout)
+			expect(Array.isArray(output)).toBe(true)
+			expect(output.length).toBeGreaterThan(0)
+			expect(output[0].name).toBeDefined()
 		})
 
-		const result = await runCLI(
-			["list", "--type", "prompts", "--registry", "@test"],
-			{
-				cwd: project.path,
-			},
-		)
+		it("lists tools with --type tools", async () => {
+			const result = await runCLI(
+				["list", "--type", "tools", "--registry", "@test"],
+				{ cwd: project.path },
+			)
 
-		expect(result.exitCode).toBe(0)
-		const output = JSON.parse(result.stdout)
-		expect(Array.isArray(output)).toBe(true)
-		// All items should be prompts
-		for (const item of output) {
-			expect(item.type).toBe("registry:prompt")
-		}
+			expect(result.exitCode).toBe(0)
+			const output = JSON.parse(result.stdout)
+			expect(Array.isArray(output)).toBe(true)
+			// All items should be tools
+			for (const item of output) {
+				expect(item.type).toBe("registry:tool")
+			}
+		})
+
+		it("lists prompts with --type prompts", async () => {
+			const result = await runCLI(
+				["list", "--type", "prompts", "--registry", "@test"],
+				{ cwd: project.path },
+			)
+
+			expect(result.exitCode).toBe(0)
+			const output = JSON.parse(result.stdout)
+			expect(Array.isArray(output)).toBe(true)
+			// All items should be prompts
+			for (const item of output) {
+				expect(item.type).toBe("registry:prompt")
+			}
+		})
 	})
 
 	it("works without agents.json (uses default config)", async () => {

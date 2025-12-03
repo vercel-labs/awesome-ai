@@ -1,6 +1,15 @@
-import { useState } from "react"
+import { useAtom } from "@lfades/atom"
+import { useEffect, useState } from "react"
 import { colors } from "../theme"
 import { getToolError, getToolMessage, getToolStatus } from "../types"
+import { handleToolApproval } from "../utils/agent"
+import {
+	addPendingApproval,
+	type MessageAtom,
+	type PendingApproval,
+	pendingApprovalsAtom,
+	removePendingApproval,
+} from "./atoms"
 import { Spinner } from "./ui/spinner"
 
 // AI SDK tool part states
@@ -21,6 +30,11 @@ export interface ToolData {
 	input?: unknown
 	output?: unknown
 	errorText?: string
+	approval?: {
+		id: string
+		approved?: boolean
+		reason?: string
+	}
 }
 
 function isInProgress(state: ToolState, toolStatus?: string) {
@@ -68,8 +82,14 @@ function formatValue(value: unknown, maxLength = 200): string {
 	return json.length > maxLength ? `${json.slice(0, maxLength)}...` : json
 }
 
-export function ToolPart({ data }: { data: ToolData }) {
-	const { input, output, state, errorText } = data
+export interface ToolPartProps {
+	data: ToolData
+	messageAtom?: MessageAtom
+}
+
+export function ToolPart({ data, messageAtom }: ToolPartProps) {
+	const { input, output, state, errorText, approval } = data
+	const [pendingApprovals] = useAtom(pendingApprovalsAtom)
 	// Extract tool name: for typed tools it's `tool-${name}`, for dynamic it's in toolName
 	const toolName =
 		data.type === "dynamic-tool"
@@ -82,6 +102,28 @@ export function ToolPart({ data }: { data: ToolData }) {
 	const inProgress = isInProgress(state, toolStatus)
 	const { icon, color } = getStatusIndicator(state, toolStatus)
 
+	// Check if this is the first pending approval (for highlighting)
+	const isFirstPending =
+		state === "approval-requested" &&
+		pendingApprovals[0]?.toolCallId === data.toolCallId
+
+	// Register this approval request when it becomes active
+	useEffect(() => {
+		if (state === "approval-requested" && approval?.id && messageAtom) {
+			const pendingApproval: PendingApproval = {
+				toolCallId: data.toolCallId,
+				approvalId: approval.id,
+				toolName,
+				messageAtom,
+			}
+			addPendingApproval(pendingApproval)
+
+			return () => {
+				removePendingApproval(data.toolCallId)
+			}
+		}
+	}, [state, approval?.id, data.toolCallId, toolName, messageAtom])
+
 	// Determine display message
 	let displayMessage = toolMessage
 	if (!displayMessage) {
@@ -91,6 +133,10 @@ export function ToolPart({ data }: { data: ToolData }) {
 			displayMessage = "Waiting for approval..."
 		} else if (state === "output-denied") {
 			displayMessage = "Denied by user"
+		} else if (state === "approval-responded") {
+			displayMessage = approval?.approved
+				? "Approved, executing..."
+				: "Denied by user"
 		} else if (state === "input-streaming" || state === "input-available") {
 			displayMessage = "Running..."
 		}
@@ -105,18 +151,21 @@ export function ToolPart({ data }: { data: ToolData }) {
 		Object.keys(output).length > 0
 	const hasDetails = hasInput || hasOutput || toolError
 
+	// Force expanded when this is the first pending approval
+	const isExpanded = isFirstPending || expanded
+	const canToggle = hasDetails && !isFirstPending
+
 	const toggle = () => {
-		if (hasDetails) setExpanded(!expanded)
+		if (canToggle) setExpanded(!expanded)
 	}
 
 	return (
 		<box
 			style={{
 				flexDirection: "column",
-				marginTop: 1,
 				border: true,
 				borderStyle: "single",
-				borderColor: colors.border,
+				borderColor: isFirstPending ? "#f59e0b" : colors.border,
 				paddingLeft: 1,
 				paddingRight: 1,
 			}}
@@ -126,7 +175,7 @@ export function ToolPart({ data }: { data: ToolData }) {
 				<text>
 					<span fg={colors.green}> {toolName}</span>
 					{displayMessage && <span fg={colors.muted}> {displayMessage}</span>}
-					{hasDetails && (
+					{canToggle && (
 						<span fg={colors.border}>
 							{" "}
 							({expanded ? "collapse" : "expand"})
@@ -135,7 +184,7 @@ export function ToolPart({ data }: { data: ToolData }) {
 				</text>
 			</box>
 
-			{expanded && hasDetails && (
+			{isExpanded && hasDetails && (
 				<box style={{ flexDirection: "column", marginTop: 1 }}>
 					{hasInput && (
 						<box style={{ flexDirection: "column" }}>
@@ -156,6 +205,35 @@ export function ToolPart({ data }: { data: ToolData }) {
 							<text fg="#ef4444">Error: {toolError}</text>
 						</box>
 					)}
+				</box>
+			)}
+
+			{isFirstPending && (
+				<box style={{ flexDirection: "row", marginTop: 1, gap: 1 }}>
+					<box
+						onMouseDown={() => handleToolApproval(true)}
+						style={{
+							border: true,
+							borderStyle: "heavy",
+							borderColor: colors.green,
+							paddingLeft: 1,
+							paddingRight: 1,
+						}}
+					>
+						<text fg={colors.green}>⌥ Y Approve</text>
+					</box>
+					<box
+						onMouseDown={() => handleToolApproval(false)}
+						style={{
+							border: true,
+							borderStyle: "heavy",
+							borderColor: "#ef4444",
+							paddingLeft: 1,
+							paddingRight: 1,
+						}}
+					>
+						<text fg="#ef4444">⌥ N Deny</text>
+					</box>
 				</box>
 			)}
 		</box>

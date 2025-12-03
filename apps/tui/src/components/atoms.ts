@@ -51,6 +51,27 @@ export const availableModelsAtom = atom<AvailableModel[]>([])
 export const selectedModelIndexAtom = atom(0)
 export const isLoadingModelsAtom = atom(false)
 
+export interface PendingApproval {
+	toolCallId: string
+	approvalId: string
+	toolName: string
+	messageAtom: MessageAtom
+}
+export const pendingApprovalsAtom = atom<PendingApproval[]>([])
+
+export function addPendingApproval(approval: PendingApproval) {
+	const current = pendingApprovalsAtom.get()
+	if (!current.some((a) => a.toolCallId === approval.toolCallId)) {
+		pendingApprovalsAtom.set([...current, approval])
+	}
+}
+
+export function removePendingApproval(toolCallId: string) {
+	pendingApprovalsAtom.set(
+		pendingApprovalsAtom.get().filter((a) => a.toolCallId !== toolCallId),
+	)
+}
+
 export function debugLog(...args: unknown[]) {
 	const msg = args
 		.map((a) => (typeof a === "object" ? JSON.stringify(a) : String(a)))

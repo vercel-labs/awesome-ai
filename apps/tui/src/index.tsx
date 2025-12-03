@@ -28,7 +28,7 @@ import {
 import { ShortcutsPanel } from "./components/shortcuts-panel"
 import { colors } from "./theme"
 import { createSystemMessage } from "./types"
-import { setCwd } from "./utils/agent"
+import { handleToolApproval, setCwd } from "./utils/agent"
 import { discoverAgents } from "./utils/agent-discovery"
 import { copyToClipboard } from "./utils/clipboard"
 
@@ -86,6 +86,20 @@ function Chat() {
 		if (key.name === "s" && (key.meta || key.option)) {
 			key.preventDefault()
 			showShortcutsAtom.set(!showShortcutsAtom.get())
+			return
+		}
+
+		// Alt+Y to approve pending tool
+		if (key.name === "y" && (key.meta || key.option)) {
+			key.preventDefault()
+			handleToolApproval(true)
+			return
+		}
+
+		// Alt+N to deny pending tool
+		if (key.name === "n" && (key.meta || key.option)) {
+			key.preventDefault()
+			handleToolApproval(false)
 			return
 		}
 

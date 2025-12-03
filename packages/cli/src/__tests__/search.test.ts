@@ -4,18 +4,14 @@ import { createTestProject, runCLI } from "./lib/test-utils"
 
 describe("search command", () => {
 	let registryUrl: string
+	let project: Awaited<ReturnType<typeof createTestProject>>
 
 	beforeAll(async () => {
 		const registry = await startMockRegistry()
 		registryUrl = registry.url
-	})
 
-	afterAll(async () => {
-		await stopMockRegistry()
-	})
-
-	function createProjectWithRegistry() {
-		return createTestProject({
+		// All search tests share a single project (search is read-only)
+		project = await createTestProject({
 			packageJson: { name: "test-project" },
 			tsconfig: true,
 			files: {
@@ -32,16 +28,16 @@ describe("search command", () => {
 				}),
 			},
 		})
-	}
+	})
+
+	afterAll(async () => {
+		await stopMockRegistry()
+	})
 
 	it("searches agents by name", async () => {
-		const project = await createProjectWithRegistry()
-
 		const result = await runCLI(
 			["search", "--query", "test", "--registry", "@test"],
-			{
-				cwd: project.path,
-			},
+			{ cwd: project.path },
 		)
 
 		expect(result.exitCode).toBe(0)
@@ -58,13 +54,9 @@ describe("search command", () => {
 	})
 
 	it("searches by description", async () => {
-		const project = await createProjectWithRegistry()
-
 		const result = await runCLI(
 			["search", "--query", "cli testing", "--registry", "@test"],
-			{
-				cwd: project.path,
-			},
+			{ cwd: project.path },
 		)
 
 		expect(result.exitCode).toBe(0)
@@ -73,8 +65,6 @@ describe("search command", () => {
 	})
 
 	it("returns empty array for no matches", async () => {
-		const project = await createProjectWithRegistry()
-
 		const result = await runCLI(
 			["search", "--query", "nonexistentthing12345", "--registry", "@test"],
 			{ cwd: project.path },
@@ -87,8 +77,6 @@ describe("search command", () => {
 	})
 
 	it("filters by type with --type tools", async () => {
-		const project = await createProjectWithRegistry()
-
 		const result = await runCLI(
 			["search", "--query", "test", "--type", "tools", "--registry", "@test"],
 			{ cwd: project.path },
@@ -104,8 +92,6 @@ describe("search command", () => {
 	})
 
 	it("filters by type with --type prompts", async () => {
-		const project = await createProjectWithRegistry()
-
 		const result = await runCLI(
 			["search", "--query", "test", "--type", "prompts", "--registry", "@test"],
 			{ cwd: project.path },
@@ -121,8 +107,6 @@ describe("search command", () => {
 	})
 
 	it("returns all items without query", async () => {
-		const project = await createProjectWithRegistry()
-
 		const result = await runCLI(["search", "--registry", "@test"], {
 			cwd: project.path,
 		})
@@ -134,19 +118,13 @@ describe("search command", () => {
 	})
 
 	it("search is case-insensitive", async () => {
-		const project = await createProjectWithRegistry()
-
 		const resultLower = await runCLI(
 			["search", "--query", "test", "--registry", "@test"],
-			{
-				cwd: project.path,
-			},
+			{ cwd: project.path },
 		)
 		const resultUpper = await runCLI(
 			["search", "--query", "TEST", "--registry", "@test"],
-			{
-				cwd: project.path,
-			},
+			{ cwd: project.path },
 		)
 
 		expect(resultLower.exitCode).toBe(0)

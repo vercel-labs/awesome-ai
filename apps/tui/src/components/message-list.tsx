@@ -4,7 +4,7 @@ import { colors } from "../theme"
 import { formatTimestamp, getMessageReasoning, getMessageText } from "../types"
 import { isLoadingAtom, type MessageAtom, messagesAtom } from "./atoms"
 import { ThinkingSection } from "./thinking-section"
-import { type ToolData, ToolPart } from "./tool-part"
+import { type ToolData, type ToolPartProps, ToolPart } from "./tool-part"
 
 // GitHub Dark-inspired syntax style for markdown
 const syntaxStyle = SyntaxStyle.fromStyles({
@@ -90,7 +90,11 @@ function Message({ messageAtom }: { messageAtom: MessageAtom }) {
 						.map((part, idx) => {
 							const toolPart = part as ToolData
 							return (
-								<ToolPart key={toolPart.toolCallId || idx} data={toolPart} />
+								<ToolPart
+									key={toolPart.toolCallId || idx}
+									data={toolPart}
+									messageAtom={messageAtom}
+								/>
 							)
 						})}
 				</box>

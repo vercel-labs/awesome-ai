@@ -145,8 +145,11 @@
 				"toolCallId": "call-4",
 				"state": "approval-requested",
 				"input": {
-					"command": "rm -rf node_modules",
-					"description": "Delete node_modules"
+					"command": "echo 'Hello, World!'",
+					"description": "Print a greeting"
+				},
+				"approval": {
+					"id": "approval-4"
 				}
 			},
 			{
@@ -156,6 +159,11 @@
 				"input": {
 					"command": "sudo rm -rf /",
 					"description": "Dangerous command"
+				},
+				"approval": {
+					"id": "approval-5",
+					"approved": false,
+					"reason": "Denied by user"
 				}
 			},
 			{

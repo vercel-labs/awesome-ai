@@ -75,11 +75,11 @@ async function downloadRipgrep(binDir: string, rgPath: string): Promise<void> {
 	await fs.writeFile(archivePath, Buffer.from(await response.arrayBuffer()))
 
 	// Extract
-	await extractTarGz(archivePath, binDir, platformKey)
+		await extractTarGz(archivePath, binDir, platformKey)
 
 	// Cleanup & permissions
 	await fs.unlink(archivePath)
-	await fs.chmod(rgPath, 0o755)
+		await fs.chmod(rgPath, 0o755)
 }
 
 async function extractTarGz(

@@ -64,123 +64,117 @@ describe("view command", () => {
 		expect(result.stdout).toContain("--type")
 	})
 
-	it("shows tool details with --type tools", async () => {
-		const project = await createProjectWithRegistry()
+	// All view tests that use standard registry - share a single project
+	// (view command is read-only, so tests don't interfere)
+	describe("with standard registry", () => {
+		let project: Awaited<ReturnType<typeof createTestProject>>
 
-		const result = await runCLI(
-			["view", "@test/test-tool", "--type", "tools"],
-			{ cwd: project.path },
-		)
+		beforeAll(async () => {
+			project = await createProjectWithRegistry()
+		})
 
-		expect(result.exitCode).toBe(0)
-		const output = JSON.parse(result.stdout)
-		expect(Array.isArray(output)).toBe(true)
-		expect(output.length).toBe(1)
-		expect(output[0].name).toBe("test-tool")
-		expect(output[0].type).toBe("registry:tool")
-		expect(output[0].files).toBeDefined()
-	})
+		it("shows tool details with --type tools", async () => {
+			const result = await runCLI(
+				["view", "@test/test-tool", "--type", "tools"],
+				{ cwd: project.path },
+			)
 
-	it("shows agent details with --type agents", async () => {
-		const project = await createProjectWithRegistry()
+			expect(result.exitCode).toBe(0)
+			const output = JSON.parse(result.stdout)
+			expect(Array.isArray(output)).toBe(true)
+			expect(output.length).toBe(1)
+			expect(output[0].name).toBe("test-tool")
+			expect(output[0].type).toBe("registry:tool")
+			expect(output[0].files).toBeDefined()
+		})
 
-		const result = await runCLI(
-			["view", "@test/test-agent", "--type", "agents"],
-			{ cwd: project.path },
-		)
+		it("shows agent details with --type agents", async () => {
+			const result = await runCLI(
+				["view", "@test/test-agent", "--type", "agents"],
+				{ cwd: project.path },
+			)
 
-		expect(result.exitCode).toBe(0)
-		const output = JSON.parse(result.stdout)
-		expect(Array.isArray(output)).toBe(true)
-		expect(output.length).toBe(1)
-		expect(output[0].name).toBe("test-agent")
-		expect(output[0].type).toBe("registry:agent")
-	})
+			expect(result.exitCode).toBe(0)
+			const output = JSON.parse(result.stdout)
+			expect(Array.isArray(output)).toBe(true)
+			expect(output.length).toBe(1)
+			expect(output[0].name).toBe("test-agent")
+			expect(output[0].type).toBe("registry:agent")
+		})
 
-	it("shows prompt details with --type prompts", async () => {
-		const project = await createProjectWithRegistry()
+		it("shows prompt details with --type prompts", async () => {
+			const result = await runCLI(
+				["view", "@test/test-prompt", "--type", "prompts"],
+				{ cwd: project.path },
+			)
 
-		const result = await runCLI(
-			["view", "@test/test-prompt", "--type", "prompts"],
-			{ cwd: project.path },
-		)
+			expect(result.exitCode).toBe(0)
+			const output = JSON.parse(result.stdout)
+			expect(Array.isArray(output)).toBe(true)
+			expect(output.length).toBe(1)
+			expect(output[0].name).toBe("test-prompt")
+			expect(output[0].type).toBe("registry:prompt")
+		})
 
-		expect(result.exitCode).toBe(0)
-		const output = JSON.parse(result.stdout)
-		expect(Array.isArray(output)).toBe(true)
-		expect(output.length).toBe(1)
-		expect(output[0].name).toBe("test-prompt")
-		expect(output[0].type).toBe("registry:prompt")
-	})
+		it("handles multiple items", async () => {
+			const result = await runCLI(
+				["view", "@test/test-tool", "@test/tool-with-lib", "--type", "tools"],
+				{ cwd: project.path },
+			)
 
-	it("handles multiple items", async () => {
-		const project = await createProjectWithRegistry()
+			expect(result.exitCode).toBe(0)
+			const output = JSON.parse(result.stdout)
+			expect(Array.isArray(output)).toBe(true)
+			expect(output.length).toBe(2)
+		})
 
-		const result = await runCLI(
-			["view", "@test/test-tool", "@test/tool-with-lib", "--type", "tools"],
-			{ cwd: project.path },
-		)
+		it("handles missing items with error", async () => {
+			const result = await runCLI(
+				["view", "@test/nonexistent-item", "--type", "tools"],
+				{ cwd: project.path },
+			)
 
-		expect(result.exitCode).toBe(0)
-		const output = JSON.parse(result.stdout)
-		expect(Array.isArray(output)).toBe(true)
-		expect(output.length).toBe(2)
-	})
+			// Should fail since item doesn't exist
+			expect(result.exitCode).toBe(1)
+		})
 
-	it("handles missing items with error", async () => {
-		const project = await createProjectWithRegistry()
+		it("includes file content in response", async () => {
+			const result = await runCLI(
+				["view", "@test/test-tool", "--type", "tools"],
+				{ cwd: project.path },
+			)
 
-		const result = await runCLI(
-			["view", "@test/nonexistent-item", "--type", "tools"],
-			{ cwd: project.path },
-		)
+			expect(result.exitCode).toBe(0)
+			const output = JSON.parse(result.stdout)
+			expect(output[0].files).toBeDefined()
+			expect(output[0].files.length).toBeGreaterThan(0)
+			expect(output[0].files[0].content).toBeDefined()
+		})
 
-		// Should fail since item doesn't exist
-		expect(result.exitCode).toBe(1)
-	})
+		it("includes dependencies in response", async () => {
+			const result = await runCLI(
+				["view", "@test/test-tool", "--type", "tools"],
+				{ cwd: project.path },
+			)
 
-	it("includes file content in response", async () => {
-		const project = await createProjectWithRegistry()
+			expect(result.exitCode).toBe(0)
+			const output = JSON.parse(result.stdout)
+			expect(output[0].dependencies).toBeDefined()
+			expect(output[0].dependencies).toContain("zod")
+		})
 
-		const result = await runCLI(
-			["view", "@test/test-tool", "--type", "tools"],
-			{ cwd: project.path },
-		)
+		it("includes registryDependencies for agents", async () => {
+			const result = await runCLI(
+				["view", "@test/test-agent", "--type", "agents"],
+				{ cwd: project.path },
+			)
 
-		expect(result.exitCode).toBe(0)
-		const output = JSON.parse(result.stdout)
-		expect(output[0].files).toBeDefined()
-		expect(output[0].files.length).toBeGreaterThan(0)
-		expect(output[0].files[0].content).toBeDefined()
-	})
-
-	it("includes dependencies in response", async () => {
-		const project = await createProjectWithRegistry()
-
-		const result = await runCLI(
-			["view", "@test/test-tool", "--type", "tools"],
-			{ cwd: project.path },
-		)
-
-		expect(result.exitCode).toBe(0)
-		const output = JSON.parse(result.stdout)
-		expect(output[0].dependencies).toBeDefined()
-		expect(output[0].dependencies).toContain("zod")
-	})
-
-	it("includes registryDependencies for agents", async () => {
-		const project = await createProjectWithRegistry()
-
-		const result = await runCLI(
-			["view", "@test/test-agent", "--type", "agents"],
-			{ cwd: project.path },
-		)
-
-		expect(result.exitCode).toBe(0)
-		const output = JSON.parse(result.stdout)
-		expect(output[0].registryDependencies).toBeDefined()
-		expect(output[0].registryDependencies).toContain("tools:test-tool")
-		expect(output[0].registryDependencies).toContain("prompts:test-prompt")
+			expect(result.exitCode).toBe(0)
+			const output = JSON.parse(result.stdout)
+			expect(output[0].registryDependencies).toBeDefined()
+			expect(output[0].registryDependencies).toContain("tools:test-tool")
+			expect(output[0].registryDependencies).toContain("prompts:test-prompt")
+		})
 	})
 
 	it("sends custom headers to registry", async () => {

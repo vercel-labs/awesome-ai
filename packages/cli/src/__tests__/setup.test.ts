@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest"
+import { beforeAll, describe, expect, it } from "vitest"
 import { createTestProject, runCLI } from "./lib/test-utils"
 
 describe("test setup", () => {
@@ -42,19 +42,26 @@ describe("test setup", () => {
 		expect(await project.readFile("src/index.ts")).toBe("export const foo = 1")
 	})
 
-	it("can run the CLI and get version", async () => {
-		const project = await createTestProject()
-		const result = await runCLI(["--version"], { cwd: project.path })
+	// CLI command tests - share a single project (read-only commands)
+	describe("CLI commands", () => {
+		let project: Awaited<ReturnType<typeof createTestProject>>
 
-		expect(result.exitCode).toBe(0)
-		expect(result.stdout).toMatch(/\d+\.\d+\.\d+/)
-	})
+		beforeAll(async () => {
+			project = await createTestProject()
+		})
 
-	it("can run the CLI help command", async () => {
-		const project = await createTestProject()
-		const result = await runCLI(["--help"], { cwd: project.path })
+		it("can run the CLI and get version", async () => {
+			const result = await runCLI(["--version"], { cwd: project.path })
 
-		expect(result.exitCode).toBe(0)
-		expect(result.stdout).toContain("add agents, tools, and prompts")
+			expect(result.exitCode).toBe(0)
+			expect(result.stdout).toMatch(/\d+\.\d+\.\d+/)
+		})
+
+		it("can run the CLI help command", async () => {
+			const result = await runCLI(["--help"], { cwd: project.path })
+
+			expect(result.exitCode).toBe(0)
+			expect(result.stdout).toContain("add agents, tools, and prompts")
+		})
 	})
 })

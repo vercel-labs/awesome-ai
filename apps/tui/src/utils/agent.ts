@@ -5,12 +5,17 @@ import {
 	currentAgentAtom,
 	debugLog,
 	isLoadingAtom,
+	type MessageAtom,
+	pendingApprovalsAtom,
+	removePendingApproval,
 	selectedModelAtom,
 } from "../components/atoms"
+import type { ToolData } from "../components/tool-part"
 import {
 	createAssistantMessage,
 	createSystemMessage,
 	createUserMessage,
+	type TUIMessage,
 } from "../types"
 
 // Global state for agent and conversation
@@ -32,6 +37,54 @@ export function resetConversation() {
 
 export function isAgentLoaded() {
 	return currentAgentInstance !== null
+}
+
+/**
+ * Stream an agent response and update the message atom with the results.
+ */
+async function streamAgentResponse(messageAtom: MessageAtom): Promise<void> {
+	if (!currentAgentInstance) return
+
+	const result = await currentAgentInstance.stream({
+		messages: conversationMessages,
+	})
+
+	let reasoningText = ""
+	let responseText = ""
+
+	const updateMessage = () => {
+		const current = messageAtom.get()
+		const newParts = current.parts.map((part) => {
+			if (part.type === "text") {
+				return { ...part, text: responseText }
+			}
+			if (part.type === "reasoning") {
+				return { ...part, text: reasoningText }
+			}
+			return part
+		})
+		messageAtom.set({ ...current, parts: newParts as TUIMessage["parts"] })
+	}
+
+	for await (const chunk of result.fullStream) {
+		switch (chunk.type) {
+			case "reasoning-delta":
+				reasoningText += chunk.text
+				updateMessage()
+				break
+
+			case "text-delta":
+				responseText += chunk.text
+				updateMessage()
+				break
+
+			case "error":
+				throw new Error(String(chunk.error))
+		}
+	}
+
+	const response = await result.response
+	conversationMessages.push(...response.messages)
 }
 
 export async function loadAgent(agentName: string): Promise<boolean> {
@@ -85,66 +138,13 @@ export async function sendMessage(userPrompt: string): Promise<void> {
 		return
 	}
 
-	// Add user message
-	const userMessage = createUserMessage(userPrompt)
-	addMessage(userMessage)
+	addMessage(createUserMessage(userPrompt))
 	isLoadingAtom.set(true)
 
 	try {
-		// Add user message to conversation history
-		const modelUserMessage: ModelMessage = {
-			role: "user",
-			content: userPrompt,
-		}
-		conversationMessages.push(modelUserMessage)
-
-		// Stream the agent response
-		const result = await currentAgentInstance.stream({
-			messages: conversationMessages,
-		})
-
-		let reasoningText = ""
-		let responseText = ""
-
-		// Create assistant message atom once and keep reference for streaming updates
-		const assistantMessage = addMessage(createAssistantMessage("", undefined))
-
-		const updateAssistantMessage = () => {
-			const updatedMessage = createAssistantMessage(
-				responseText,
-				reasoningText || undefined,
-			)
-
-			updatedMessage.id = assistantMessage.get().id
-			assistantMessage.set(updatedMessage)
-		}
-
-		for await (const chunk of result.fullStream) {
-			switch (chunk.type) {
-				case "reasoning-delta":
-					reasoningText += chunk.text
-					updateAssistantMessage()
-					break
-
-				case "text-delta":
-					responseText += chunk.text
-					updateAssistantMessage()
-					break
-
-				case "tool-call":
-					if (!chunk.dynamic) {
-						debugLog(`Tool call: ${chunk.toolName}`, chunk.input)
-					}
-					break
-
-				case "error":
-					throw new Error(String(chunk.error))
-			}
-		}
-
-		// Update conversation messages with the response
-		const response = await result.response
-		conversationMessages.push(...response.messages)
+		conversationMessages.push({ role: "user", content: userPrompt })
+		const messageAtom = addMessage(createAssistantMessage("", undefined))
+		await streamAgentResponse(messageAtom)
 	} catch (error) {
 		addMessage(
 			createSystemMessage(
@@ -162,3 +162,62 @@ currentAgentAtom.sub((agentName) => {
 		loadAgent(agentName)
 	}
 })
+
+/**
+ * Handle a tool approval response.
+ * Updates the message part to approval-responded and continues the agent stream.
+ */
+export async function handleToolApproval(approved: boolean): Promise<boolean> {
+	const pendingApproval = pendingApprovalsAtom.get()[0]
+	if (!pendingApproval) {
+		debugLog("No pending approval to handle")
+		return false
+	}
+
+	const { toolCallId, approvalId, messageAtom, toolName } = pendingApproval
+
+	// Update the message part to approval-responded
+	const message = messageAtom.get()
+	const updatedParts = message.parts.map((part) => {
+		const toolPart = part as ToolData
+		if (
+			(part.type.startsWith("tool-") || part.type === "dynamic-tool") &&
+			toolPart.toolCallId === toolCallId &&
+			toolPart.state === "approval-requested"
+		) {
+			return {
+				...toolPart,
+				state: "approval-responded",
+				approval: {
+					id: approvalId,
+					approved,
+					reason: approved ? undefined : "Denied by user",
+				},
+			}
+		}
+		return part
+	})
+
+	messageAtom.set({ ...message, parts: updatedParts as TUIMessage["parts"] })
+	removePendingApproval(toolCallId)
+	debugLog(
+		`Tool ${toolName} ${approved ? "approved" : "denied"} (${toolCallId})`,
+	)
+
+	if (approved && currentAgentInstance) {
+		isLoadingAtom.set(true)
+		try {
+			await streamAgentResponse(messageAtom)
+		} catch (error) {
+			addMessage(
+				createSystemMessage(
+					`Error: ${error instanceof Error ? error.message : String(error)}`,
+				),
+			)
+		} finally {
+			isLoadingAtom.set(false)
+		}
+	}
+
+	return true
+}

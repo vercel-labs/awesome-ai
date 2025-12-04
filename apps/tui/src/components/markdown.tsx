@@ -176,12 +176,20 @@ interface MarkdownProps {
 /**
  * Parse and render a heading line
  */
-function HeadingBlock({ content, level }: { content: string; level: number }) {
+function HeadingBlock({
+	content,
+	level,
+	isFirst,
+}: {
+	content: string
+	level: number
+	isFirst?: boolean
+}) {
 	const tokens = tokenizeInline(content)
 	const prefix = `${"#".repeat(level)} `
 
 	return (
-		<box>
+		<box style={{ marginTop: isFirst ? 0 : 1 }}>
 			<text fg={markdownColors.heading}>
 				<strong>
 					{prefix}
@@ -465,14 +473,22 @@ function ParagraphBlock({ content }: { content: string }) {
  */
 function BlockRenderer({
 	block,
+	isFirst,
 	streaming = false,
 }: {
 	block: ParsedBlock
+	isFirst: boolean
 	streaming?: boolean
 }) {
 	switch (block.type) {
 		case "heading":
-			return <HeadingBlock content={block.content} level={block.level ?? 1} />
+			return (
+				<HeadingBlock
+					content={block.content}
+					level={block.level ?? 1}
+					isFirst={isFirst}
+				/>
+			)
 		case "list":
 			return (
 				<ListBlock
@@ -491,6 +507,7 @@ function BlockRenderer({
 					code={block.content}
 					language={block.language}
 					streaming={streaming}
+					isFirst={isFirst}
 				/>
 			)
 		case "paragraph":
@@ -546,6 +563,7 @@ export function Markdown({ children, streaming = false }: MarkdownProps) {
 				<BlockRenderer
 					key={blockKeys[idx]}
 					block={block}
+					isFirst={idx === 0}
 					streaming={streaming}
 				/>
 			))}

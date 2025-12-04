@@ -165,6 +165,7 @@ interface CodeBlockProps {
 	code: string
 	language?: string
 	streaming?: boolean
+	isFirst?: boolean
 	children?: ReactNode
 }
 
@@ -217,8 +218,6 @@ export const CodeBlock = memo(function CodeBlock({
 				borderStyle: "single",
 				borderColor: codeColors.border,
 				backgroundColor: codeColors.background,
-				marginTop: 1,
-				marginBottom: 1,
 			}}
 		>
 			{language && (

@@ -6,7 +6,7 @@ export interface DiscoveredAgent {
 	path: string
 }
 
-export async function discoverAgents(
+async function discoverAgentsFromPath(
 	agentsPath: string,
 ): Promise<DiscoveredAgent[]> {
 	const agents: DiscoveredAgent[] = []
@@ -39,6 +39,30 @@ export async function discoverAgents(
 	} catch {
 		// Directory doesn't exist or can't be read
 		return []
+	}
+
+	return agents
+}
+
+/**
+ * Discover agents from multiple paths. Earlier paths take precedence
+ * over later paths when agents have the same name.
+ */
+export async function discoverAgents(
+	agentPaths: string | string[],
+): Promise<DiscoveredAgent[]> {
+	const paths = Array.isArray(agentPaths) ? agentPaths : [agentPaths]
+	const seenNames = new Set<string>()
+	const agents: DiscoveredAgent[] = []
+
+	for (const agentPath of paths) {
+		const discovered = await discoverAgentsFromPath(agentPath)
+		for (const agent of discovered) {
+			if (!seenNames.has(agent.name)) {
+				seenNames.add(agent.name)
+				agents.push(agent)
+			}
+		}
 	}
 
 	return agents.sort((a, b) => a.name.localeCompare(b.name))

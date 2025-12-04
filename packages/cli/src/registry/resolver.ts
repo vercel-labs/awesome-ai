@@ -12,6 +12,7 @@ import { fetchRegistry, fetchRegistryLocal } from "@/src/registry/fetcher"
 import { parseRegistryAndItemFromString } from "@/src/registry/parser"
 import {
 	type RegistryItem,
+	type RegistryItemCategory,
 	registryItemSchema,
 	registryResolvedItemsTreeSchema,
 } from "@/src/registry/schema"
@@ -24,7 +25,7 @@ const registryItemWithSourceSchema = registryItemSchema.extend({
 
 export function resolveRegistryItemsFromRegistries(
 	items: string[],
-	type: "agents" | "tools" | "prompts",
+	type: RegistryItemCategory,
 	config: Config,
 ) {
 	const registryHeaders: Record<string, Record<string, string>> = {}
@@ -51,7 +52,7 @@ export function resolveRegistryItemsFromRegistries(
 				// Transform "tools:test-tool" to "@defaultRegistry/test-tool" and extract type
 				const itemName = item.substring(colonIndex + 1)
 				item = `${defaultRegistry}/${itemName}`
-				itemType = prefix as "agents" | "tools" | "prompts"
+				itemType = prefix as RegistryItemCategory
 			}
 		}
 
@@ -73,9 +74,8 @@ export function resolveRegistryItemsFromRegistries(
 
 export async function fetchRegistryItems(
 	items: string[],
-	type: "agents" | "tools" | "prompts",
+	type: RegistryItemCategory,
 	config: Config,
-	options: { useCache?: boolean } = {},
 ) {
 	const results = await Promise.all(
 		items.map(async (item) => {
@@ -84,7 +84,7 @@ export async function fetchRegistryItems(
 			}
 
 			if (isUrl(item)) {
-				const [result] = await fetchRegistry([item], options)
+				const [result] = await fetchRegistry([item])
 				try {
 					return registryItemSchema.parse(result)
 				} catch (error) {
@@ -94,7 +94,7 @@ export async function fetchRegistryItems(
 
 			if (item.startsWith("@") && config?.registries) {
 				const paths = resolveRegistryItemsFromRegistries([item], type, config)
-				const [result] = await fetchRegistry(paths, options)
+				const [result] = await fetchRegistry(paths)
 				try {
 					return registryItemSchema.parse(result)
 				} catch (error) {
@@ -115,7 +115,7 @@ export async function fetchRegistryItems(
 			}
 
 			const path = `${itemType}/${itemName}.json`
-			const [result] = await fetchRegistry([path], options)
+			const [result] = await fetchRegistry([path])
 			try {
 				return registryItemSchema.parse(result)
 			} catch (error) {
@@ -129,21 +129,15 @@ export async function fetchRegistryItems(
 
 export async function resolveRegistryTree(
 	names: string[],
-	type: "agents" | "tools" | "prompts",
+	type: RegistryItemCategory,
 	config: Config,
-	options: { useCache?: boolean } = {},
 ) {
-	options = {
-		useCache: true,
-		...options,
-	}
-
 	let payload: z.infer<typeof registryItemWithSourceSchema>[] = []
 	const allDependencyItems: z.infer<typeof registryItemWithSourceSchema>[] = []
 
 	const uniqueNames = Array.from(new Set(names))
 
-	const results = await fetchRegistryItems(uniqueNames, type, config, options)
+	const results = await fetchRegistryItems(uniqueNames, type, config)
 
 	const resultMap = new Map<string, RegistryItem>()
 	for (let i = 0; i < results.length; i++) {
@@ -182,7 +176,6 @@ export async function resolveRegistryTree(
 				resolvedDependencies,
 				type,
 				config,
-				options,
 				new Set(uniqueNames),
 			)
 			allDependencyItems.push(...items)
@@ -192,10 +185,10 @@ export async function resolveRegistryTree(
 	payload.push(...allDependencyItems)
 
 	const sourceMap = new Map<RegistryItem, string>()
-	payload.forEach((item) => {
+	for (const item of payload) {
 		const source = item._source || item.name
 		sourceMap.set(item, source)
-	})
+	}
 
 	payload = topologicalSortRegistryItems(payload, sourceMap)
 
@@ -213,9 +206,8 @@ export async function resolveRegistryTree(
 
 async function resolveDependenciesRecursively(
 	dependencies: string[],
-	type: "agents" | "tools" | "prompts",
+	type: RegistryItemCategory,
 	config: Config,
-	options: { useCache?: boolean } = {},
 	visited: Set<string> = new Set(),
 ) {
 	const items: z.infer<typeof registryItemWithSourceSchema>[] = []
@@ -226,87 +218,35 @@ async function resolveDependenciesRecursively(
 		}
 		visited.add(dep)
 
-		if (isUrl(dep) || isLocalFile(dep)) {
-			const [item] = await fetchRegistryItems([dep], type, config, options)
-			if (item) {
-				// Add _source to distinguish items with the same name
-				items.push({ ...item, _source: dep })
-				if (item.registryDependencies) {
-					const resolvedDeps = config?.registries
-						? resolveRegistryItemsFromRegistries(
-								item.registryDependencies,
-								type,
-								config,
-							)
-						: item.registryDependencies
-
-					const nested = await resolveDependenciesRecursively(
-						resolvedDeps,
-						type,
-						config,
-						options,
-						visited,
-					)
-					items.push(...nested.items)
-				}
-			}
-		} else if (dep.startsWith("@") && config?.registries) {
+		// Validate namespaced dependencies
+		if (dep.startsWith("@") && config?.registries) {
 			const { registry } = parseRegistryAndItemFromString(dep)
 			if (registry && !(registry in config.registries)) {
 				throw new RegistryNotConfiguredError(registry)
 			}
+		}
 
-			const [item] = await fetchRegistryItems([dep], type, config, options)
-			if (item) {
-				// Add _source to distinguish items with the same name
-				items.push({ ...item, _source: dep })
-				if (item.registryDependencies) {
-					const resolvedDeps = config?.registries
-						? resolveRegistryItemsFromRegistries(
-								item.registryDependencies,
-								type,
-								config,
-							)
-						: item.registryDependencies
+		const [item] = await fetchRegistryItems([dep], type, config)
+		if (!item) continue
 
-					const nested = await resolveDependenciesRecursively(
-						resolvedDeps,
+		items.push({ ...item, _source: dep })
+
+		if (item.registryDependencies) {
+			const resolvedDeps = config?.registries
+				? resolveRegistryItemsFromRegistries(
+						item.registryDependencies,
 						type,
 						config,
-						options,
-						visited,
 					)
-					items.push(...nested.items)
-				}
-			}
-		} else {
-			try {
-				const [item] = await fetchRegistryItems([dep], type, config, options)
-				if (item) {
-					// Add _source to distinguish items with the same name
-					items.push({ ...item, _source: dep })
-					if (item.registryDependencies) {
-						const resolvedDeps = config?.registries
-							? resolveRegistryItemsFromRegistries(
-									item.registryDependencies,
-									type,
-									config,
-								)
-							: item.registryDependencies
+				: item.registryDependencies
 
-						const nested = await resolveDependenciesRecursively(
-							resolvedDeps,
-							type,
-							config,
-							options,
-							visited,
-						)
-						items.push(...nested.items)
-					}
-				}
-			} catch {
-				// If we can't fetch the registry item, that's okay
-			}
+			const nested = await resolveDependenciesRecursively(
+				resolvedDeps,
+				type,
+				config,
+				visited,
+			)
+			items.push(...nested.items)
 		}
 	}
 
@@ -363,7 +303,7 @@ function topologicalSortRegistryItems(
 	const inDegree = new Map<string, number>()
 	const adjacencyList = new Map<string, string[]>()
 
-	items.forEach((item) => {
+	for (const item of items) {
 		const source = sourceMap.get(item) || item.name
 		const hash = computeItemHash(item, source)
 
@@ -371,10 +311,10 @@ function topologicalSortRegistryItems(
 		hashToItem.set(hash, item)
 		inDegree.set(hash, 0)
 		adjacencyList.set(hash, [])
-	})
+	}
 
 	const depToHashes = new Map<string, string[]>()
-	items.forEach((item) => {
+	for (const item of items) {
 		const source = sourceMap.get(item) || item.name
 		const hash = computeItemHash(item, source)
 
@@ -389,14 +329,14 @@ function topologicalSortRegistryItems(
 			}
 			depToHashes.get(source)!.push(hash)
 		}
-	})
+	}
 
-	items.forEach((item) => {
+	for (const item of items) {
 		const itemSource = sourceMap.get(item) || item.name
 		const itemHash = computeItemHash(item, itemSource)
 
 		if (item.registryDependencies) {
-			item.registryDependencies.forEach((dep) => {
+			for (const dep of item.registryDependencies) {
 				let depHash: string | undefined
 
 				const exactMatches = depToHashes.get(dep) || []
@@ -416,32 +356,32 @@ function topologicalSortRegistryItems(
 					adjacencyList.get(depHash)!.push(itemHash)
 					inDegree.set(itemHash, inDegree.get(itemHash)! + 1)
 				}
-			})
+			}
 		}
-	})
+	}
 
 	const queue: string[] = []
 	const sorted: z.infer<typeof registryItemWithSourceSchema>[] = []
 
-	inDegree.forEach((degree, hash) => {
+	for (const [hash, degree] of inDegree) {
 		if (degree === 0) {
 			queue.push(hash)
 		}
-	})
+	}
 
 	while (queue.length > 0) {
 		const currentHash = queue.shift()!
 		const item = itemMap.get(currentHash)!
 		sorted.push(item as z.infer<typeof registryItemWithSourceSchema>)
 
-		adjacencyList.get(currentHash)!.forEach((dependentHash) => {
+		for (const dependentHash of adjacencyList.get(currentHash)!) {
 			const newDegree = inDegree.get(dependentHash)! - 1
 			inDegree.set(dependentHash, newDegree)
 
 			if (newDegree === 0) {
 				queue.push(dependentHash)
 			}
-		})
+		}
 	}
 
 	if (sorted.length !== items.length) {

@@ -2,9 +2,10 @@ import { type Change, diffLines } from "diff"
 import { existsSync, promises as fs, statSync } from "fs"
 import path, { basename } from "path"
 import prompts from "prompts"
-import type { RegistryItem } from "@/src/registry/schema"
+import type { RegistryItem, RegistryItemCategory } from "@/src/registry/schema"
 import type { Config } from "@/src/schema"
 import { isContentSame } from "@/src/utils/compare"
+import { getRelativePath, getTargetDir } from "@/src/utils/file-type"
 import { getProjectInfo } from "@/src/utils/get-project-info"
 import { highlighter } from "@/src/utils/highlighter"
 import { logger } from "@/src/utils/logger"
@@ -13,12 +14,13 @@ import { transformImports } from "@/src/utils/transform-import"
 
 export async function updateFiles(
 	files: RegistryItem["files"],
-	type: "agents" | "tools" | "prompts",
+	type: RegistryItemCategory,
 	config: Config,
 	options: {
 		overwrite?: boolean
 		silent?: boolean
 		path?: string
+		yes?: boolean
 	},
 ) {
 	if (!files?.length) {
@@ -32,6 +34,7 @@ export async function updateFiles(
 	options = {
 		overwrite: false,
 		silent: false,
+		yes: false,
 		...options,
 	}
 
@@ -45,20 +48,16 @@ export async function updateFiles(
 	const filesUpdated: string[] = []
 	const filesSkipped: string[] = []
 
-	for (let index = 0; index < files.length; index++) {
-		const file = files[index]
-		if (!file.content) {
-			continue
-		}
+	for (const file of files) {
+		const fileType = getTargetDir(file, type)
+		const relativePath = getRelativePath(file.path)
+		const basePath = options.path || config.resolvedPaths[fileType]
 
-		let filePath = resolveFilePath(file, type, config, {
-			isSrcDir: projectInfo?.isSrcDir,
-			path: options.path,
-			fileIndex: index,
-		})
+		let filePath = path.resolve(basePath, relativePath)
 
-		if (!filePath) {
-			continue
+		if (projectInfo?.isSrcDir && !filePath.includes("src")) {
+			const srcPath = path.resolve(config.resolvedPaths.cwd, "src")
+			filePath = path.resolve(srcPath, relativePath)
 		}
 
 		const fileName = basename(file.path)
@@ -93,27 +92,29 @@ export async function updateFiles(
 				continue
 			}
 
-			filesCreatedSpinner.stop()
+			if (!options.yes) {
+				filesCreatedSpinner.stop()
 
-			const diff = diffLines(existingFileContent, content)
-			logger.info(`\nFile: ${highlighter.info(fileName)}`)
-			printDiff(diff)
+				const diff = diffLines(existingFileContent, content)
+				logger.info(`\nFile: ${highlighter.info(fileName)}`)
+				printDiff(diff)
 
-			const { overwrite } = await prompts({
-				type: "confirm",
-				name: "overwrite",
-				message: `The file ${highlighter.info(
-					fileName,
-				)} already exists. Would you like to overwrite?`,
-				initial: false,
-			})
+				const { overwrite } = await prompts({
+					type: "confirm",
+					name: "overwrite",
+					message: `The file ${highlighter.info(
+						fileName,
+					)} already exists. Would you like to overwrite?`,
+					initial: false,
+				})
 
-			if (!overwrite) {
-				filesSkipped.push(path.relative(config.resolvedPaths.cwd, filePath))
+				if (!overwrite) {
+					filesSkipped.push(path.relative(config.resolvedPaths.cwd, filePath))
+					filesCreatedSpinner?.start()
+					continue
+				}
 				filesCreatedSpinner?.start()
-				continue
 			}
-			filesCreatedSpinner?.start()
 		}
 
 		if (!existsSync(targetDir)) {
@@ -141,53 +142,6 @@ export async function updateFiles(
 		filesUpdated,
 		filesSkipped,
 	}
-}
-
-function resolveFilePath(
-	file: RegistryItem["files"][number],
-	type: "agents" | "tools" | "prompts",
-	config: Config,
-	options: {
-		isSrcDir?: boolean
-		path?: string
-		fileIndex: number
-	},
-): string | null {
-	// Determine the actual type from the file's type property
-	// file.type is like "registry:agent", "registry:tool", "registry:prompt", "registry:lib"
-	let fileType: "agents" | "tools" | "prompts" = type
-	const filePath = file.path
-
-	if (file.type === "registry:agent") {
-		fileType = "agents"
-	} else if (file.type === "registry:tool") {
-		fileType = "tools"
-	} else if (file.type === "registry:prompt") {
-		fileType = "prompts"
-	} else if (file.type === "registry:lib") {
-		// For lib files, determine the type from the file path itself
-		// e.g., "tools/lib/tool-output.ts" -> tools, "agents/lib/context.ts" -> agents
-		if (filePath.startsWith("tools/")) {
-			fileType = "tools"
-		} else if (filePath.startsWith("agents/")) {
-			fileType = "agents"
-		} else if (filePath.startsWith("prompts/")) {
-			fileType = "prompts"
-		}
-	}
-
-	const basePath = options.path || config.resolvedPaths[fileType]
-
-	const relativePath = filePath.replace(new RegExp(`^${fileType}/`), "")
-
-	const targetPath = path.resolve(basePath, relativePath)
-
-	if (options.isSrcDir && !targetPath.includes("src")) {
-		const srcPath = path.resolve(config.resolvedPaths.cwd, "src")
-		return path.resolve(srcPath, relativePath)
-	}
-
-	return targetPath
 }
 
 function printDiff(diff: Change[]) {

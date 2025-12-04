@@ -1,8 +1,10 @@
 {
-	"name": "tui",
+	"name": "awesome-ai-tui",
 	"version": "0.0.0",
-	"private": true,
 	"type": "module",
+	"publishConfig": {
+		"access": "public"
+	},
 	"main": "./src/index.tsx",
 	"exports": {
 		".": "./src/index.tsx"
@@ -12,7 +14,6 @@
 	},
 	"dependencies": {
 		"@ai-sdk/gateway": "2.0.0-beta.69",
-		"@awesome-ai/registry": "workspace:*",
 		"@lfades/atom": "^1.0.1",
 		"@opentui/core": "^0.1.54",
 		"@opentui/react": "^0.1.54",

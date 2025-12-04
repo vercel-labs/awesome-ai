@@ -1,5 +1,6 @@
 import { configWithDefaults } from "@/src/registry/config"
 import { resolveRegistryTree } from "@/src/registry/resolver"
+import type { RegistryItemCategory } from "@/src/registry/schema"
 import type { Config } from "@/src/schema"
 import { handleError } from "@/src/utils/handle-error"
 import { logger } from "@/src/utils/logger"
@@ -9,17 +10,19 @@ import { updateFiles } from "@/src/utils/update-files"
 
 export async function addItems(
 	items: string[],
-	type: "agents" | "tools" | "prompts",
+	type: RegistryItemCategory,
 	config: Config,
 	options: {
 		overwrite?: boolean
 		silent?: boolean
 		path?: string
+		yes?: boolean
 	},
 ) {
 	options = {
 		overwrite: false,
 		silent: false,
+		yes: false,
 		...options,
 	}
 
@@ -52,6 +55,7 @@ export async function addItems(
 		overwrite: options.overwrite,
 		silent: options.silent,
 		path: options.path,
+		yes: options.yes,
 	})
 
 	if (tree.docs) {

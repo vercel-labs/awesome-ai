@@ -58,14 +58,12 @@ export const diff = new Command()
 				{ config },
 			)
 
-			if (!registryItem?.files) {
+			if (!registryItem) {
 				logger.error(`Item ${options.item} not found in registry.`)
 				process.exit(1)
 			}
 
 			for (const file of registryItem.files) {
-				if (!file.content) continue
-
 				const filePath = path.resolve(
 					config.resolvedPaths[options.type],
 					file.path.replace(new RegExp(`^${options.type}/`), ""),

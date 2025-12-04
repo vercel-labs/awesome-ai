@@ -1,5 +1,7 @@
 import { z } from "zod"
 
+export type RegistryItemCategory = "agents" | "tools" | "prompts"
+
 export const registryItemTypeSchema = z.enum([
 	"registry:agent",
 	"registry:tool",
@@ -7,14 +9,16 @@ export const registryItemTypeSchema = z.enum([
 	"registry:lib",
 ])
 
+// File with required content (for fetched items)
 export const registryItemFileSchema = z.object({
 	path: z.string(),
-	content: z.string().optional(),
+	content: z.string(),
 	type: registryItemTypeSchema,
 	target: z.string().optional(),
 })
 
-export const registryItemSchema = z.object({
+// Base fields shared between index entries and full items
+const registryItemBaseSchema = z.object({
 	$schema: z.string().optional(),
 	name: z.string(),
 	type: registryItemTypeSchema,
@@ -24,23 +28,28 @@ export const registryItemSchema = z.object({
 	dependencies: z.array(z.string()).optional(),
 	devDependencies: z.array(z.string()).optional(),
 	registryDependencies: z.array(z.string()).optional(),
-	files: z.array(registryItemFileSchema).optional(),
 	meta: z.record(z.string(), z.any()).optional(),
 	docs: z.string().optional(),
 	categories: z.array(z.string()).optional(),
 })
 
+// Full registry item - has files with content
+export const registryItemSchema = registryItemBaseSchema.extend({
+	files: z.array(registryItemFileSchema),
+})
+
 export type RegistryItem = z.infer<typeof registryItemSchema>
 
+// Registry index - items don't have files
 export const registrySchema = z.object({
 	name: z.string(),
 	homepage: z.string(),
-	items: z.array(registryItemSchema),
+	items: z.array(registryItemBaseSchema),
 })
 
 export type Registry = z.infer<typeof registrySchema>
 
-export const registryIndexSchema = z.array(registryItemSchema)
+export const registryIndexSchema = z.array(registryItemBaseSchema)
 
 export const registryResolvedItemsTreeSchema = registryItemSchema.pick({
 	dependencies: true,

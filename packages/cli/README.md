@@ -37,6 +37,15 @@ pnpm add -D awesome-ai
 
 ## Quick Start
 
+**Try instantly:**
+
+```bash
+# Run an agent directly from the remote registry
+awesome-ai run coding-agent --remote
+```
+
+**Or set up a local project:**
+
 ```bash
 # Initialize your project
 awesome-ai init
@@ -294,24 +303,36 @@ awesome-ai run [agent] [options]
 
 | Argument | Description |
 |----------|-------------|
-| `agent` | Name of the agent to run (optional) |
+| `agent` | Name of the agent to run (optional for local, required for remote) |
 
 **Options:**
 
 | Option | Description | Default |
 |--------|-------------|---------|
 | `-c, --cwd <path>` | Working directory | Current directory |
+| `-r, --remote` | Use agents from the remote registry (downloads if missing) | `false` |
+| `--remote-only` | Use only remote agents (ignore local `agents.json`) | `false` |
+| `-y, --yes` | Skip confirmation prompt for remote sync | `false` |
 
-> **Note:** Requires an initialized project with `agents.json` configuration.
+> **Note:** Without `--remote` or `--remote-only`, requires an initialized project with `agents.json` configuration.
 
 **Examples:**
 
 ```bash
-# Run the default agent interactively
+# List available local agents
 awesome-ai run
 
-# Run a specific agent
+# Run a specific local agent
 awesome-ai run coding-agent
+
+# Run an agent from the remote registry (downloads if not cached)
+awesome-ai run coding-agent --remote
+
+# Run using only remote agents (no local agents.json needed)
+awesome-ai run coding-agent --remote-only
+
+# Run remote agent without confirmation prompt
+awesome-ai run coding-agent --remote -y
 
 # Run an agent in a specific directory
 awesome-ai run coding-agent --cwd ./my-project
@@ -332,24 +353,36 @@ awesome-ai exec <prompt> [agent] [options]
 | Argument | Description |
 |----------|-------------|
 | `prompt` | Name of the prompt to execute (required) |
-| `agent` | Name of the agent to use (optional, defaults to first available) |
+| `agent` | Name of the agent to use (optional for local, required for remote) |
 
 **Options:**
 
 | Option | Description | Default |
 |--------|-------------|---------|
 | `-c, --cwd <path>` | Working directory | Current directory |
+| `-r, --remote` | Use agents/prompts from the remote registry (downloads if missing) | `false` |
+| `--remote-only` | Use only remote agents/prompts (ignore local `agents.json`) | `false` |
+| `-y, --yes` | Skip confirmation prompt for remote sync | `false` |
 
-> **Note:** Requires an initialized project with `agents.json` configuration and the prompt file in your prompts directory.
+> **Note:** Without `--remote` or `--remote-only`, requires an initialized project with `agents.json` configuration and the prompt file in your prompts directory.
 
 **Examples:**
 
 ```bash
-# Execute a prompt with the default agent
+# Execute a prompt with the default local agent
 awesome-ai exec pages-to-app-router
 
 # Execute a prompt with a specific agent
 awesome-ai exec pages-to-app-router migration-planning-agent
+
+# Execute using remote agents and prompts (downloads if not cached)
+awesome-ai exec pages-to-app-router coding-agent --remote
+
+# Execute using only remote registry (no local setup needed)
+awesome-ai exec pages-to-app-router coding-agent --remote-only
+
+# Execute remote without confirmation prompt
+awesome-ai exec pages-to-app-router coding-agent --remote -y
 
 # Execute in a specific directory
 awesome-ai exec pages-to-app-router --cwd ./my-nextjs-project
@@ -357,7 +390,7 @@ awesome-ai exec pages-to-app-router --cwd ./my-nextjs-project
 
 **Workflow:**
 
-1. The prompt is loaded from your prompts directory
+1. The prompt is loaded from your prompts directory (or remote registry)
 2. You review the prompt content in the TUI
 3. You approve or modify the prompt
 4. The agent executes the approved prompt
@@ -383,23 +416,32 @@ awesome-ai migrate <prompt> [options]
 | Option | Description | Default |
 |--------|-------------|---------|
 | `-c, --cwd <path>` | Working directory | Current directory |
+| `-r, --remote` | Use agents/prompts from the remote registry (downloads if missing) | `false` |
+| `--remote-only` | Use only remote agents/prompts (ignore local `agents.json`) | `false` |
+| `-y, --yes` | Skip confirmation prompt for remote sync | `false` |
 
 **Required Agents:**
 
-This command requires both migration agents to be installed:
+This command requires both migration agents to be available:
 - `migration-planning-agent` - Creates the migration plan (read-only analysis)
 - `migration-agent` - Executes the migration plan (makes changes)
 
-```bash
-# Install required agents
-awesome-ai add migration-planning-agent migration-agent
-```
+When using `--remote` or `--remote-only`, these agents are automatically downloaded from the registry along with the specified prompt.
 
 **Examples:**
 
 ```bash
-# Run a Pages Router to App Router migration
+# Run migration with local agents (requires agents to be installed)
 awesome-ai migrate pages-to-app-router
+
+# Run migration using remote registry (downloads agents and prompt automatically)
+awesome-ai migrate pages-to-app-router --remote
+
+# Run migration using only remote registry (no local setup needed)
+awesome-ai migrate pages-to-app-router --remote-only
+
+# Run remote migration without confirmation prompt
+awesome-ai migrate pages-to-app-router --remote -y
 
 # Run migration in a specific directory
 awesome-ai migrate pages-to-app-router --cwd ./my-nextjs-project
@@ -413,7 +455,7 @@ awesome-ai migrate pages-to-app-router --cwd ./my-nextjs-project
 4. The `migration-agent` executes the plan phase by phase
 5. Each phase is verified before proceeding
 
-**Example: Next.js Pages to App Router Migration**
+**Local Setup (without --remote):**
 
 ```bash
 # 1. Add the migration prompt
@@ -424,6 +466,13 @@ awesome-ai add migration-planning-agent migration-agent
 
 # 3. Run the migration
 awesome-ai migrate pages-to-app-router --cwd ./my-nextjs-app
+```
+
+**Quick Start with Remote (no local setup needed):**
+
+```bash
+# Run migration directly from remote registry
+awesome-ai migrate pages-to-app-router --remote-only --cwd ./my-nextjs-app
 ```
 
 The `pages-to-app-router` prompt guides the agents through:
@@ -597,6 +646,7 @@ Items in the registry follow this schema:
 
 ## Features
 
+- **Remote Execution**: Run agents directly from the registry without local setup using `--remote` or `--remote-only` flags
 - **Automatic Dependency Resolution**: When adding an agent, the CLI automatically downloads any tools, prompts, and library dependencies it requires
 - **Topological Sorting**: Dependencies are resolved in the correct order, handling complex dependency trees
 - **Circular Dependency Detection**: Warns when circular dependencies are detected
@@ -658,8 +708,14 @@ awesome-ai list --registry @my-registry
 ### Running Agents Interactively
 
 ```bash
-# Start an interactive session with the coding agent
+# Start an interactive session with a local agent
 awesome-ai run coding-agent
+
+# Run an agent from the remote registry (no local setup needed)
+awesome-ai run coding-agent --remote-only
+
+# Combine local and remote agents
+awesome-ai run coding-agent --remote
 
 # Start with a different working directory
 awesome-ai run coding-agent --cwd ./my-project

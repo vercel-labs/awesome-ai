@@ -20,17 +20,19 @@ import { loadSettings } from "./settings"
 import { loadChat } from "./storage"
 
 export interface RunTuiOptions {
-	agentsPath: string
+	/** Array of paths to look for agents, order matters (earlier paths take precedence) */
+	agentPaths: string[]
 	initialAgent?: string
 	cwd: string
 	// Exec mode options (when both are provided, exec mode is enabled)
-	promptsPath?: string
+	/** Array of paths to look for prompts, order matters (earlier paths take precedence) */
+	promptsPaths?: string[]
 	promptName?: string
 }
 
 export async function runTui(options: RunTuiOptions) {
-	const { agentsPath, initialAgent, cwd, promptsPath, promptName } = options
-	const isExecMode = promptsPath && promptName
+	const { agentPaths, initialAgent, cwd, promptsPaths, promptName } = options
+	const isExecMode = promptsPaths && promptsPaths.length > 0 && promptName
 
 	cwdAtom.set(cwd)
 
@@ -49,14 +51,13 @@ export async function runTui(options: RunTuiOptions) {
 		}
 	}
 
-	// Discover agents from the provided path
-	const agents = await discoverAgents(agentsPath)
+	const agents = await discoverAgents(agentPaths)
 	availableAgentsAtom.set(agents)
 
 	// In exec mode, require at least one agent
 	if (isExecMode && agents.length === 0) {
 		console.error(
-			`No agents found in ${agentsPath}. Add agent files in this directory with 'awesome-ai add [agent-name]'`,
+			`No agents found in ${agentPaths.join(" or ")}. Add agent files with 'awesome-ai add [agent-name]' or use --remote`,
 		)
 		process.exit(1)
 	}
@@ -100,16 +101,22 @@ export async function runTui(options: RunTuiOptions) {
 	} else {
 		addMessage(
 			createSystemMessage(
-				`No agents found in ${agentsPath}. Create agent files in this directory.`,
+				`No agents found in ${agentPaths.join(" or ")}. Create agent files in this directory.`,
 			),
 		)
 	}
 
 	if (isExecMode) {
-		const promptContent = await loadPromptContent(promptsPath, promptName)
+		let promptContent: string | null = null
+
+		for (const promptPath of promptsPaths) {
+			promptContent = await loadPromptContent(promptPath, promptName)
+			if (promptContent) break
+		}
+
 		if (!promptContent) {
 			console.error(
-				`Prompt "${promptName}" not found or could not be loaded from ${promptsPath}`,
+				`Prompt "${promptName}" not found or could not be loaded from ${promptsPaths.join(" or ")}`,
 			)
 			process.exit(1)
 		}

@@ -3,7 +3,10 @@ import { REGISTRY_URL } from "@/src/registry/constants"
 import { expandEnvVars } from "@/src/registry/env"
 import { RegistryNotConfiguredError } from "@/src/registry/errors"
 import { parseRegistryAndItemFromString } from "@/src/registry/parser"
-import type { registryConfigItemSchema } from "@/src/registry/schema"
+import type {
+	RegistryItemCategory,
+	registryConfigItemSchema,
+} from "@/src/registry/schema"
 import { isLocalFile, isUrl } from "@/src/registry/utils"
 import { validateRegistryConfig } from "@/src/registry/validator"
 import type { Config } from "@/src/schema"
@@ -16,7 +19,7 @@ const QUERY_PARAM_DELIMITER = "&"
 
 export function buildUrlAndHeadersForRegistryItem(
 	name: string,
-	type: "agents" | "tools" | "prompts",
+	type: RegistryItemCategory,
 	config?: Config,
 ) {
 	const { registry, item } = parseRegistryAndItemFromString(name)
@@ -41,7 +44,7 @@ export function buildUrlAndHeadersForRegistryItem(
 
 export function buildUrlFromRegistryConfig(
 	item: string,
-	type: "agents" | "tools" | "prompts",
+	type: RegistryItemCategory,
 	registryConfig: z.infer<typeof registryConfigItemSchema>,
 	_config?: Config,
 ) {

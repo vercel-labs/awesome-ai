@@ -7,10 +7,14 @@
 		"lint": "turbo run lint",
 		"test": "turbo run test",
 		"format": "biome check",
-		"build:registry": "pnpm --filter=@awesome-ai/registry build:registry"
+		"build:registry": "pnpm --filter=awesome-ai-registry build:registry",
+		"changeset": "changeset",
+		"version": "changeset version",
+		"release": "turbo run build && changeset publish"
 	},
 	"devDependencies": {
 		"@biomejs/biome": "latest",
+		"@changesets/cli": "^2.29.8",
 		"turbo": "latest"
 	},
 	"packageManager": "pnpm@10.6.5"

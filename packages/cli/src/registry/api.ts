@@ -11,22 +11,24 @@ import {
 	fetchRegistryItems,
 	resolveRegistryTree,
 } from "@/src/registry/resolver"
-import { registrySchema } from "@/src/registry/schema"
+import {
+	type RegistryItemCategory,
+	registrySchema,
+} from "@/src/registry/schema"
 import { isUrl } from "@/src/registry/utils"
 import type { Config } from "@/src/schema"
 
 export async function getRegistry(
 	name: string,
-	type: "agents" | "tools" | "prompts",
+	type: RegistryItemCategory,
 	options?: {
 		config?: Partial<Config>
-		useCache?: boolean
 	},
 ) {
-	const { config, useCache } = options || {}
+	const { config } = options || {}
 
 	if (isUrl(name)) {
-		const [result] = await fetchRegistry([name], { useCache })
+		const [result] = await fetchRegistry([name])
 		try {
 			return registrySchema.parse(result)
 		} catch (error) {
@@ -53,7 +55,7 @@ export async function getRegistry(
 		throw new RegistryNotFoundError(registryName)
 	}
 
-	const [result] = await fetchRegistry([urlAndHeaders.url], { useCache })
+	const [result] = await fetchRegistry([urlAndHeaders.url])
 
 	try {
 		return registrySchema.parse(result)
@@ -64,33 +66,27 @@ export async function getRegistry(
 
 export async function getRegistryItems(
 	items: string[],
-	type: "agents" | "tools" | "prompts",
+	type: RegistryItemCategory,
 	options?: {
 		config?: Partial<Config>
-		useCache?: boolean
 	},
 ) {
-	const { config, useCache = false } = options || {}
+	const { config } = options || {}
 
 	clearRegistryContext()
 
-	return fetchRegistryItems(items, type, configWithDefaults(config), {
-		useCache,
-	})
+	return fetchRegistryItems(items, type, configWithDefaults(config))
 }
 
 export async function resolveRegistryItems(
 	items: string[],
-	type: "agents" | "tools" | "prompts",
+	type: RegistryItemCategory,
 	options?: {
 		config?: Partial<Config>
-		useCache?: boolean
 	},
 ) {
-	const { config, useCache = false } = options || {}
+	const { config } = options || {}
 
 	clearRegistryContext()
-	return resolveRegistryTree(items, type, configWithDefaults(config), {
-		useCache,
-	})
+	return resolveRegistryTree(items, type, configWithDefaults(config))
 }

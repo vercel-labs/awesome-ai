@@ -89,7 +89,6 @@ export const add = new Command()
 				config = await runInit({
 					cwd: options.cwd,
 					yes: true,
-					force: true,
 					defaults: false,
 					silent: options.silent,
 				})
@@ -104,6 +103,7 @@ export const add = new Command()
 			await addItems(options.items, type, config, {
 				overwrite: options.overwrite,
 				silent: options.silent,
+				yes: options.yes,
 			})
 		} catch (error) {
 			logger.break()

@@ -1,6 +1,7 @@
 {
-	"name": "@awesome-ai/registry",
+	"name": "awesome-ai-registry",
 	"version": "0.0.0",
+	"private": true,
 	"type": "module",
 	"scripts": {
 		"build": "tsc",

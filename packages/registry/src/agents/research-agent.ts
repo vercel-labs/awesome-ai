@@ -61,6 +61,12 @@ export async function createAgent({
 				reasoningEffort: "medium",
 				reasoningSummary: "detailed",
 			},
+			anthropic: {
+				thinking: {
+					type: "enabled",
+					budgetTokens: 10000,
+				},
+			},
 		},
 		stopWhen: ({ steps }) => {
 			if (steps.length === 0) return false

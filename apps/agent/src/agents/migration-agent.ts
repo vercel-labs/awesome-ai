@@ -5,26 +5,30 @@ import {
 	getEnvironmentContext,
 } from "@/agents/lib/environment"
 import {
+	DANGEROUS_COMMANDS,
 	FILE_READ_COMMANDS,
 	GIT_READ_COMMANDS,
 	type Permission,
 	SEARCH_COMMANDS,
 	TEXT_PROCESSING_COMMANDS,
 } from "@/agents/lib/permissions"
-import { prompt } from "@/prompts/planning-agent"
+import { prompt } from "@/prompts/migration-agent"
 import { createBashTool } from "@/tools/bash"
+import { createEditTool } from "@/tools/edit"
 import { globTool } from "@/tools/glob"
 import { grepTool } from "@/tools/grep"
 import { listTool } from "@/tools/list"
 import { readTool } from "@/tools/read"
 import { createTodoTools, type TodoStorage } from "@/tools/todo"
+import { createWriteTool } from "@/tools/write"
 
 const BASH_PERMISSIONS: Record<string, Permission> = {
 	...FILE_READ_COMMANDS,
 	...SEARCH_COMMANDS,
 	...TEXT_PROCESSING_COMMANDS,
 	...GIT_READ_COMMANDS,
-	"*": "deny",
+	...DANGEROUS_COMMANDS,
+	"*": "ask",
 }
 
 export interface AgentSettings {
@@ -45,6 +49,8 @@ export async function createAgent({
 	const { todoRead, todoWrite } = createTodoTools(todoStorage)
 	const tools = {
 		read: readTool,
+		write: createWriteTool(),
+		edit: createEditTool(),
 		bash: createBashTool(BASH_PERMISSIONS),
 		list: listTool,
 		grep: grepTool,
@@ -71,18 +77,13 @@ export async function createAgent({
 				keepRecent: 8,
 				protectTokens: 40_000,
 			})
+
 			return summarized ? { messages: summarized } : {}
 		},
 		providerOptions: {
 			openai: {
 				reasoningEffort: "medium",
 				reasoningSummary: "detailed",
-			},
-			anthropic: {
-				thinking: {
-					type: "enabled",
-					budgetTokens: 10000,
-				},
 			},
 		},
 		stopWhen: ({ steps }) => {

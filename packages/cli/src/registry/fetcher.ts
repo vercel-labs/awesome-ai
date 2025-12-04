@@ -15,11 +15,7 @@ import {
 import { registryItemSchema } from "@/src/registry/schema"
 import { isLocalFile } from "@/src/registry/utils"
 
-const registryCache = new Map<string, Promise<any>>()
-
-export function clearRegistryCache() {
-	registryCache.clear()
-}
+const fetchCache = new Map<string, Promise<unknown>>()
 
 async function fetchLocalJson(filePath: string) {
 	let expandedPath = filePath
@@ -50,28 +46,19 @@ async function fetchLocalJson(filePath: string) {
 	}
 }
 
-export async function fetchRegistry(
-	paths: string[],
-	options: { useCache?: boolean } = {},
-) {
-	options = {
-		useCache: true,
-		...options,
-	}
-
+export async function fetchRegistry(paths: string[]) {
 	const results = await Promise.all(
 		paths.map(async (path) => {
 			const url = resolveRegistryUrl(path)
 
-			if (options.useCache && registryCache.has(url)) {
-				return registryCache.get(url)
+			// Return cached promise if we've already started fetching this URL
+			if (fetchCache.has(url)) {
+				return fetchCache.get(url)
 			}
 
 			if (isLocalFile(url)) {
 				const fetchPromise = fetchLocalJson(url)
-				if (options.useCache) {
-					registryCache.set(url, fetchPromise)
-				}
+				fetchCache.set(url, fetchPromise)
 				return fetchPromise
 			}
 
@@ -127,9 +114,7 @@ export async function fetchRegistry(
 				return response.json()
 			})()
 
-			if (options.useCache) {
-				registryCache.set(url, fetchPromise)
-			}
+			fetchCache.set(url, fetchPromise)
 			return fetchPromise
 		}),
 	)

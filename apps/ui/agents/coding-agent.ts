@@ -12,7 +12,7 @@ import {
 	SEARCH_COMMANDS,
 	TEXT_PROCESSING_COMMANDS,
 } from "@/agents/lib/permissions"
-import { getSystemPrompt } from "@/prompts/coding-agent"
+import { prompt } from "@/prompts/coding-agent"
 import { createBashTool } from "@/tools/bash"
 import { createEditTool } from "@/tools/edit"
 import { globTool } from "@/tools/glob"
@@ -45,7 +45,7 @@ export async function createAgent({
 	todoStorage,
 }: AgentSettings) {
 	const env = await getEnvironmentContext({ cwd, ...environment })
-	const instructions = getSystemPrompt(env)
+	const instructions = prompt(env)
 	const { todoRead, todoWrite } = createTodoTools(todoStorage)
 	const tools = {
 		read: readTool,

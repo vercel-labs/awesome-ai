@@ -3,16 +3,22 @@
 	"homepage": "https://awesome-ai.com",
 	"items": [
 		{
-			"name": "coding-agent",
-			"type": "registry:prompt",
-			"title": "Coding Agent",
-			"description": "You are a coding agent that helps users with software engineering tasks. Use the instructions below ..."
-		},
-		{
 			"name": "migration-planning-agent",
 			"type": "registry:prompt",
 			"title": "Migration Planning Agent",
 			"description": "You are a code migration planning agent that helps users analyze codebases and create detailed migra..."
+		},
+		{
+			"name": "migration-agent",
+			"type": "registry:prompt",
+			"title": "Migration Agent",
+			"description": "You are a migration agent that executes code migrations. You take migration plans and implement the ..."
+		},
+		{
+			"name": "research-agent",
+			"type": "registry:prompt",
+			"title": "Research Agent",
+			"description": "You are a research agent that answers questions about codebases. You explore, analyze, and explain c..."
 		},
 		{
 			"name": "planning-agent",
@@ -21,10 +27,10 @@
 			"description": "You are a planning agent that helps users analyze code and create implementation plans. You can expl..."
 		},
 		{
-			"name": "research-agent",
+			"name": "coding-agent",
 			"type": "registry:prompt",
-			"title": "Research Agent",
-			"description": "You are a research agent that answers questions about codebases. You explore, analyze, and explain c..."
+			"title": "Coding Agent",
+			"description": "You are a coding agent that helps users with software engineering tasks. Use the instructions below ..."
 		}
 	]
 }

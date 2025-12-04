@@ -4,7 +4,7 @@ import {
 	type EnvironmentOptions,
 	getEnvironmentContext,
 } from "@/agents/lib/environment"
-import { getSystemPrompt } from "@/prompts/research-agent"
+import { prompt } from "@/prompts/research-agent"
 import { globTool } from "@/tools/glob"
 import { grepTool } from "@/tools/grep"
 import { listTool } from "@/tools/list"
@@ -25,7 +25,7 @@ export async function createAgent({
 	todoStorage,
 }: AgentSettings) {
 	const env = await getEnvironmentContext({ cwd, ...environment })
-	const instructions = getSystemPrompt(env)
+	const instructions = prompt(env)
 	const { todoRead, todoWrite } = createTodoTools(todoStorage)
 	const tools = {
 		read: readTool,

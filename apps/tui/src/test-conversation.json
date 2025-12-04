@@ -12,6 +12,17 @@
 		"parts": [{ "type": "text", "text": "Show me markdown rendering" }]
 	},
 	{
+		"id": "msg-text-only",
+		"role": "assistant",
+		"metadata": { "timestamp": 1700000011000 },
+		"parts": [
+			{
+				"type": "text",
+				"text": "# Markdown Feature Test\n\n## Text Formatting\n\n**Bold text**, *italic text*, ***bold italic***, ~~strikethrough~~, and `inline code`.\n\n## Links\n\n[Example Link](https://example.com) - clickable link\n\n## Lists\n\n### Unordered List\n- Item one\n- Item two\n  - Nested item A\n  - Nested item B\n    - Deeply nested\n- Item three\n\n### Ordered List\n1. First step\n2. Second step\n   1. Sub-step A\n   2. Sub-step B\n3. Third step\n\n## Blockquote\n\n> This is a blockquote.\n> It can span multiple lines.\n\n## Horizontal Rule\n\n---\n\n## Code Block\n\n```typescript\ninterface User {\n  id: string;\n  name: string;\n  email: string;\n}\n\nasync function fetchUser(id: string): Promise<User> {\n  const response = await fetch(`/api/users/${id}`);\n  return response.json();\n}\n```\n\n## Another Code Block (Python)\n\n```python\ndef fibonacci(n: int) -> list[int]:\n    \"\"\"Generate fibonacci sequence.\"\"\"\n    if n <= 0:\n        return []\n    elif n == 1:\n        return [0]\n    \n    fib = [0, 1]\n    for i in range(2, n):\n        fib.append(fib[i-1] + fib[i-2])\n    return fib\n```\n\n## Inline Code Examples\n\nUse `const` for constants, `let` for variables, and `function` for functions."
+			}
+		]
+	},
+	{
 		"id": "msg-user-2",
 		"role": "user",
 		"metadata": { "timestamp": 1700000020000 },
@@ -140,18 +151,6 @@
 			{
 				"type": "text",
 				"text": ""
-			}
-		]
-	},
-
-	{
-		"id": "msg-text-only",
-		"role": "assistant",
-		"metadata": { "timestamp": 1700000011000 },
-		"parts": [
-			{
-				"type": "text",
-				"text": "# Markdown Feature Test\n\n## Text Formatting\n\n**Bold text**, *italic text*, ***bold italic***, ~~strikethrough~~, and `inline code`.\n\n## Links\n\n[Example Link](https://example.com) - clickable link\n\n## Lists\n\n### Unordered List\n- Item one\n- Item two\n  - Nested item A\n  - Nested item B\n    - Deeply nested\n- Item three\n\n### Ordered List\n1. First step\n2. Second step\n   1. Sub-step A\n   2. Sub-step B\n3. Third step\n\n## Blockquote\n\n> This is a blockquote.\n> It can span multiple lines.\n\n## Horizontal Rule\n\n---\n\n## Code Block\n\n```typescript\ninterface User {\n  id: string;\n  name: string;\n  email: string;\n}\n\nasync function fetchUser(id: string): Promise<User> {\n  const response = await fetch(`/api/users/${id}`);\n  return response.json();\n}\n```\n\n## Another Code Block (Python)\n\n```python\ndef fibonacci(n: int) -> list[int]:\n    \"\"\"Generate fibonacci sequence.\"\"\"\n    if n <= 0:\n        return []\n    elif n == 1:\n        return [0]\n    \n    fib = [0, 1]\n    for i in range(2, n):\n        fib.append(fib[i-1] + fib[i-2])\n    return fib\n```\n\n## Inline Code Examples\n\nUse `const` for constants, `let` for variables, and `function` for functions."
 			}
 		]
 	}

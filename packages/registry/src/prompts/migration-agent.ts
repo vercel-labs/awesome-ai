@@ -146,7 +146,7 @@ The codebase may differ from what the plan expected:
 - Quality over speed - a careful migration prevents bugs
 `.trim()
 
-export function getSystemPrompt(env: EnvironmentContext): string {
+export function prompt(env: EnvironmentContext): string {
 	const sections: string[] = [MIGRATION_AGENT_PROMPT]
 
 	sections.push(`# Environment

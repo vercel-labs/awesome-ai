@@ -146,7 +146,7 @@ Example: "The error handling is in src/services/api.ts:142"
 - Focus on creating actionable plans and insights
 `.trim()
 
-export function getSystemPrompt(env: EnvironmentContext): string {
+export function prompt(env: EnvironmentContext): string {
 	const sections: string[] = [PLANNING_AGENT_PROMPT]
 
 	sections.push(`# Environment

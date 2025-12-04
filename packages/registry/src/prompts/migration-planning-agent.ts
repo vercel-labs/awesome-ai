@@ -203,7 +203,7 @@ When referencing specific code locations, use the pattern \`file_path:line_numbe
 - Always consider rollback strategies and risk mitigation
 `.trim()
 
-export function getSystemPrompt(env: EnvironmentContext): string {
+export function prompt(env: EnvironmentContext): string {
 	const sections: string[] = [MIGRATION_PLANNING_AGENT_PROMPT]
 
 	sections.push(`# Environment

@@ -1,5 +1,9 @@
 import { type Atom, atom } from "@lfades/atom"
-import type { ScrollBoxRenderable, TextareaRenderable } from "@opentui/core"
+import type {
+	CliRenderer,
+	ScrollBoxRenderable,
+	TextareaRenderable,
+} from "@opentui/core"
 import testConversationData from "../test-conversation.json"
 import type { TUIMessage } from "../types"
 import type { DiscoveredAgent } from "../utils/agent-discovery"
@@ -127,4 +131,24 @@ export function showAlert(
 
 export function dismissAlert(id: string) {
 	alertsAtom.set(alertsAtom.get().filter((a) => a.id !== id))
+}
+
+interface ExecPrompt {
+	name: string
+	content: string
+}
+
+export const execModeAtom = atom(false)
+export const execPromptAtom = atom<ExecPrompt | null>(null)
+
+// TUI
+export const rendererAtom = atom<CliRenderer | null>(null)
+
+export function exitTui(message?: string) {
+	const renderer = rendererAtom.get()
+	if (renderer) renderer.destroy()
+	if (message) {
+		console.log(message)
+	}
+	process.exit(0)
 }

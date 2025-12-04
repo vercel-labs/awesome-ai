@@ -3,18 +3,18 @@
 	"homepage": "https://awesome-ai.com",
 	"items": [
 		{
-			"name": "bash",
+			"name": "read",
 			"type": "registry:tool",
-			"title": "Bash",
-			"description": "Executes shell commands with real-time output streaming.",
+			"title": "Read",
+			"description": "Reads a file from the local filesystem. You can access any file directly by using this tool.",
 			"dependencies": ["ai", "zod"]
 		},
 		{
-			"name": "edit",
+			"name": "todo",
 			"type": "registry:tool",
-			"title": "Edit",
-			"description": "Performs string replacements in files with fuzzy matching.",
-			"dependencies": ["ai", "diff", "zod"]
+			"title": "Todo",
+			"description": "Todo tool for AI agents",
+			"dependencies": ["ai", "zod"]
 		},
 		{
 			"name": "glob",
@@ -31,24 +31,17 @@
 			"dependencies": ["ai", "zod"]
 		},
 		{
-			"name": "list",
+			"name": "edit",
 			"type": "registry:tool",
-			"title": "List",
-			"description": "Lists files and directories in a given path.",
-			"dependencies": ["ai", "zod"]
+			"title": "Edit",
+			"description": "Performs string replacements in files with fuzzy matching.",
+			"dependencies": ["ai", "diff", "zod"]
 		},
 		{
-			"name": "read",
+			"name": "bash",
 			"type": "registry:tool",
-			"title": "Read",
-			"description": "Reads a file from the local filesystem. You can access any file directly by using this tool.",
-			"dependencies": ["ai", "zod"]
-		},
-		{
-			"name": "todo",
-			"type": "registry:tool",
-			"title": "Todo",
-			"description": "Todo tool for AI agents",
+			"title": "Bash",
+			"description": "Executes shell commands with real-time output streaming.",
 			"dependencies": ["ai", "zod"]
 		},
 		{
@@ -57,6 +50,13 @@
 			"title": "Write",
 			"description": "Writes a file to the local filesystem.",
 			"dependencies": ["ai", "diff", "zod"]
+		},
+		{
+			"name": "list",
+			"type": "registry:tool",
+			"title": "List",
+			"description": "Lists files and directories in a given path.",
+			"dependencies": ["ai", "zod"]
 		}
 	]
 }

@@ -162,11 +162,11 @@ describe("add command", () => {
 			// Agent file should have agent-specific content
 			const agentContent = await project.readFile("agents/full-agent.ts")
 			expect(agentContent).toContain("fullAgent")
-			expect(agentContent).toContain("getSystemPrompt")
+			expect(agentContent).toContain("prompt")
 
 			// Prompt file should have prompt-specific content
 			const promptContent = await project.readFile("prompts/full-agent.ts")
-			expect(promptContent).toContain("getSystemPrompt")
+			expect(promptContent).toContain("prompt")
 			expect(promptContent).toContain("full agent assistant")
 		})
 

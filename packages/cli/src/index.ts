@@ -2,6 +2,7 @@
 import { Command } from "commander"
 import { add } from "@/src/commands/add"
 import { diff } from "@/src/commands/diff"
+import { exec } from "@/src/commands/exec"
 import { init } from "@/src/commands/init"
 import { list } from "@/src/commands/list"
 import { run } from "@/src/commands/run"
@@ -29,6 +30,7 @@ async function main() {
 		.addCommand(add)
 		.addCommand(list)
 		.addCommand(run)
+		.addCommand(exec)
 		.addCommand(search)
 		.addCommand(view)
 		.addCommand(diff)

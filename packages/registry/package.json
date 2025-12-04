@@ -4,7 +4,7 @@
 	"type": "module",
 	"scripts": {
 		"build": "tsc",
-		"build:registry": "node --experimental-strip-types scripts/build-registry.ts",
+		"build:registry": "bun scripts/build-registry.ts",
 		"dev": "tsc --watch",
 		"test": "vitest run",
 		"test:watch": "vitest"

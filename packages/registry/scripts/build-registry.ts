@@ -1,4 +1,4 @@
-#!/usr/bin/env node
+#!/usr/bin/env bun
 /**
  * Build script to generate registry JSON files from TypeScript source files.
  *

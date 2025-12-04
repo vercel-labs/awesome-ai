@@ -100,7 +100,7 @@ When answering questions:
 - Cite your sources (files, line numbers)
 `.trim()
 
-export function getSystemPrompt(env: EnvironmentContext): string {
+export function prompt(env: EnvironmentContext): string {
 	const sections: string[] = [RESEARCH_AGENT_PROMPT]
 
 	sections.push(`# Environment

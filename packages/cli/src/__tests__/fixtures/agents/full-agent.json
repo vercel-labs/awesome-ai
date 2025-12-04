@@ -9,7 +9,7 @@
 		{
 			"path": "agents/full-agent.ts",
 			"type": "registry:agent",
-			"content": "import { getSystemPrompt } from \"@/prompts/full-agent\"\n\nexport const fullAgent = {\n\tname: \"full-agent\",\n\tgetPrompt: getSystemPrompt,\n\trun: async () => {\n\t\treturn \"Agent executed\"\n\t},\n}\n"
+			"content": "import { prompt } from \"@/prompts/full-agent\"\n\nexport const fullAgent = {\n\tname: \"full-agent\",\n\tgetPrompt: prompt,\n\trun: async () => {\n\t\treturn \"Agent executed\"\n\t},\n}\n"
 		}
 	]
 }

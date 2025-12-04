@@ -4,24 +4,13 @@ import type {
 	ScrollBoxRenderable,
 	TextareaRenderable,
 } from "@opentui/core"
-import testConversationData from "../test-conversation.json"
 import type { TUIMessage } from "../types"
 import type { DiscoveredAgent } from "../utils/agent-discovery"
 import type { AvailableModel } from "../utils/models"
 
 export type MessageAtom = Atom<TUIMessage>
 
-// Set to true to load test conversation on startup
-const USE_TEST_CONVERSATION = true
-
-// Create atoms from test conversation data
-function createTestMessageAtoms() {
-	return (testConversationData as TUIMessage[]).map((msg) => atom(msg))
-}
-
-export const messagesAtom = atom<MessageAtom[]>(
-	USE_TEST_CONVERSATION ? createTestMessageAtoms() : [],
-)
+export const messagesAtom = atom<MessageAtom[]>([])
 
 export function addMessage(message: TUIMessage): MessageAtom {
 	const messageAtom = atom(message)
@@ -33,10 +22,17 @@ export function clearMessages() {
 	messagesAtom.set([])
 }
 
+export function setMessages(messages: TUIMessage[]) {
+	messagesAtom.set(messages.map((msg) => atom(msg)))
+}
+
 export const isLoadingAtom = atom(false)
 export const showDebugAtom = atom(false)
 export const debugLogsAtom = atom<string[]>([])
+// Default model - will be overridden by settings if available
 export const selectedModelAtom = atom("anthropic/claude-opus-4.5")
+// Store cwd for settings persistence
+export const cwdAtom = atom<string>(process.cwd())
 export const showCommandsAtom = atom(false)
 export const commandFilterAtom = atom("")
 export const selectedCommandAtom = atom(0)
@@ -70,6 +66,14 @@ export const showModelSelectorAtom = atom(false)
 export const availableModelsAtom = atom<AvailableModel[]>([])
 export const selectedModelIndexAtom = atom(0)
 export const isLoadingModelsAtom = atom(false)
+
+// Chat history
+export const currentChatIdAtom = atom<string | null>(null)
+export const showChatPickerAtom = atom(false)
+export const chatListAtom = atom<
+	{ id: string; title: string; updatedAt: number }[]
+>([])
+export const selectedChatIndexAtom = atom(0)
 
 export interface PendingApproval {
 	toolCallId: string

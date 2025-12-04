@@ -74,7 +74,7 @@ function tokenizeInline(text: string): InlineToken[] {
 				end: match.index + match[0].length,
 				token: {
 					type: pattern.type,
-					content: match[1],
+					content: match[1] ?? "",
 					url: pattern.urlGroup ? match[pattern.urlGroup] : undefined,
 				},
 			})
@@ -297,7 +297,7 @@ function parseBlocks(text: string): ParsedBlock[] {
 	let i = 0
 
 	while (i < lines.length) {
-		const line = lines[i]
+		const line = lines[i]!
 		const trimmedLine = line.trim()
 
 		// Code block
@@ -305,8 +305,8 @@ function parseBlocks(text: string): ParsedBlock[] {
 			const language = line.slice(3).trim()
 			const codeLines: string[] = []
 			i += 1
-			while (i < lines.length && !lines[i].startsWith("```")) {
-				codeLines.push(lines[i])
+			while (i < lines.length && !lines[i]?.startsWith("```")) {
+				codeLines.push(lines[i]!)
 				i += 1
 			}
 			blocks.push({
@@ -323,8 +323,8 @@ function parseBlocks(text: string): ParsedBlock[] {
 		if (headingMatch) {
 			blocks.push({
 				type: "heading",
-				content: headingMatch[2],
-				level: headingMatch[1].length,
+				content: headingMatch[2] ?? "",
+				level: headingMatch[1]?.length ?? 1,
 			})
 			i += 1
 			continue
@@ -341,15 +341,15 @@ function parseBlocks(text: string): ParsedBlock[] {
 		const listMatch = line.match(listItemPattern)
 		if (listMatch) {
 			const items: Array<{ text: string; indent: number }> = []
-			const ordered = orderedListPattern.test(listMatch[2])
-			const baseIndent = listMatch[1].length
+			const ordered = orderedListPattern.test(listMatch[2] ?? "")
+			const baseIndent = listMatch[1]?.length ?? 0
 
 			while (i < lines.length) {
-				const listLine = lines[i]
+				const listLine = lines[i]!
 				const itemMatch = listLine.match(listItemPattern)
 				if (itemMatch) {
-					const indent = Math.floor((itemMatch[1].length - baseIndent) / 2)
-					items.push({ text: itemMatch[3], indent: Math.max(0, indent) })
+					const indent = Math.floor(((itemMatch[1]?.length ?? 0) - baseIndent) / 2)
+					items.push({ text: itemMatch[3] ?? "", indent: Math.max(0, indent) })
 					i += 1
 				} else if (listLine.trim() === "") {
 					i += 1
@@ -371,19 +371,21 @@ function parseBlocks(text: string): ParsedBlock[] {
 		// Blockquote
 		if (line.startsWith(">")) {
 			const quoteLines: string[] = []
-			while (
-				i < lines.length &&
-				(lines[i].startsWith(">") || lines[i].trim() === "")
-			) {
+			while (i < lines.length) {
+				const currentLine = lines[i]!
+				if (!currentLine.startsWith(">") && currentLine.trim() !== "") break
 				// Strip all leading > characters (handles nested blockquotes)
-				const stripped = lines[i].replace(blockquoteStripPattern, "")
+				const stripped = currentLine.replace(blockquoteStripPattern, "")
 				quoteLines.push(stripped)
 				i += 1
 				// Break on empty line that's not a blockquote continuation
+				const prevLine = lines[i - 1]
+				const nextLine = lines[i]
 				if (
-					lines[i - 1].trim() === "" &&
+					prevLine?.trim() === "" &&
 					i < lines.length &&
-					!lines[i].startsWith(">")
+					nextLine !== undefined &&
+					!nextLine.startsWith(">")
 				) {
 					break
 				}
@@ -404,7 +406,7 @@ function parseBlocks(text: string): ParsedBlock[] {
 		// Paragraph - consume any remaining lines that don't match other patterns
 		const paragraphLines: string[] = []
 		while (i < lines.length) {
-			const pLine = lines[i]
+			const pLine = lines[i]!
 			const pTrimmed = pLine.trim()
 			if (
 				pTrimmed === "" ||

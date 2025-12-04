@@ -14,11 +14,14 @@ if (import.meta.main) {
 
 	for (let i = 0; i < args.length; i++) {
 		const arg = args[i]
-		if (arg === "--agents-path" && args[i + 1]) {
-			agentsPath = args[++i]
-		} else if (arg === "--cwd" && args[i + 1]) {
-			cwd = args[++i]
-		} else if (!arg.startsWith("-")) {
+		const nextArg = args[i + 1]
+		if (arg === "--agents-path" && nextArg) {
+			agentsPath = nextArg
+			i++
+		} else if (arg === "--cwd" && nextArg) {
+			cwd = nextArg
+			i++
+		} else if (arg && !arg.startsWith("-")) {
 			initialAgent = arg
 		}
 	}

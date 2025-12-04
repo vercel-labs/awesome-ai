@@ -3,6 +3,7 @@ import type { KeyEvent, ScrollBoxRenderable } from "@opentui/core"
 import { useEffect, useRef, useState } from "react"
 import { colors } from "../theme"
 import { fetchAvailableModels, isUsingFallbackModels } from "../utils/models"
+import { saveWorkspaceSettings } from "../utils/settings"
 import {
 	availableModelsAtom,
 	inputAtom,
@@ -191,6 +192,7 @@ export function handleModelSelectorKey(key: KeyEvent): boolean {
 				selectedModelAtom.set(selectedModel.id)
 				showModelSelectorAtom.set(false)
 				selectedModelIndexAtom.set(0)
+				saveWorkspaceSettings({ selectedModel: selectedModel.id })
 			}
 			return true
 		}

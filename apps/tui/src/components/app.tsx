@@ -1,7 +1,11 @@
 import { useAtom } from "@lfades/atom"
 import { useKeyboard, useRenderer } from "@opentui/react"
 import { colors } from "../theme"
-import { handleToolApproval, stopGeneration } from "../utils/agent"
+import {
+	handleToolApproval,
+	startNewChat,
+	stopGeneration,
+} from "../utils/agent"
 import { copyToClipboard } from "../utils/clipboard"
 import { AgentSelector, handleAgentSelectorKey } from "./agent-selector"
 import {
@@ -11,11 +15,13 @@ import {
 	scrollToBottom,
 	showAgentSelectorAtom,
 	showAlert,
+	showChatPickerAtom,
 	showCommandsAtom,
 	showDebugAtom,
 	showModelSelectorAtom,
 	showShortcutsAtom,
 } from "./atoms"
+import { ChatPicker, handleChatPickerKey } from "./chat-picker"
 import { CommandPalette } from "./command-palette"
 import { DebugOverlay } from "./debug-overlay"
 import { Footer } from "./footer"
@@ -33,6 +39,7 @@ function Chat() {
 	const [showCommands] = useAtom(showCommandsAtom)
 	const [showAgentSelector] = useAtom(showAgentSelectorAtom)
 	const [showModelSelector] = useAtom(showModelSelectorAtom)
+	const [showChatPicker] = useAtom(showChatPickerAtom)
 	const [currentAgent] = useAtom(currentAgentAtom)
 	const renderer = useRenderer()
 
@@ -45,6 +52,12 @@ function Chat() {
 
 		// Handle model selector keyboard events
 		if (handleModelSelectorKey(key)) {
+			key.preventDefault()
+			return
+		}
+
+		// Handle chat picker keyboard events
+		if (handleChatPickerKey(key)) {
 			key.preventDefault()
 			return
 		}
@@ -91,8 +104,30 @@ function Chat() {
 			return
 		}
 
-		// Alt+N to deny pending tool
+		// Alt+N to start new chat
 		if (key.name === "n" && (key.meta || key.option)) {
+			key.preventDefault()
+			startNewChat()
+			showAlert("New chat started")
+			return
+		}
+
+		// Alt+H to open chat history picker
+		if (key.name === "h" && (key.meta || key.option)) {
+			key.preventDefault()
+			showChatPickerAtom.set(!showChatPickerAtom.get())
+			return
+		}
+
+		// Alt+Y to approve pending tool
+		if (key.name === "y" && (key.meta || key.option)) {
+			key.preventDefault()
+			handleToolApproval(true)
+			return
+		}
+
+		// Alt+R to deny pending tool (reject)
+		if (key.name === "r" && (key.meta || key.option)) {
 			key.preventDefault()
 			handleToolApproval(false)
 			return
@@ -161,6 +196,7 @@ function Chat() {
 			{showShortcuts && <ShortcutsPanel />}
 			{showAgentSelector && <AgentSelector />}
 			{showModelSelector && <ModelSelector />}
+			{showChatPicker && <ChatPicker />}
 
 			<AlertContainer />
 		</box>

@@ -3,9 +3,12 @@ import {
 	addMessage,
 	availableAgentsAtom,
 	currentAgentAtom,
+	currentChatIdAtom,
+	cwdAtom,
 	debugLog,
 	isLoadingAtom,
 	type MessageAtom,
+	messagesAtom,
 	pendingApprovalsAtom,
 	removePendingApproval,
 	selectedModelAtom,
@@ -17,24 +20,46 @@ import {
 	createUserMessage,
 	type TUIMessage,
 } from "../types"
+import { saveWorkspaceSettings } from "./settings"
+import { createChat, type StoredChat, saveChat } from "./storage"
 
 // Global state for agent and conversation
 let currentAgentInstance: Agent | null = null
 let conversationMessages: ModelMessage[] = []
-let cwdGlobal: string = ""
 let currentAbortController: AbortController | null = null
 let currentStreamingMessageAtom: MessageAtom | null = null
 
-export function setCwd(cwd: string) {
-	cwdGlobal = cwd
-}
-
-export function getCwd() {
-	return cwdGlobal
-}
-
 export function resetConversation() {
 	conversationMessages = []
+	currentAgentInstance = null
+}
+
+function getMessages(): TUIMessage[] {
+	return messagesAtom.get().map((atom) => atom.get())
+}
+
+async function saveCurrentChat() {
+	const chatId = currentChatIdAtom.get()
+	if (!chatId) return
+
+	const messages = getMessages()
+	const chat: StoredChat = {
+		id: chatId,
+		title: "", // Will be set by saveChat based on first user message
+		messages,
+		createdAt: Date.now(),
+		updatedAt: Date.now(),
+	}
+	await saveChat(chat)
+}
+
+export async function startNewChat() {
+	const chat = await createChat()
+	currentChatIdAtom.set(chat.id)
+	messagesAtom.set([])
+	resetConversation()
+	saveWorkspaceSettings({ lastChatId: chat.id })
+	return chat
 }
 
 export function isAgentLoaded() {
@@ -120,6 +145,9 @@ async function streamAgentResponse(messageAtom: MessageAtom): Promise<void> {
 
 		const response = await result.response
 		conversationMessages.push(...response.messages)
+
+		// Save chat after response completes
+		await saveCurrentChat()
 	} finally {
 		currentAbortController = null
 		currentStreamingMessageAtom = null
@@ -146,7 +174,7 @@ export async function loadAgent(agentName: string): Promise<boolean> {
 
 			const agent = await agentModule.createAgent({
 				model,
-				cwd: cwdGlobal,
+				cwd: cwdAtom.get(),
 			})
 			currentAgentInstance = agent
 			conversationMessages = [] // Reset conversation for new agent
@@ -177,7 +205,16 @@ export async function sendMessage(userPrompt: string): Promise<void> {
 		return
 	}
 
+	// Ensure we have a chat to save to
+	if (!currentChatIdAtom.get()) {
+		await startNewChat()
+	}
+
 	addMessage(createUserMessage(userPrompt))
+
+	// Save after user message
+	await saveCurrentChat()
+
 	isLoadingAtom.set(true)
 
 	try {
@@ -257,6 +294,9 @@ export async function handleToolApproval(approved: boolean): Promise<boolean> {
 	debugLog(
 		`Tool ${toolName} ${approved ? "approved" : "denied"} (${toolCallId})`,
 	)
+
+	// Save after tool approval state change
+	await saveCurrentChat()
 
 	if (approved && currentAgentInstance) {
 		isLoadingAtom.set(true)

@@ -3,7 +3,12 @@ import { useState } from "react"
 import { COMMANDS } from "../commands"
 import { colors } from "../theme"
 import { createSystemMessage, type TUIMessage } from "../types"
-import { resetConversation, sendMessage, stopGeneration } from "../utils/agent"
+import {
+	resetConversation,
+	sendMessage,
+	startNewChat,
+	stopGeneration,
+} from "../utils/agent"
 import { copyToClipboard } from "../utils/clipboard"
 import {
 	addMessage,
@@ -18,6 +23,7 @@ import {
 	selectedModelAtom,
 	showAgentSelectorAtom,
 	showAlert,
+	showChatPickerAtom,
 	showCommandsAtom,
 	showModelSelectorAtom,
 } from "./atoms"
@@ -38,6 +44,13 @@ function executeCommand(commandName: string) {
 	const currentAgent = currentAgentAtom.get()
 
 	switch (commandName) {
+		case "/new":
+			startNewChat()
+			showAlert("New chat started")
+			break
+		case "/history":
+			showChatPickerAtom.set(true)
+			break
 		case "/agent":
 			showAgentSelectorAtom.set(true)
 			break
@@ -121,7 +134,7 @@ export function InputArea() {
 		scrollToBottom()
 
 		if (value.startsWith("/")) {
-			const commandName = value.split(" ")[0]
+			const commandName = value.split(" ")[0]!
 			executeCommand(commandName)
 			return
 		}

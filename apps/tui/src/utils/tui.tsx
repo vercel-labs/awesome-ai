@@ -5,14 +5,19 @@ import {
 	addMessage,
 	availableAgentsAtom,
 	currentAgentAtom,
+	currentChatIdAtom,
+	cwdAtom,
 	execModeAtom,
 	execPromptAtom,
 	rendererAtom,
+	selectedModelAtom,
+	setMessages,
 } from "../components/atoms"
 import { createSystemMessage } from "../types"
-import { setCwd } from "./agent"
 import { discoverAgents } from "./agent-discovery"
 import { loadPromptContent } from "./prompt-loader"
+import { loadSettings } from "./settings"
+import { loadChat } from "./storage"
 
 export interface RunTuiOptions {
 	agentsPath: string
@@ -27,8 +32,22 @@ export async function runTui(options: RunTuiOptions) {
 	const { agentsPath, initialAgent, cwd, promptsPath, promptName } = options
 	const isExecMode = promptsPath && promptName
 
-	// Store cwd globally for agent loading
-	setCwd(cwd)
+	cwdAtom.set(cwd)
+
+	const settings = await loadSettings()
+
+	if (settings.model) {
+		selectedModelAtom.set(settings.model)
+	}
+
+	// Load last chat if available
+	if (settings.lastChatId) {
+		const chat = await loadChat(settings.lastChatId)
+		if (chat) {
+			currentChatIdAtom.set(chat.id)
+			setMessages(chat.messages)
+		}
+	}
 
 	// Discover agents from the provided path
 	const agents = await discoverAgents(agentsPath)
@@ -42,29 +61,42 @@ export async function runTui(options: RunTuiOptions) {
 		process.exit(1)
 	}
 
+	// Determine which agent to use (priority: CLI arg > saved setting > first available)
+	const agentToSelect = initialAgent || settings.agent
+	const firstAgent = agents[0]
+
 	// Set initial agent if provided and exists
-	if (initialAgent) {
-		const agentExists = agents.find((a) => a.name === initialAgent)
+	if (agentToSelect) {
+		const agentExists = agents.find((a) => a.name === agentToSelect)
 
 		if (agentExists) {
-			currentAgentAtom.set(initialAgent)
-		} else if (isExecMode) {
-			// Fatal error in exec mode
+			currentAgentAtom.set(agentToSelect)
+		} else if (isExecMode && initialAgent) {
+			// Fatal error in exec mode when explicitly requested
 			console.error(
-				`Agent "${initialAgent}" not found. Available agents: ${agents.map((a) => a.name).join(", ")}`,
+				`Agent "${agentToSelect}" not found. Available agents: ${agents.map((a) => a.name).join(", ")}`,
 			)
 			process.exit(1)
-		} else {
-			// Non-fatal in regular mode
+		} else if (initialAgent) {
+			// Non-fatal for CLI-specified agent in regular mode
 			addMessage(
 				createSystemMessage(
-					`Agent "${initialAgent}" not found. Available agents: ${agents.map((a) => a.name).join(", ") || "none"}`,
+					`Agent "${agentToSelect}" not found. Available agents: ${agents.map((a) => a.name).join(", ") || "none"}`,
 				),
 			)
+			// Fall back to first agent
+			if (firstAgent) {
+				currentAgentAtom.set(firstAgent.name)
+			}
+		} else {
+			// Saved agent not found, silently fall back to first agent
+			if (firstAgent) {
+				currentAgentAtom.set(firstAgent.name)
+			}
 		}
-	} else if (agents.length > 0) {
+	} else if (firstAgent) {
 		// Auto-select first agent if none specified
-		currentAgentAtom.set(agents[0].name)
+		currentAgentAtom.set(firstAgent.name)
 	} else {
 		addMessage(
 			createSystemMessage(

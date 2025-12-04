@@ -2,6 +2,7 @@ import { useAtom } from "@lfades/atom"
 import type { KeyEvent, ScrollBoxRenderable } from "@opentui/core"
 import { useEffect, useRef } from "react"
 import { colors } from "../theme"
+import { saveWorkspaceSettings } from "../utils/settings"
 import {
 	availableAgentsAtom,
 	currentAgentAtom,
@@ -135,6 +136,7 @@ export function handleAgentSelectorKey(key: KeyEvent): boolean {
 				currentAgentAtom.set(selectedAgent.name)
 				showAgentSelectorAtom.set(false)
 				selectedAgentIndexAtom.set(0)
+				saveWorkspaceSettings({ selectedAgent: selectedAgent.name })
 			}
 			return true
 		}

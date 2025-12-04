@@ -319,6 +319,122 @@ awesome-ai run coding-agent --cwd ./my-project
 
 ---
 
+### `exec`
+
+Execute a prompt with an agent after approval. The prompt is loaded and displayed for review before the agent runs.
+
+```bash
+awesome-ai exec <prompt> [agent] [options]
+```
+
+**Arguments:**
+
+| Argument | Description |
+|----------|-------------|
+| `prompt` | Name of the prompt to execute (required) |
+| `agent` | Name of the agent to use (optional, defaults to first available) |
+
+**Options:**
+
+| Option | Description | Default |
+|--------|-------------|---------|
+| `-c, --cwd <path>` | Working directory | Current directory |
+
+> **Note:** Requires an initialized project with `agents.json` configuration and the prompt file in your prompts directory.
+
+**Examples:**
+
+```bash
+# Execute a prompt with the default agent
+awesome-ai exec pages-to-app-router
+
+# Execute a prompt with a specific agent
+awesome-ai exec pages-to-app-router migration-planning-agent
+
+# Execute in a specific directory
+awesome-ai exec pages-to-app-router --cwd ./my-nextjs-project
+```
+
+**Workflow:**
+
+1. The prompt is loaded from your prompts directory
+2. You review the prompt content in the TUI
+3. You approve or modify the prompt
+4. The agent executes the approved prompt
+
+---
+
+### `migrate`
+
+Run a migration workflow with the specialized planning and execution agents. This command orchestrates a two-phase migration process.
+
+```bash
+awesome-ai migrate <prompt> [options]
+```
+
+**Arguments:**
+
+| Argument | Description |
+|----------|-------------|
+| `prompt` | Name of the migration prompt to execute (required) |
+
+**Options:**
+
+| Option | Description | Default |
+|--------|-------------|---------|
+| `-c, --cwd <path>` | Working directory | Current directory |
+
+**Required Agents:**
+
+This command requires both migration agents to be installed:
+- `migration-planning-agent` - Creates the migration plan (read-only analysis)
+- `migration-agent` - Executes the migration plan (makes changes)
+
+```bash
+# Install required agents
+awesome-ai add migration-planning-agent migration-agent
+```
+
+**Examples:**
+
+```bash
+# Run a Pages Router to App Router migration
+awesome-ai migrate pages-to-app-router
+
+# Run migration in a specific directory
+awesome-ai migrate pages-to-app-router --cwd ./my-nextjs-project
+```
+
+**Workflow:**
+
+1. The migration prompt is loaded (e.g., `pages-to-app-router`)
+2. The `migration-planning-agent` analyzes the codebase and creates a detailed plan
+3. You review the migration plan
+4. The `migration-agent` executes the plan phase by phase
+5. Each phase is verified before proceeding
+
+**Example: Next.js Pages to App Router Migration**
+
+```bash
+# 1. Add the migration prompt
+awesome-ai add pages-to-app-router --prompt
+
+# 2. Add required agents
+awesome-ai add migration-planning-agent migration-agent
+
+# 3. Run the migration
+awesome-ai migrate pages-to-app-router --cwd ./my-nextjs-app
+```
+
+The `pages-to-app-router` prompt guides the agents through:
+- Analyzing your pages/ directory structure
+- Creating a phased migration plan with Server/Client component boundaries
+- Migrating data fetching patterns (getStaticProps → Server Components)
+- Converting API routes to Route Handlers
+- Preserving SEO metadata and rendering strategies
+
+---
+
 ## Configuration
 
 The CLI uses an `agents.json` file for configuration. This file is created when you run `init`.
@@ -422,7 +538,8 @@ For private registries, use environment variables in headers:
 | `coding-agent` | Full-featured coding assistant with read, write, edit, bash, and search tools |
 | `research-agent` | Read-only agent for exploring and understanding codebases |
 | `planning-agent` | Agent for planning tasks with read-only bash access |
-| `migration-planning-agent` | Specialized agent for planning code migrations |
+| `migration-planning-agent` | Specialized agent for planning code migrations (read-only) |
+| `migration-agent` | Specialized agent for executing code migrations |
 
 ### Tools
 
@@ -445,6 +562,8 @@ For private registries, use environment variables in headers:
 | `research-agent` | System prompt for the research agent |
 | `planning-agent` | System prompt for the planning agent |
 | `migration-planning-agent` | System prompt for the migration planning agent |
+| `migration-agent` | System prompt for the migration execution agent |
+| `pages-to-app-router` | Migration prompt for Next.js Pages Router to App Router migrations |
 
 ---
 

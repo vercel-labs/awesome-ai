@@ -3,6 +3,12 @@
 	"homepage": "https://awesome-ai.com",
 	"items": [
 		{
+			"name": "pages-to-app-router",
+			"type": "registry:prompt",
+			"title": "Pages To App Router",
+			"description": "System prompt for Pages To App Router"
+		},
+		{
 			"name": "migration-planning-agent",
 			"type": "registry:prompt",
 			"title": "Migration Planning Agent",

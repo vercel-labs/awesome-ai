@@ -131,10 +131,12 @@ export async function updateFiles(
 	}
 
 	const hasUpdatedFiles = filesCreated.length || filesUpdated.length
-	if (!hasUpdatedFiles && !filesSkipped.length) {
-		filesCreatedSpinner?.info("No files updated.")
-	} else {
+	if (hasUpdatedFiles) {
 		filesCreatedSpinner?.succeed()
+	} else if (filesSkipped.length) {
+		filesCreatedSpinner?.info("Already up to date.")
+	} else {
+		filesCreatedSpinner?.info("No files to update.")
 	}
 
 	return {

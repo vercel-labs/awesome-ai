@@ -348,7 +348,9 @@ function parseBlocks(text: string): ParsedBlock[] {
 				const listLine = lines[i]!
 				const itemMatch = listLine.match(listItemPattern)
 				if (itemMatch) {
-					const indent = Math.floor(((itemMatch[1]?.length ?? 0) - baseIndent) / 2)
+					const indent = Math.floor(
+						((itemMatch[1]?.length ?? 0) - baseIndent) / 2,
+					)
 					items.push({ text: itemMatch[3] ?? "", indent: Math.max(0, indent) })
 					i += 1
 				} else if (listLine.trim() === "") {

@@ -49,10 +49,7 @@ export function AgentSelector() {
 
 	return (
 		<Dialog height={panelHeight} maxHeight={20}>
-			<DialogTitle
-				color={colors.green}
-				hint="↑↓ navigate, Enter select, Esc close"
-			>
+			<DialogTitle color={colors.green} hint="↑↓ navigate, Enter select, Esc">
 				Select Agent
 			</DialogTitle>
 			{currentAgent && (

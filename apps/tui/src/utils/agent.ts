@@ -28,6 +28,7 @@ let currentAgentInstance: Agent | null = null
 let conversationMessages: ModelMessage[] = []
 let currentAbortController: AbortController | null = null
 let currentStreamingMessageAtom: MessageAtom | null = null
+let agentLoadPromise: Promise<boolean> | null = null
 
 export function resetConversation() {
 	conversationMessages = []
@@ -159,43 +160,56 @@ export async function loadAgent(agentName: string): Promise<boolean> {
 	const agentInfo = agents.find((a) => a.name === agentName)
 
 	if (!agentInfo) {
+		agentLoadPromise = null
 		return false
 	}
 
-	try {
-		// Dynamically import the agent module
-		const agentModule = await import(agentInfo.path)
+	const loadPromise = (async () => {
+		try {
+			// Dynamically import the agent module
+			const agentModule = await import(agentInfo.path)
 
-		// Agents typically export a createAgent function
-		if (typeof agentModule.createAgent === "function") {
-			const { gateway } = await import("@ai-sdk/gateway")
-			const modelId = selectedModelAtom.get()
-			const model = gateway(modelId)
+			// Agents typically export a createAgent function
+			if (typeof agentModule.createAgent === "function") {
+				const { gateway } = await import("@ai-sdk/gateway")
+				const modelId = selectedModelAtom.get()
+				const model = gateway(modelId)
 
-			const agent = await agentModule.createAgent({
-				model,
-				cwd: cwdAtom.get(),
-			})
-			currentAgentInstance = agent
-			conversationMessages = [] // Reset conversation for new agent
-			return true
+				const agent = await agentModule.createAgent({
+					model,
+					cwd: cwdAtom.get(),
+				})
+				currentAgentInstance = agent
+				conversationMessages = [] // Reset conversation for new agent
+				return true
+			}
+
+			// Some agents might export the agent directly
+			if (agentModule.default && agentModule.default.version === "agent-v1") {
+				currentAgentInstance = agentModule.default
+				conversationMessages = []
+				return true
+			}
+
+			return false
+		} catch (error) {
+			debugLog(`Failed to load agent ${agentName}:`, error)
+			return false
+		} finally {
+			agentLoadPromise = null
 		}
+	})()
 
-		// Some agents might export the agent directly
-		if (agentModule.default && agentModule.default.version === "agent-v1") {
-			currentAgentInstance = agentModule.default
-			conversationMessages = []
-			return true
-		}
-
-		return false
-	} catch (error) {
-		debugLog(`Failed to load agent ${agentName}:`, error)
-		return false
-	}
+	agentLoadPromise = loadPromise
+	return loadPromise
 }
 
 export async function sendMessage(userPrompt: string): Promise<void> {
+	// Wait for any in-progress agent loading
+	if (agentLoadPromise) {
+		await agentLoadPromise
+	}
+
 	if (!currentAgentInstance) {
 		addMessage(
 			createSystemMessage(

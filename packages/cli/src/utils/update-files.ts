@@ -20,6 +20,7 @@ export async function updateFiles(
 		overwrite?: boolean
 		silent?: boolean
 		path?: string
+		yes?: boolean
 	},
 ) {
 	if (!files?.length) {
@@ -33,6 +34,7 @@ export async function updateFiles(
 	options = {
 		overwrite: false,
 		silent: false,
+		yes: false,
 		...options,
 	}
 
@@ -90,27 +92,29 @@ export async function updateFiles(
 				continue
 			}
 
-			filesCreatedSpinner.stop()
+			if (!options.yes) {
+				filesCreatedSpinner.stop()
 
-			const diff = diffLines(existingFileContent, content)
-			logger.info(`\nFile: ${highlighter.info(fileName)}`)
-			printDiff(diff)
+				const diff = diffLines(existingFileContent, content)
+				logger.info(`\nFile: ${highlighter.info(fileName)}`)
+				printDiff(diff)
 
-			const { overwrite } = await prompts({
-				type: "confirm",
-				name: "overwrite",
-				message: `The file ${highlighter.info(
-					fileName,
-				)} already exists. Would you like to overwrite?`,
-				initial: false,
-			})
+				const { overwrite } = await prompts({
+					type: "confirm",
+					name: "overwrite",
+					message: `The file ${highlighter.info(
+						fileName,
+					)} already exists. Would you like to overwrite?`,
+					initial: false,
+				})
 
-			if (!overwrite) {
-				filesSkipped.push(path.relative(config.resolvedPaths.cwd, filePath))
+				if (!overwrite) {
+					filesSkipped.push(path.relative(config.resolvedPaths.cwd, filePath))
+					filesCreatedSpinner?.start()
+					continue
+				}
 				filesCreatedSpinner?.start()
-				continue
 			}
-			filesCreatedSpinner?.start()
 		}
 
 		if (!existsSync(targetDir)) {

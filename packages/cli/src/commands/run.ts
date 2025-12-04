@@ -1,6 +1,6 @@
+import { discoverAgents, runTui } from "awesome-ai-tui"
 import { Command } from "commander"
 import path from "path"
-import { discoverAgents, runTui } from "awesome-ai-tui"
 import { z } from "zod"
 import { getConfig } from "@/src/utils/get-config"
 import { handleError } from "@/src/utils/handle-error"

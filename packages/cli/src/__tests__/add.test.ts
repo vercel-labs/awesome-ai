@@ -211,6 +211,30 @@ describe("add command", () => {
 		expect(content).toContain("testTool")
 	})
 
+	it("auto-confirms update with --yes flag when file exists", async () => {
+		const project = await createProjectWithRegistry()
+
+		// First add
+		await runCLI(["add", "@test/test-tool", "--tool", "--yes"], {
+			cwd: project.path,
+		})
+
+		// Modify the file
+		await project.writeFile("tools/test-tool.ts", "// modified content")
+
+		// Second add with just --yes (should auto-confirm the update prompt)
+		const result = await runCLI(["add", "@test/test-tool", "--tool", "--yes"], {
+			cwd: project.path,
+		})
+
+		expect(result.exitCode).toBe(0)
+
+		// File should be updated (auto-confirmed by --yes)
+		const content = await project.readFile("tools/test-tool.ts")
+		expect(content).not.toBe("// modified content")
+		expect(content).toContain("testTool")
+	})
+
 	it("requires item names", async () => {
 		// Simple test - doesn't need registry
 		const project = await createTestProject({

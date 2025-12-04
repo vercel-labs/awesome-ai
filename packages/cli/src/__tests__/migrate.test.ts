@@ -167,7 +167,12 @@ describe("migrate command", () => {
 			mockPerformRemoteSync.mockResolvedValue({
 				success: false,
 				cancelled: true,
-				plan: { needsSync: false, toSync: [], dependencies: [], devDependencies: [] },
+				plan: {
+					needsSync: false,
+					toSync: [],
+					dependencies: [],
+					devDependencies: [],
+				},
 			})
 
 			await expect(
@@ -183,7 +188,12 @@ describe("migrate command", () => {
 			mockPerformRemoteSync.mockResolvedValue({
 				success: false,
 				cancelled: false,
-				plan: { needsSync: true, toSync: [], dependencies: [], devDependencies: [] },
+				plan: {
+					needsSync: true,
+					toSync: [],
+					dependencies: [],
+					devDependencies: [],
+				},
 			})
 
 			await expect(

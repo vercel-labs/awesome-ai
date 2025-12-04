@@ -16,11 +16,13 @@ export async function addItems(
 		overwrite?: boolean
 		silent?: boolean
 		path?: string
+		yes?: boolean
 	},
 ) {
 	options = {
 		overwrite: false,
 		silent: false,
+		yes: false,
 		...options,
 	}
 
@@ -53,6 +55,7 @@ export async function addItems(
 		overwrite: options.overwrite,
 		silent: options.silent,
 		path: options.path,
+		yes: options.yes,
 	})
 
 	if (tree.docs) {

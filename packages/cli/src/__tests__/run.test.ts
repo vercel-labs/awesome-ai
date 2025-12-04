@@ -56,9 +56,9 @@ describe("run command", () => {
 
 	describe("validation errors", () => {
 		it("exits with error when --remote used without agent name", async () => {
-			await expect(
-				run.parseAsync(["bun", "test", "--remote"]),
-			).rejects.toThrow(ProcessExitError)
+			await expect(run.parseAsync(["bun", "test", "--remote"])).rejects.toThrow(
+				ProcessExitError,
+			)
 
 			expect(mockLogger.error).toHaveBeenCalledWith(
 				"An agent name is required when using --remote or --remote-only.",
@@ -107,9 +107,9 @@ describe("run command", () => {
 		it("exits with error when agent provided but no config", async () => {
 			mockGetConfig.mockResolvedValue(null)
 
-			await expect(
-				run.parseAsync(["bun", "test", "my-agent"]),
-			).rejects.toThrow(ProcessExitError)
+			await expect(run.parseAsync(["bun", "test", "my-agent"])).rejects.toThrow(
+				ProcessExitError,
+			)
 
 			expect(mockLogger.error).toHaveBeenCalledWith(
 				expect.stringContaining("agents.json not found"),
@@ -120,9 +120,9 @@ describe("run command", () => {
 		it("exits with error when agents path cannot be resolved", async () => {
 			mockGetConfig.mockResolvedValue(createMockConfig({ agents: null }))
 
-			await expect(
-				run.parseAsync(["bun", "test", "my-agent"]),
-			).rejects.toThrow(ProcessExitError)
+			await expect(run.parseAsync(["bun", "test", "my-agent"])).rejects.toThrow(
+				ProcessExitError,
+			)
 
 			expect(mockLogger.error).toHaveBeenCalledWith(
 				"Could not resolve agents path from agents.json",

@@ -6,7 +6,7 @@ import type { registryConfigSchema } from "./schema"
 export const REGISTRY_URL =
 	process.env.AWESOME_AI_REGISTRY_URL ??
 	process.env.REGISTRY_URL ??
-	"https://raw.githubusercontent.com/vercel/awesome-ai/main/packages/registry/registry"
+	"https://raw.githubusercontent.com/vercel-labs/awesome-ai/main/packages/registry/registry"
 
 // Built-in registries that are always available and cannot be overridden
 export const BUILTIN_REGISTRIES: z.infer<typeof registryConfigSchema> = {

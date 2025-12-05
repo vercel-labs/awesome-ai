@@ -1,5 +1,17 @@
 # awesome-ai-tui
 
+## 0.1.0-beta.4
+
+### Patch Changes
+
+- Fixed the streamdown version
+
+## 0.1.0-beta.3
+
+### Patch Changes
+
+- Fixed imports
+
 ## 0.1.0-beta.2
 
 ### Patch Changes

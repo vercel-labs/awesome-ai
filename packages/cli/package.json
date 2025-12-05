@@ -1,6 +1,6 @@
 {
 	"name": "awesome-ai",
-	"version": "0.1.0-beta.2",
+	"version": "0.1.0-beta.4",
 	"type": "module",
 	"description": "Add agents, tools, and prompts to your projects.",
 	"publishConfig": {

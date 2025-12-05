@@ -82,7 +82,7 @@ importers:
         specifier: ^3.12.2
         version: 3.14.0
       streamdown:
-        specifier: ^1.6.9
+        specifier: 1.6.9
         version: 1.6.9(@types/mdast@4.0.4)(micromark-util-types@2.0.2)(micromark@4.0.2)(react@19.2.0)
       zod:
         specifier: 'catalog:'
@@ -291,7 +291,7 @@ importers:
         specifier: ^27.0.1
         version: 27.0.1
       awesome-ai-tui:
-        specifier: workspace:*
+        specifier: workspace:^
         version: link:../../apps/tui
       commander:
         specifier: ^14.0.2

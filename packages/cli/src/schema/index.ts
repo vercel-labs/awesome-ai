@@ -1,5 +1,5 @@
 import { z } from "zod"
-import { registryConfigSchema } from "@/src/registry/schema"
+import { registryConfigSchema } from "../registry/schema"
 
 const coerceBoolean = z
 	.union([z.boolean(), z.string().transform((v) => v === "true" || v === "1")])

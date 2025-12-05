@@ -1,6 +1,6 @@
 import { diffLines } from "diff"
 import { describe, expect, it } from "vitest"
-import { formatDiffWithContext } from "@/src/utils/update-files"
+import { formatDiffWithContext } from "../utils/update-files"
 
 describe("formatDiffWithContext", () => {
 	it("returns empty array when there are no changes", () => {

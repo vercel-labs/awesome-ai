@@ -1,7 +1,7 @@
 import { existsSync } from "fs"
 import path from "path"
 import { z } from "zod"
-import { getProjectInfo } from "@/src/utils/get-project-info"
+import { getProjectInfo } from "../utils/get-project-info"
 
 export const initOptionsSchema = z.object({
 	cwd: z.string(),

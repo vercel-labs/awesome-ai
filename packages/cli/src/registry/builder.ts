@@ -1,15 +1,15 @@
 import type { z } from "zod"
-import { REGISTRY_URL } from "@/src/registry/constants"
-import { expandEnvVars } from "@/src/registry/env"
-import { RegistryNotConfiguredError } from "@/src/registry/errors"
-import { parseRegistryAndItemFromString } from "@/src/registry/parser"
+import { REGISTRY_URL } from "./constants"
+import { expandEnvVars } from "./env"
+import { RegistryNotConfiguredError } from "./errors"
+import { parseRegistryAndItemFromString } from "./parser"
 import type {
 	RegistryItemCategory,
 	registryConfigItemSchema,
-} from "@/src/registry/schema"
-import { isLocalFile, isUrl } from "@/src/registry/utils"
-import { validateRegistryConfig } from "@/src/registry/validator"
-import type { Config } from "@/src/schema"
+} from "./schema"
+import { isLocalFile, isUrl } from "./utils"
+import { validateRegistryConfig } from "./validator"
+import type { Config } from "../schema"
 
 const NAME_PLACEHOLDER = "{name}"
 const TYPE_PLACEHOLDER = "{type}"

@@ -1,5 +1,5 @@
 import type { z } from "zod"
-import type { registryConfigSchema } from "@/src/registry/schema"
+import type { registryConfigSchema } from "./schema"
 
 // Registry URL can be customized via environment variable
 // Supports branch names: https://raw.githubusercontent.com/{owner}/{repo}/{branch}/packages/registry/registry

@@ -1,22 +1,22 @@
-import { buildUrlAndHeadersForRegistryItem } from "@/src/registry/builder"
-import { configWithDefaults } from "@/src/registry/config"
-import { clearRegistryContext } from "@/src/registry/context"
+import { buildUrlAndHeadersForRegistryItem } from "./builder"
+import { configWithDefaults } from "./config"
+import { clearRegistryContext } from "./context"
 import {
 	RegistryInvalidNamespaceError,
 	RegistryNotFoundError,
 	RegistryParseError,
-} from "@/src/registry/errors"
-import { fetchRegistry } from "@/src/registry/fetcher"
+} from "./errors"
+import { fetchRegistry } from "./fetcher"
 import {
 	fetchRegistryItems,
 	resolveRegistryTree,
-} from "@/src/registry/resolver"
+} from "./resolver"
 import {
 	type RegistryItemCategory,
 	registrySchema,
-} from "@/src/registry/schema"
-import { isUrl } from "@/src/registry/utils"
-import type { Config } from "@/src/schema"
+} from "./schema"
+import { isUrl } from "./utils"
+import type { Config } from "../schema"
 
 export async function getRegistry(
 	name: string,

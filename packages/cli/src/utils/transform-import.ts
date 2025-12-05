@@ -2,7 +2,7 @@ import { promises as fs } from "fs"
 import { tmpdir } from "os"
 import path from "path"
 import { Project, ScriptKind } from "ts-morph"
-import type { Config } from "@/src/schema"
+import type { Config } from "../schema"
 
 const project = new Project({
 	compilerOptions: {},

@@ -1,14 +1,14 @@
 #!/usr/bin/env bun
 import { Command } from "commander"
-import { add } from "@/src/commands/add"
-import { diff } from "@/src/commands/diff"
-import { exec } from "@/src/commands/exec"
-import { init } from "@/src/commands/init"
-import { list } from "@/src/commands/list"
-import { migrate } from "@/src/commands/migrate"
-import { run } from "@/src/commands/run"
-import { search } from "@/src/commands/search"
-import { view } from "@/src/commands/view"
+import { add } from "./commands/add"
+import { diff } from "./commands/diff"
+import { exec } from "./commands/exec"
+import { init } from "./commands/init"
+import { list } from "./commands/list"
+import { migrate } from "./commands/migrate"
+import { run } from "./commands/run"
+import { search } from "./commands/search"
+import { view } from "./commands/view"
 import packageJson from "../package.json"
 
 process.on("SIGINT", () => process.exit(0))

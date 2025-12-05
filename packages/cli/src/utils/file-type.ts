@@ -1,4 +1,4 @@
-import type { RegistryItemCategory } from "@/src/registry/schema"
+import type { RegistryItemCategory } from "../registry/schema"
 
 /**
  * Get the target directory for a registry file based on its type.

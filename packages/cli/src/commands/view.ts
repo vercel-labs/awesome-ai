@@ -1,11 +1,11 @@
 import { Command } from "commander"
 import path from "path"
 import { z } from "zod"
-import { getRegistryItems } from "@/src/registry/api"
-import { clearRegistryContext } from "@/src/registry/context"
-import { loadEnvFiles } from "@/src/utils/env-loader"
-import { createConfig, getConfig } from "@/src/utils/get-config"
-import { handleError } from "@/src/utils/handle-error"
+import { getRegistryItems } from "../registry/api"
+import { clearRegistryContext } from "../registry/context"
+import { loadEnvFiles } from "../utils/env-loader"
+import { createConfig, getConfig } from "../utils/get-config"
+import { handleError } from "../utils/handle-error"
 
 const viewOptionsSchema = z.object({
 	cwd: z.string(),

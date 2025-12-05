@@ -2,11 +2,11 @@ import { discoverAgents, runTui } from "awesome-ai-tui"
 import { Command } from "commander"
 import path from "path"
 import { z } from "zod"
-import { getConfig } from "@/src/utils/get-config"
-import { handleError } from "@/src/utils/handle-error"
-import { logger } from "@/src/utils/logger"
-import { performRemoteSync } from "@/src/utils/remote-approval"
-import { getCachedItemsPaths } from "@/src/utils/remote-cache"
+import { getConfig } from "../utils/get-config"
+import { handleError } from "../utils/handle-error"
+import { logger } from "../utils/logger"
+import { performRemoteSync } from "../utils/remote-approval"
+import { getCachedItemsPaths } from "../utils/remote-cache"
 
 const REQUIRED_AGENTS = ["migration-planning-agent", "migration-agent"] as const
 

@@ -1,5 +1,5 @@
-import { BUILTIN_REGISTRIES } from "@/src/registry/constants"
-import type { Config, RawConfig } from "@/src/schema"
+import { BUILTIN_REGISTRIES } from "./constants"
+import type { Config, RawConfig } from "../schema"
 
 export function configWithDefaults(config?: Partial<Config> | Config): Config {
 	const defaultConfig: RawConfig = {

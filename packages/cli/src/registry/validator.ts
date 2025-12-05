@@ -1,11 +1,11 @@
 import type { z } from "zod"
-import { buildUrlAndHeadersForRegistryItem } from "@/src/registry/builder"
-import { configWithDefaults } from "@/src/registry/config"
-import { clearRegistryContext } from "@/src/registry/context"
-import { extractEnvVars } from "@/src/registry/env"
-import { RegistryMissingEnvironmentVariablesError } from "@/src/registry/errors"
-import type { registryConfigItemSchema } from "@/src/registry/schema"
-import type { Config } from "@/src/schema"
+import { buildUrlAndHeadersForRegistryItem } from "./builder"
+import { configWithDefaults } from "./config"
+import { clearRegistryContext } from "./context"
+import { extractEnvVars } from "./env"
+import { RegistryMissingEnvironmentVariablesError } from "./errors"
+import type { registryConfigItemSchema } from "./schema"
+import type { Config } from "../schema"
 
 export function extractEnvVarsFromRegistryConfig(
 	config: z.infer<typeof registryConfigItemSchema>,

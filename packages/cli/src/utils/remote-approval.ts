@@ -1,13 +1,13 @@
 import prompts from "prompts"
-import type { RegistryItemCategory } from "@/src/registry/schema"
-import { highlighter } from "@/src/utils/highlighter"
-import { logger } from "@/src/utils/logger"
+import type { RegistryItemCategory } from "../registry/schema"
+import { highlighter } from "./highlighter"
+import { logger } from "./logger"
 import {
 	installCacheDependencies,
 	prepareSync,
 	type SyncPlan,
-} from "@/src/utils/remote-cache"
-import { spinner } from "@/src/utils/spinner"
+} from "./remote-cache"
+import { spinner } from "./spinner"
 
 interface SyncOptions {
 	yes?: boolean

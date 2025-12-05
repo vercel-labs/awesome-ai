@@ -1,12 +1,12 @@
-import { configWithDefaults } from "@/src/registry/config"
-import { resolveRegistryTree } from "@/src/registry/resolver"
-import type { RegistryItemCategory } from "@/src/registry/schema"
-import type { Config } from "@/src/schema"
-import { handleError } from "@/src/utils/handle-error"
-import { logger } from "@/src/utils/logger"
-import { spinner } from "@/src/utils/spinner"
-import { updateDependencies } from "@/src/utils/update-dependencies"
-import { updateFiles } from "@/src/utils/update-files"
+import { configWithDefaults } from "../registry/config"
+import { resolveRegistryTree } from "../registry/resolver"
+import type { RegistryItemCategory } from "../registry/schema"
+import type { Config } from "../schema"
+import { handleError } from "./handle-error"
+import { logger } from "./logger"
+import { spinner } from "./spinner"
+import { updateDependencies } from "./update-dependencies"
+import { updateFiles } from "./update-files"
 
 export async function addItems(
 	items: string[],

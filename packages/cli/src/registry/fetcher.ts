@@ -2,8 +2,8 @@ import { promises as fs } from "fs"
 import { homedir } from "os"
 import path from "path"
 import { z } from "zod"
-import { resolveRegistryUrl } from "@/src/registry/builder"
-import { getRegistryHeadersFromContext } from "@/src/registry/context"
+import { resolveRegistryUrl } from "./builder"
+import { getRegistryHeadersFromContext } from "./context"
 import {
 	RegistryFetchError,
 	RegistryForbiddenError,
@@ -11,9 +11,9 @@ import {
 	RegistryNotFoundError,
 	RegistryParseError,
 	RegistryUnauthorizedError,
-} from "@/src/registry/errors"
-import { registryItemSchema } from "@/src/registry/schema"
-import { isLocalFile } from "@/src/registry/utils"
+} from "./errors"
+import { registryItemSchema } from "./schema"
+import { isLocalFile } from "./utils"
 
 const fetchCache = new Map<string, Promise<unknown>>()
 

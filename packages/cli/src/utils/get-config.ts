@@ -1,15 +1,15 @@
 import { cosmiconfig } from "cosmiconfig"
 import path from "path"
 import { loadConfig } from "tsconfig-paths"
-import { BUILTIN_REGISTRIES } from "@/src/registry/constants"
-import { ConfigParseError } from "@/src/registry/errors"
+import { BUILTIN_REGISTRIES } from "../registry/constants"
+import { ConfigParseError } from "../registry/errors"
 import {
 	type Config,
 	configSchema,
 	type RawConfig,
 	rawConfigSchema,
-} from "@/src/schema"
-import { resolveImport } from "@/src/utils/resolve-import"
+} from "../schema"
+import { resolveImport } from "./resolve-import"
 
 export const DEFAULT_AGENTS = "@/agents"
 export const DEFAULT_TOOLS = "@/tools"

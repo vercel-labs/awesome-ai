@@ -1,0 +1,14 @@
+{
+  "mode": "pre",
+  "tag": "beta",
+  "initialVersions": {
+    "agent": "0.0.0",
+    "awesome-ai-tui": "0.0.0",
+    "ui": "0.1.0",
+    "awesome-ai": "0.0.0",
+    "awesome-ai-registry": "0.0.0"
+  },
+  "changesets": [
+    "crisp-eggs-hunt"
+  ]
+}

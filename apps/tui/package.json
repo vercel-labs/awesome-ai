@@ -1,10 +1,13 @@
 {
 	"name": "awesome-ai-tui",
-	"version": "0.0.0",
+	"version": "0.1.0-beta.0",
 	"type": "module",
 	"publishConfig": {
 		"access": "public"
 	},
+	"files": [
+		"src"
+	],
 	"main": "./src/index.tsx",
 	"exports": {
 		".": "./src/index.tsx"

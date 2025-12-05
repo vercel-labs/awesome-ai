@@ -1,0 +1,72 @@
+name: Release Stable
+
+on:
+  workflow_dispatch:
+
+concurrency: ${{ github.workflow }}-${{ github.ref }}
+
+jobs:
+  release:
+    name: Exit Prerelease and Create PR
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.6.5
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install Dependencies
+        run: pnpm install
+
+      - name: Configure Git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Exit Prerelease Mode and Create PR
+        run: |
+          BRANCH="release/stable-$(date +%Y%m%d-%H%M%S)"
+          git checkout -b "$BRANCH"
+          
+          # Exit prerelease mode
+          pnpm changeset pre exit
+          
+          # Version the packages (this will create stable versions)
+          pnpm changeset version
+          
+          # Commit and push
+          git add .
+          git commit -m "chore: release stable version"
+          git push origin "$BRANCH"
+          
+          # Create PR
+          gh pr create \
+            --title "Release: Stable Version" \
+            --body "This PR exits prerelease mode and releases a stable version.
+
+          ## What this does
+          - Exits beta prerelease mode
+          - Bumps packages to stable versions
+          - Updates changelogs
+
+          ## After merging
+          - Stable versions will be published to npm
+          - A new PR will be created to re-enter beta mode
+
+          ## Checklist
+          - [ ] Review the version bumps
+          - [ ] Review the changelog" \
+            --base main \
+            --head "$BRANCH"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

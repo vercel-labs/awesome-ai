@@ -7,6 +7,6 @@
 		"prompts": "@/prompts"
 	},
 	"registries": {
-		"local": "../../packages/registry/registry"
+		"@local": "../../packages/registry/registry/{type}/{name}.json"
 	}
 }

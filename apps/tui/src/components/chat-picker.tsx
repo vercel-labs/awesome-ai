@@ -2,15 +2,16 @@ import { useAtom } from "@lfades/atom"
 import type { KeyEvent, ScrollBoxRenderable } from "@opentui/core"
 import { useEffect, useRef } from "react"
 import { colors } from "../theme"
-import { resetConversation } from "../utils/agent"
+import { resetConversation, startNewChat } from "../utils/agent"
 import { saveWorkspaceSettings } from "../utils/settings"
-import { listChats, loadChat } from "../utils/storage"
+import { deleteChat, listChats, loadChat } from "../utils/storage"
 import {
 	chatListAtom,
 	currentChatIdAtom,
 	inputAtom,
 	selectedChatIndexAtom,
 	setMessages,
+	showAlert,
 	showChatPickerAtom,
 } from "./atoms"
 import { Dialog, DialogText, DialogTitle } from "./ui/dialog"
@@ -80,7 +81,7 @@ export function ChatPicker() {
 		<Dialog width={panelWidth} height={panelHeight} maxHeight={20}>
 			<DialogTitle
 				color={colors.pink}
-				hint="↑↓ navigate, Enter select, Esc close"
+				hint="↑↓ navigate, Enter select, d delete"
 			>
 				Chat History
 			</DialogTitle>
@@ -137,6 +138,48 @@ export async function selectChat(chatId: string) {
 	}
 }
 
+async function deleteSelectedChat() {
+	const chats = chatListAtom.get()
+	const selectedIndex = selectedChatIndexAtom.get()
+	const selectedChat = chats[selectedIndex]
+
+	if (!selectedChat) return
+
+	const currentChatId = currentChatIdAtom.get()
+	const isDeletingCurrentChat = selectedChat.id === currentChatId
+
+	// Delete the chat from storage
+	await deleteChat(selectedChat.id)
+
+	// Remove from list
+	const updatedChats = chats.filter((c) => c.id !== selectedChat.id)
+	chatListAtom.set(updatedChats)
+
+	// Adjust selected index if needed
+	if (updatedChats.length === 0) {
+		// No more chats, close picker and start new chat
+		showChatPickerAtom.set(false)
+		selectedChatIndexAtom.set(0)
+		if (isDeletingCurrentChat) {
+			await startNewChat()
+		}
+	} else {
+		// Keep index in bounds
+		const newIndex = Math.min(selectedIndex, updatedChats.length - 1)
+		selectedChatIndexAtom.set(newIndex)
+
+		// If we deleted the current chat, switch to another one
+		if (isDeletingCurrentChat) {
+			const nextChat = updatedChats[newIndex]
+			if (nextChat) {
+				await selectChat(nextChat.id)
+			}
+		}
+	}
+
+	showAlert("Chat deleted")
+}
+
 export function handleChatPickerKey(key: KeyEvent): boolean {
 	const showPicker = showChatPickerAtom.get()
 	if (!showPicker) return false
@@ -166,6 +209,11 @@ export function handleChatPickerKey(key: KeyEvent): boolean {
 			}
 			return true
 		}
+
+		case "d":
+			deleteSelectedChat()
+			return true
+
 		case "escape":
 			showChatPickerAtom.set(false)
 			selectedChatIndexAtom.set(0)

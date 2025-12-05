@@ -653,10 +653,7 @@ export function createEditTool(
 				}
 			}
 			if (output.status === "success") {
-				return {
-					type: "text",
-					value: `${output.result}\n\nChanges:\n${output.diff}`,
-				}
+				return { type: "text", value: "" }
 			}
 			throw new Error("Invalid output status in toModelOutput")
 		},

@@ -47,16 +47,24 @@ export async function addItems(
 
 	registrySpinner?.succeed()
 
-	await updateDependencies(tree.dependencies, tree.devDependencies, config, {
-		silent: options.silent,
-	})
+	const { filesCreated, filesUpdated } = await updateFiles(
+		tree.files,
+		type,
+		config,
+		{
+			overwrite: options.overwrite,
+			silent: options.silent,
+			path: options.path,
+			yes: options.yes,
+		},
+	)
 
-	await updateFiles(tree.files, type, config, {
-		overwrite: options.overwrite,
-		silent: options.silent,
-		path: options.path,
-		yes: options.yes,
-	})
+	// Only install dependencies if files were actually created or updated
+	if (filesCreated.length || filesUpdated.length) {
+		await updateDependencies(tree.dependencies, tree.devDependencies, config, {
+			silent: options.silent,
+		})
+	}
 
 	if (tree.docs) {
 		logger.info(tree.docs)

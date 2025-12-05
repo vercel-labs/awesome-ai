@@ -105,10 +105,34 @@ async function streamAgentResponse(messageAtom: MessageAtom): Promise<void> {
 
 		let reasoningText = ""
 		let responseText = ""
+		let hasReasoningPart = false
 
 		const updateMessage = () => {
 			const current = messageAtom.get()
-			const newParts = current.parts.map((part) => {
+			let parts = current.parts
+
+			// If we have reasoning text but no reasoning part yet, add one
+			if (reasoningText && !hasReasoningPart) {
+				debugLog("xD Adding reasoning part to message UwU")
+
+				hasReasoningPart = true
+				// Insert reasoning part before the text part
+				const textPartIndex = parts.findIndex((p) => p.type === "text")
+				if (textPartIndex >= 0) {
+					parts = [
+						...parts.slice(0, textPartIndex),
+						{ type: "reasoning" as const, text: reasoningText },
+						...parts.slice(textPartIndex),
+					]
+				} else {
+					parts = [
+						{ type: "reasoning" as const, text: reasoningText },
+						...parts,
+					]
+				}
+			}
+
+			const newParts = parts.map((part) => {
 				if (part.type === "text") {
 					return { ...part, text: responseText }
 				}

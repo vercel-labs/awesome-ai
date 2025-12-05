@@ -109,19 +109,11 @@ export function createWriteTool(
 				}
 			}
 			if (output.status === "success") {
-				let result = output.result
-
-				// Add warning if present
 				if (output.warning) {
-					result = `⚠️ ${output.warning}\n\n${result}`
+					return { type: "text", value: `⚠️ ${output.warning}` }
 				}
-
-				// Add diff if overwriting
-				if (output.diff && output.wasOverwrite) {
-					result += `\n\nChanges:\n${output.diff}`
-				}
-
-				return { type: "text", value: result }
+				// Only the UI needs the diff for display purposes
+				return { type: "text", value: "" }
 			}
 			throw new Error("Invalid output status in toModelOutput")
 		},

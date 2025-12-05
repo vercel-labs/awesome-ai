@@ -530,3 +530,180 @@ describe("add command with local file registry", () => {
 		expect(await project.exists("tools/test-tool.ts")).toBe(true)
 	})
 })
+
+describe("add command update behavior", () => {
+	let registryUrl: string
+
+	beforeAll(async () => {
+		const registry = await startMockRegistry()
+		registryUrl = registry.url
+	})
+
+	afterAll(async () => {
+		await stopMockRegistry()
+	})
+
+	function createProjectWithRegistry() {
+		return createTestProject({
+			packageJson: { name: "test-project" },
+			tsconfig: {
+				compilerOptions: {
+					baseUrl: ".",
+					paths: {
+						"@/*": ["./*"],
+					},
+				},
+			},
+			files: {
+				"agents.json": JSON.stringify({
+					tsx: true,
+					aliases: {
+						agents: "@/agents",
+						tools: "@/tools",
+						prompts: "@/prompts",
+					},
+					registries: {
+						"@test": `${registryUrl}/{type}/{name}.json`,
+					},
+				}),
+			},
+		})
+	}
+
+	it("shows 'Already up to date' when file content is identical", async () => {
+		const project = await createProjectWithRegistry()
+
+		// First add
+		await runCLI(["add", "@test/test-tool", "--tool", "--yes"], {
+			cwd: project.path,
+		})
+
+		// Second add without modifying - content is identical
+		const result = await runCLI(["add", "@test/test-tool", "--tool", "--yes"], {
+			cwd: project.path,
+		})
+
+		expect(result.exitCode).toBe(0)
+		const output = result.stdout + result.stderr
+		expect(output).toContain("Already up to date")
+	})
+
+	it("does not show 'Installing dependencies' when files are already up to date", async () => {
+		const project = await createProjectWithRegistry()
+
+		// First add
+		await runCLI(["add", "@test/test-tool", "--tool", "--yes"], {
+			cwd: project.path,
+		})
+
+		// Second add without modifying - content is identical
+		const result = await runCLI(["add", "@test/test-tool", "--tool", "--yes"], {
+			cwd: project.path,
+		})
+
+		expect(result.exitCode).toBe(0)
+		// Should not attempt to install dependencies when nothing changed
+		const output = result.stdout + result.stderr
+		expect(output).not.toContain("Installing dependencies")
+	})
+
+	it("installs dependencies only when files are created or updated", async () => {
+		const project = await createProjectWithRegistry()
+
+		// First add - should install dependencies
+		const firstResult = await runCLI(
+			["add", "@test/test-tool", "--tool", "--yes"],
+			{ cwd: project.path },
+		)
+
+		expect(firstResult.exitCode).toBe(0)
+		const firstOutput = firstResult.stdout + firstResult.stderr
+		expect(firstOutput).toContain("Installing dependencies")
+
+		// Modify the file
+		await project.writeFile("tools/test-tool.ts", "// modified content")
+
+		// Second add with --yes to auto-confirm update - should install dependencies
+		const secondResult = await runCLI(
+			["add", "@test/test-tool", "--tool", "--yes"],
+			{ cwd: project.path },
+		)
+
+		expect(secondResult.exitCode).toBe(0)
+		const secondOutput = secondResult.stdout + secondResult.stderr
+		expect(secondOutput).toContain("Installing dependencies")
+	})
+
+	it("shows 'Updating files' only when files are actually updated", async () => {
+		const project = await createProjectWithRegistry()
+
+		// First add - should show updating files
+		const firstResult = await runCLI(
+			["add", "@test/test-tool", "--tool", "--yes"],
+			{ cwd: project.path },
+		)
+
+		expect(firstResult.exitCode).toBe(0)
+		const firstOutput = firstResult.stdout + firstResult.stderr
+		expect(firstOutput).toContain("Updating files")
+		expect(firstOutput).not.toContain("Already up to date")
+
+		// Second add without changes - should show already up to date
+		const secondResult = await runCLI(
+			["add", "@test/test-tool", "--tool", "--yes"],
+			{ cwd: project.path },
+		)
+
+		expect(secondResult.exitCode).toBe(0)
+		const secondOutput = secondResult.stdout + secondResult.stderr
+		expect(secondOutput).toContain("Already up to date")
+	})
+
+	it("checks files before installing dependencies", async () => {
+		const project = await createProjectWithRegistry()
+
+		// Add a tool that's already up to date
+		await runCLI(["add", "@test/test-tool", "--tool", "--yes"], {
+			cwd: project.path,
+		})
+
+		// Second add - should check files first
+		const result = await runCLI(["add", "@test/test-tool", "--tool", "--yes"], {
+			cwd: project.path,
+		})
+
+		// The order should be: registry check -> file check (already up to date) -> no dependency install
+		const output = result.stdout + result.stderr
+		const registryIndex = output.indexOf("Checking registry")
+		const upToDateIndex = output.indexOf("Already up to date")
+
+		expect(registryIndex).toBeLessThan(upToDateIndex)
+		expect(output).not.toContain("Installing dependencies")
+	})
+
+	it("shows summary when some files are updated and some are skipped", async () => {
+		const project = await createProjectWithRegistry()
+
+		// Add two tools
+		await runCLI(
+			["add", "@test/test-tool", "@test/tool-with-lib", "--tool", "--yes"],
+			{ cwd: project.path },
+		)
+
+		// Modify only one of them
+		await project.writeFile("tools/test-tool.ts", "// modified content")
+
+		// Add both again - one should be updated, one should be skipped (identical)
+		const result = await runCLI(
+			["add", "@test/test-tool", "@test/tool-with-lib", "--tool", "--yes"],
+			{ cwd: project.path },
+		)
+
+		expect(result.exitCode).toBe(0)
+		const output = result.stdout + result.stderr
+
+		// Should show summary with both updated and skipped counts
+		expect(output).toContain("file updated")
+		expect(output).toContain("skipped")
+	})
+})

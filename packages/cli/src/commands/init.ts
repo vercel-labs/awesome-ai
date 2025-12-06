@@ -55,7 +55,7 @@ export const init = new Command()
 	})
 
 export async function runInit(options: z.infer<typeof initOptionsSchema>) {
-	await preFlightInit(options)
+	await preFlightInit({ ...options, force: false })
 
 	const existingConfig = await getConfig(options.cwd)
 

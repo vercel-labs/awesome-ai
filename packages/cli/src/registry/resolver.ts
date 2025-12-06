@@ -42,18 +42,18 @@ export function resolveRegistryItemsFromRegistries(
 
 		// If item doesn't start with @ but has a type prefix (e.g., "tools:test-tool"),
 		// add the default registry namespace to resolve it
-		if (!item.startsWith("@") && item.includes(":") && defaultRegistry) {
-			const colonIndex = item.indexOf(":")
-			const prefix = item.substring(0, colonIndex)
+		if (!item!.startsWith("@") && item!.includes(":") && defaultRegistry) {
+			const colonIndex = item!.indexOf(":")
+			const prefix = item!.substring(0, colonIndex)
 			if (prefix === "agents" || prefix === "tools" || prefix === "prompts") {
 				// Transform "tools:test-tool" to "@defaultRegistry/test-tool" and extract type
-				const itemName = item.substring(colonIndex + 1)
+				const itemName = item!.substring(colonIndex + 1)
 				item = `${defaultRegistry}/${itemName}`
 				itemType = prefix as RegistryItemCategory
 			}
 		}
 
-		const resolved = buildUrlAndHeadersForRegistryItem(item, itemType, config)
+		const resolved = buildUrlAndHeadersForRegistryItem(item!, itemType, config)
 
 		if (resolved) {
 			resolvedItems[i] = resolved.url
@@ -138,8 +138,8 @@ export async function resolveRegistryTree(
 
 	const resultMap = new Map<string, RegistryItem>()
 	for (let i = 0; i < results.length; i++) {
-		if (results[i]) {
-			resultMap.set(uniqueNames[i], results[i])
+		if (results[i]!) {
+			resultMap.set(uniqueNames[i]!, results[i]!)
 		}
 	}
 
@@ -153,15 +153,15 @@ export async function resolveRegistryTree(
 		if (item.registryDependencies) {
 			let resolvedDependencies = item.registryDependencies
 
-			if (!config?.registries) {
-				const namespacedDeps = item.registryDependencies.filter((dep: string) =>
-					dep.startsWith("@"),
-				)
-				if (namespacedDeps.length > 0) {
-					const { registry } = parseRegistryAndItemFromString(namespacedDeps[0])
-					throw new RegistryNotConfiguredError(registry)
-				}
-			} else {
+		if (!config?.registries) {
+			const namespacedDeps = item.registryDependencies.filter((dep: string) =>
+				dep.startsWith("@"),
+			)
+			if (namespacedDeps.length > 0) {
+				const { registry } = parseRegistryAndItemFromString(namespacedDeps[0]!)
+				throw new RegistryNotConfiguredError(registry!)
+			}
+		} else {
 				resolvedDependencies = resolveRegistryItemsFromRegistries(
 					item.registryDependencies,
 					type,
@@ -266,7 +266,7 @@ function extractItemIdentifierFromDependency(dependency: string) {
 		const url = new URL(dependency)
 		const pathname = url.pathname
 		const match = pathname.match(/\/([^/]+)\.json$/)
-		const name = match ? match[1] : path.basename(pathname, ".json")
+		const name = match ? match[1]! : path.basename(pathname, ".json")
 
 		return {
 			name,
@@ -276,7 +276,7 @@ function extractItemIdentifierFromDependency(dependency: string) {
 
 	if (isLocalFile(dependency)) {
 		const match = dependency.match(/\/([^/]+)\.json$/)
-		const name = match ? match[1] : path.basename(dependency, ".json")
+		const name = match ? match[1]! : path.basename(dependency, ".json")
 
 		return {
 			name,
@@ -286,8 +286,8 @@ function extractItemIdentifierFromDependency(dependency: string) {
 
 	const { item } = parseRegistryAndItemFromString(dependency)
 	return {
-		name: item,
-		hash: computeItemHash({ name: item }, dependency),
+		name: item!,
+		hash: computeItemHash({ name: item! }, dependency),
 	}
 }
 
@@ -336,18 +336,18 @@ function topologicalSortRegistryItems(
 			for (const dep of item.registryDependencies) {
 				let depHash: string | undefined
 
-				const exactMatches = depToHashes.get(dep) || []
-				if (exactMatches.length === 1) {
-					depHash = exactMatches[0]
-				} else if (exactMatches.length > 1) {
-					depHash = exactMatches[0]
-				} else {
-					const { name } = extractItemIdentifierFromDependency(dep)
-					const nameMatches = depToHashes.get(name) || []
-					if (nameMatches.length > 0) {
-						depHash = nameMatches[0]
-					}
+			const exactMatches = depToHashes.get(dep) || []
+			if (exactMatches.length === 1) {
+				depHash = exactMatches[0]!
+			} else if (exactMatches.length > 1) {
+				depHash = exactMatches[0]!
+			} else {
+				const { name } = extractItemIdentifierFromDependency(dep)
+				const nameMatches = depToHashes.get(name) || []
+				if (nameMatches.length > 0) {
+					depHash = nameMatches[0]!
 				}
+			}
 
 				if (depHash && itemMap.has(depHash)) {
 					adjacencyList.get(depHash)!.push(itemHash)

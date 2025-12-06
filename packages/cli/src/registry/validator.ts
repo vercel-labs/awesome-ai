@@ -5,7 +5,7 @@ import { configWithDefaults } from "./config"
 import { clearRegistryContext } from "./context"
 import { extractEnvVars } from "./env"
 import { RegistryMissingEnvironmentVariablesError } from "./errors"
-import type { registryConfigItemSchema } from "./schema"
+import type { RegistryItemCategory, registryConfigItemSchema } from "./schema"
 
 export function extractEnvVarsFromRegistryConfig(
 	config: z.infer<typeof registryConfigItemSchema>,
@@ -55,10 +55,11 @@ export function validateRegistryConfig(
 
 export function validateRegistryConfigForItems(
 	items: string[],
+	type: RegistryItemCategory,
 	config?: Config,
 ): void {
 	for (const item of items) {
-		buildUrlAndHeadersForRegistryItem(item, configWithDefaults(config))
+		buildUrlAndHeadersForRegistryItem(item, type, configWithDefaults(config))
 	}
 
 	clearRegistryContext()

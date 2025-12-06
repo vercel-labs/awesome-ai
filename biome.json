@@ -30,7 +30,11 @@
 			"suspicious": {
 				"noArrayIndexKey": "off",
 				"noConfusingVoidType": "off",
-				"noExplicitAny": "off"
+				"noExplicitAny": "off",
+				"noUnknownAtRules": "off"
+			},
+			"correctness": {
+				"useUniqueElementIds": "off"
 			},
 			"style": {
 				"noNonNullAssertion": "off",
@@ -56,9 +60,6 @@
 		}
 	},
 	"css": {
-		"parser": {
-			"tailwindDirectives": true
-		},
 		"formatter": {
 			"enabled": false
 		}

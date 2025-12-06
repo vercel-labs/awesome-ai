@@ -103,13 +103,13 @@ export const migrate = new Command()
 
 			const agentPaths = options.remote
 				? [agentsPath, remotePaths.agents]
-				: [agentsPath]
-			const promptsPaths = options.remote
-				? [promptsPath, remotePaths.prompts]
-				: [promptsPath]
+		: [agentsPath]
+		const promptsPaths = options.remote
+			? [promptsPath, remotePaths.prompts]
+			: [promptsPath]
 
-			const agents = await discoverAgents(agentPaths)
-			const agentNames = agents.map((a) => a.name)
+		const agents = await discoverAgents(agentPaths!)
+		const agentNames = agents.map((a) => a.name)
 
 			const missingAgents = REQUIRED_AGENTS.filter(
 				(agent) => !agentNames.includes(agent),

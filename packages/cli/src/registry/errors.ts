@@ -24,7 +24,7 @@ export class RegistryError extends Error {
 	public readonly context?: Record<string, unknown>
 	public readonly suggestion?: string
 	public readonly timestamp: Date
-	public readonly cause?: unknown
+	public override readonly cause?: unknown
 
 	constructor(
 		message: string,
@@ -229,7 +229,7 @@ export class RegistryMissingEnvironmentVariablesError extends RegistryError {
 }
 
 export class RegistryInvalidNamespaceError extends RegistryError {
-	constructor(public readonly name: string) {
+	constructor(public override readonly name: string) {
 		const message = `Invalid registry namespace: "${name}". Registry names must start with @ (e.g., @awesome-ai).`
 
 		super(message, {

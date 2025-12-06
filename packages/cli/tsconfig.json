@@ -19,9 +19,11 @@
 		"resolveJsonModule": true,
 		"baseUrl": ".",
 		"jsx": "react-jsx",
+		"jsxImportSource": "@opentui/react",
 		"paths": {
 			"@/*": ["./*"]
 		}
 	},
-	"include": ["src/**/*"]
+	"include": ["src/**/*"],
+	"exclude": ["../../apps/tui/**/*"]
 }

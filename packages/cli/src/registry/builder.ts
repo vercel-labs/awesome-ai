@@ -47,7 +47,7 @@ export function buildUrlAndHeadersForRegistryItem(
 	validateRegistryConfig(registry, registryConfig)
 
 	return {
-		url: buildUrlFromRegistryConfig(item, type, registryConfig, config),
+		url: buildUrlFromRegistryConfig(item!, type, registryConfig, config),
 		headers: buildHeadersFromRegistryConfig(registryConfig),
 	}
 }
@@ -61,7 +61,7 @@ export function buildUrlFromRegistryConfig(
 	if (typeof registryConfig === "string") {
 		const urlWithPlaceholders = appendPlaceholdersIfNeeded(registryConfig)
 		const url = urlWithPlaceholders
-			.replace(NAME_PLACEHOLDER, item)
+			.replace(NAME_PLACEHOLDER, item!)
 			.replace(TYPE_PLACEHOLDER, type)
 		return expandEnvVars(url)
 	}

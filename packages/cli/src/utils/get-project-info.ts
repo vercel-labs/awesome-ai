@@ -55,7 +55,7 @@ export async function getTsConfigAliasPrefix(cwd: string) {
 		return null
 	}
 
-	const firstPath = pathKeys[0]
+	const firstPath = pathKeys[0]!
 	if (firstPath.includes("*")) {
 		return firstPath.replace("/*", "")
 	}

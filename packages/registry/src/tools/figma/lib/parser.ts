@@ -172,15 +172,6 @@ export function extractFigmaStructure(
 				const sectionFrames = collectFrames(child, pageId, child.id)
 				frames.push(...sectionFrames)
 			} else if (isFrameType(child.type)) {
-				const frameInfo: FrameInfo = {
-					id: child.id,
-					name: child.name,
-					type: child.type,
-					pageId,
-					sectionId,
-					componentsUsed: [],
-				}
-
 				frameComponents.set(child.id, new Set())
 
 				traverseFrame(child, {
@@ -188,9 +179,15 @@ export function extractFigmaStructure(
 					frameId: child.id,
 				})
 
-				frameInfo.componentsUsed = Array.from(
-					frameComponents.get(child.id) || [],
-				)
+				const frameInfo: FrameInfo = {
+					id: child.id,
+					name: child.name,
+					type: child.type,
+					pageId,
+					sectionId,
+					componentsUsed: Array.from(frameComponents.get(child.id) || []),
+					definition: filterInvisibleNodes(cloneNode(child)),
+				}
 
 				frames.push(frameInfo)
 				allFrames.set(child.id, frameInfo)

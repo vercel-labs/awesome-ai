@@ -176,6 +176,7 @@ export interface FrameInfo {
 	pageId: string
 	sectionId?: string
 	componentsUsed: string[]
+	definition: FigmaNode | null
 }
 
 export interface SectionInfo {
@@ -260,6 +261,8 @@ export interface MigrationState {
 	stats: MigrationStats
 	components: Record<string, ComponentState>
 	pages: Record<string, PageState>
+	/** Post-processed Figma data for component/page definitions */
+	figmaData: ExtractedData
 }
 
 // ============================================================================

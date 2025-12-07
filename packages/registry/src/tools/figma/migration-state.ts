@@ -2,18 +2,13 @@ import { promises as fs } from "node:fs"
 import * as path from "node:path"
 import { tool } from "ai"
 import { z } from "zod"
-import { ensureFigmaData, getCachedFigmaData, getProjectDir } from "./fetch"
-import { getComponent } from "./lib/parser"
+import { getProjectDir } from "./fetch"
 import type {
-	ComponentState,
-	ExtractedData,
-	FigmaNode,
 	MigrationNextItem,
 	MigrationPhase,
 	MigrationProgressResult,
 	MigrationState,
 	MigrationStats,
-	PageState,
 } from "./lib/types"
 
 const MIGRATION_FILE = ".figma-migration.json"
@@ -97,370 +92,6 @@ function updateDependencyReadiness(state: MigrationState): void {
 	}
 }
 
-function buildComponentDependencies(
-	data: ExtractedData,
-): Map<string, Set<string>> {
-	const deps = new Map<string, Set<string>>()
-
-	for (const [compId, compData] of Object.entries(data.components)) {
-		const compDeps = new Set<string>()
-
-		if (compData.definition?.children) {
-			findInstanceDependencies(compData.definition.children, compDeps, compId)
-		}
-
-		deps.set(compId, compDeps)
-	}
-
-	return deps
-}
-
-function findInstanceDependencies(
-	nodes: ExtractedData["components"][string]["definition"][],
-	deps: Set<string>,
-	selfId: string,
-): void {
-	for (const node of nodes) {
-		if (!node) continue
-		if (
-			node.type === "INSTANCE" &&
-			node.componentId &&
-			node.componentId !== selfId
-		) {
-			deps.add(node.componentId)
-		}
-		if (node.children) {
-			findInstanceDependencies(node.children, deps, selfId)
-		}
-	}
-}
-
-/**
- * Format a Figma node definition for model consumption.
- * This produces a readable summary of the node's properties.
- */
-function formatFigmaDefinition(node: FigmaNode | null, depth = 0): string {
-	if (!node) return "null"
-
-	const indent = "  ".repeat(depth)
-	const lines: string[] = []
-
-	// Node header
-	lines.push(`${indent}[${node.type}] "${node.name}" (id: ${node.id})`)
-
-	// Layout properties
-	if (node.layoutMode) {
-		const layoutProps: string[] = [`layout: ${node.layoutMode}`]
-		if (node.primaryAxisAlignItems)
-			layoutProps.push(`justify: ${node.primaryAxisAlignItems}`)
-		if (node.counterAxisAlignItems)
-			layoutProps.push(`align: ${node.counterAxisAlignItems}`)
-		if (node.itemSpacing) layoutProps.push(`gap: ${node.itemSpacing}px`)
-		if (node.layoutWrap) layoutProps.push(`wrap: ${node.layoutWrap}`)
-		lines.push(`${indent}  ${layoutProps.join(", ")}`)
-	}
-
-	// Padding
-	if (
-		node.paddingTop ||
-		node.paddingRight ||
-		node.paddingBottom ||
-		node.paddingLeft
-	) {
-		lines.push(
-			`${indent}  padding: ${node.paddingTop || 0}/${node.paddingRight || 0}/${node.paddingBottom || 0}/${node.paddingLeft || 0}`,
-		)
-	}
-
-	// Size
-	if (node.absoluteBoundingBox) {
-		const { width, height } = node.absoluteBoundingBox
-		lines.push(`${indent}  size: ${Math.round(width)}x${Math.round(height)}`)
-	}
-
-	// Corner radius
-	if (node.cornerRadius) {
-		lines.push(`${indent}  borderRadius: ${node.cornerRadius}px`)
-	} else if (node.rectangleCornerRadii) {
-		lines.push(
-			`${indent}  borderRadius: ${node.rectangleCornerRadii.join("/")}`,
-		)
-	}
-
-	// Fills
-	if (node.fills && node.fills.length > 0) {
-		const visibleFills = node.fills.filter((f) => f.visible !== false)
-		for (const fill of visibleFills) {
-			if (fill.type === "SOLID" && fill.color) {
-				const { r, g, b, a } = fill.color
-				const hex = `#${Math.round(r * 255)
-					.toString(16)
-					.padStart(2, "0")}${Math.round(g * 255)
-					.toString(16)
-					.padStart(2, "0")}${Math.round(b * 255)
-					.toString(16)
-					.padStart(2, "0")}`
-				lines.push(
-					`${indent}  fill: ${hex}${a < 1 ? ` (${Math.round(a * 100)}%)` : ""}`,
-				)
-			} else if (fill.type.startsWith("GRADIENT_")) {
-				lines.push(`${indent}  fill: ${fill.type}`)
-			}
-		}
-	}
-
-	// Strokes/Borders
-	if (node.strokes && node.strokes.length > 0 && node.strokeWeight) {
-		const stroke = node.strokes[0]
-		if (stroke?.color) {
-			const { r, g, b } = stroke.color
-			const hex = `#${Math.round(r * 255)
-				.toString(16)
-				.padStart(2, "0")}${Math.round(g * 255)
-				.toString(16)
-				.padStart(2, "0")}${Math.round(b * 255)
-				.toString(16)
-				.padStart(2, "0")}`
-			lines.push(`${indent}  border: ${node.strokeWeight}px ${hex}`)
-		}
-	}
-
-	// Effects (shadows)
-	if (node.effects && node.effects.length > 0) {
-		const visibleEffects = node.effects.filter((e) => e.visible !== false)
-		for (const effect of visibleEffects) {
-			if (effect.type === "DROP_SHADOW" || effect.type === "INNER_SHADOW") {
-				lines.push(
-					`${indent}  shadow: ${effect.type} radius=${effect.radius}${effect.offset ? ` offset=${effect.offset.x}/${effect.offset.y}` : ""}`,
-				)
-			}
-		}
-	}
-
-	// Text properties
-	if (node.type === "TEXT") {
-		if (node.characters) {
-			const preview =
-				node.characters.length > 50
-					? `${node.characters.slice(0, 50)}...`
-					: node.characters
-			lines.push(`${indent}  text: "${preview}"`)
-		}
-		if (node.style) {
-			const textProps: string[] = []
-			if (node.style.fontSize) textProps.push(`size: ${node.style.fontSize}px`)
-			if (node.style.fontWeight)
-				textProps.push(`weight: ${node.style.fontWeight}`)
-			if (node.style.fontFamily)
-				textProps.push(`font: ${node.style.fontFamily}`)
-			if (node.style.textAlignHorizontal)
-				textProps.push(`align: ${node.style.textAlignHorizontal}`)
-			if (node.style.lineHeightPx)
-				textProps.push(`lineHeight: ${node.style.lineHeightPx}px`)
-			if (textProps.length > 0) {
-				lines.push(`${indent}  ${textProps.join(", ")}`)
-			}
-		}
-	}
-
-	// Instance reference
-	if (node.type === "INSTANCE" && node.componentId) {
-		lines.push(`${indent}  → componentId: ${node.componentId}`)
-	}
-
-	// Opacity
-	if (node.opacity !== undefined && node.opacity < 1) {
-		lines.push(`${indent}  opacity: ${Math.round(node.opacity * 100)}%`)
-	}
-
-	// Children (recursively format, but limit depth)
-	if (node.children && node.children.length > 0) {
-		if (depth < 4) {
-			lines.push(`${indent}  children (${node.children.length}):`)
-			for (const child of node.children) {
-				lines.push(formatFigmaDefinition(child, depth + 2))
-			}
-		} else {
-			lines.push(
-				`${indent}  children: ${node.children.length} nodes (truncated)`,
-			)
-		}
-	}
-
-	return lines.join("\n")
-}
-
-function createInitialState(
-	data: ExtractedData,
-	fileKey: string,
-	fileUrl: string,
-): MigrationState {
-	const componentDeps = buildComponentDependencies(data)
-
-	const components: Record<string, ComponentState> = {}
-	for (const [compId, compData] of Object.entries(data.components)) {
-		const deps = Array.from(componentDeps.get(compId) || [])
-		components[compId] = {
-			figmaId: compId,
-			name: compData.name,
-			status: "pending",
-			dependencies: deps,
-			dependenciesReady: deps.length === 0,
-			instanceCount: compData.instanceCount,
-		}
-	}
-
-	const pages: Record<string, PageState> = {}
-	for (const [frameId, frameData] of Object.entries(data.frames)) {
-		pages[frameId] = {
-			figmaId: frameId,
-			frameName: frameData.name,
-			status: "blocked",
-			componentsUsed: frameData.componentsUsed,
-			componentsReady: false,
-		}
-	}
-
-	const state: MigrationState = {
-		figmaFileKey: fileKey,
-		figmaFileUrl: fileUrl,
-		createdAt: new Date().toISOString(),
-		updatedAt: new Date().toISOString(),
-		stats: {
-			totalComponents: Object.keys(components).length,
-			completedComponents: 0,
-			skippedComponents: 0,
-			totalPages: Object.keys(pages).length,
-			completedPages: 0,
-			phase: "components",
-		},
-		components,
-		pages,
-	}
-
-	updateDependencyReadiness(state)
-	state.stats = computeStats(state)
-
-	return state
-}
-
-// ============================================================================
-// Tool: migrationInit
-// ============================================================================
-
-const initDescription = `Initialize a Figma migration from the fetched Figma data.
-
-This tool:
-1. Creates the migration state from the cached Figma data
-2. Analyzes component dependencies
-3. Creates .figma-migration.json in the working directory
-4. Returns a summary of what needs to be migrated
-
-Prerequisites:
-- Must call figmaFetch first to load the Figma file
-
-After initialization, use migrationNext to get items to work on.`
-
-export const migrationInit = tool({
-	description: initDescription,
-	inputSchema: z.object({
-		fileUrl: z
-			.string()
-			.optional()
-			.describe("Optional: The original Figma URL for reference"),
-	}),
-	outputSchema: z.union([
-		z.object({
-			status: z.literal("pending"),
-			message: z.string(),
-		}),
-		z.object({
-			status: z.literal("success"),
-			message: z.string(),
-			summary: z.object({
-				totalComponents: z.number(),
-				totalPages: z.number(),
-				readyComponents: z.number(),
-				topReadyComponents: z.array(z.string()),
-			}),
-		}),
-		z.object({
-			status: z.literal("error"),
-			message: z.string(),
-			error: z.string(),
-		}),
-	]),
-	toModelOutput: (output) => {
-		if (output.status === "error") {
-			return { type: "error-text", value: output.error }
-		}
-		if (output.status === "pending") {
-			return { type: "text", value: output.message }
-		}
-		const { summary } = output
-		return {
-			type: "text",
-			value: `Migration initialized!
-
-Components: ${summary.totalComponents}
-Pages: ${summary.totalPages}
-Ready to start: ${summary.readyComponents} components
-
-Top components ready:
-${summary.topReadyComponents.map((n) => `  - ${n}`).join("\n")}
-
-Use migrationNext to get the next items to work on.`,
-		}
-	},
-	async *execute({ fileUrl }) {
-		yield {
-			status: "pending",
-			message: "Initializing migration...",
-		}
-
-		// Try to load from memory first, then from disk
-		const data = await ensureFigmaData()
-		if (!data) {
-			yield {
-				status: "error",
-				message: "No Figma data available",
-				error:
-					"No Figma data cached. Call figmaFetch first to load a Figma file.",
-			}
-			return
-		}
-
-		const existingState = await readMigrationState()
-		if (existingState) {
-			yield {
-				status: "error",
-				message: "Migration already exists",
-				error: `A migration already exists for file ${existingState.figmaFileKey}. Delete .figma-migration.json to start fresh.`,
-			}
-			return
-		}
-
-		const state = createInitialState(data, "unknown", fileUrl || "")
-
-		await writeMigrationState(state)
-
-		const readyComponents = Object.values(state.components)
-			.filter((c) => c.status === "pending" && c.dependenciesReady)
-			.sort((a, b) => b.instanceCount - a.instanceCount)
-
-		yield {
-			status: "success",
-			message: "Migration initialized",
-			summary: {
-				totalComponents: state.stats.totalComponents,
-				totalPages: state.stats.totalPages,
-				readyComponents: readyComponents.length,
-				topReadyComponents: readyComponents.slice(0, 5).map((c) => c.name),
-			},
-		}
-	},
-})
-
 // ============================================================================
 // Tool: migrationProgress
 // ============================================================================
@@ -473,7 +104,7 @@ Returns:
 - Current task being worked on (if any)
 - Next items that will be ready
 
-Use this to check overall progress without loading the full state.`
+Use this to check overall progress.`
 
 export const migrationProgress = tool({
 	description: progressDescription,
@@ -553,13 +184,10 @@ export const migrationProgress = tool({
 			yield {
 				status: "error",
 				message: "No migration found",
-				error: "No migration state found. Call migrationInit first.",
+				error: "No migration state found. Use figmaFetch first.",
 			}
 			return
 		}
-
-		// Ensure Figma data is loaded (from disk if needed)
-		await ensureFigmaData()
 
 		const components = Object.values(state.components)
 		const pages = Object.values(state.pages)
@@ -619,9 +247,7 @@ Returns items that:
 - For components: Have all dependencies completed
 - For pages: Have all required components completed
 
-Items are sorted by priority (instance count for components).
-
-Use this to decide what to work on next.`
+Items are sorted by priority (instance count for components).`
 
 export const migrationNext = tool({
 	description: nextDescription,
@@ -699,7 +325,7 @@ export const migrationNext = tool({
 			yield {
 				status: "error",
 				message: "No migration found",
-				error: "No migration state found. Call migrationInit first.",
+				error: "No migration state found. Use figmaFetch first.",
 			}
 			return
 		}
@@ -756,13 +382,7 @@ export const migrationNext = tool({
 
 const startDescription = `Start working on a migration item.
 
-This tool:
-1. Marks the item as in_progress
-2. Returns the full Figma definition needed to implement it
-3. Suggests an output path
-
-Only one item should be in_progress at a time.
-
+Returns the full Figma definition needed to implement the component or page.
 After implementing, call migrationComplete to mark it done.`
 
 export const migrationStart = tool({
@@ -798,24 +418,9 @@ export const migrationStart = tool({
 		if (output.status === "pending") {
 			return { type: "text", value: output.message }
 		}
-
-		// Format the Figma definition for the model to use
-		const definitionStr = output.definition
-			? formatFigmaDefinition(output.definition)
-			: "No definition available (external component?)"
-
 		return {
 			type: "text",
-			value: `Started working on ${output.type}: ${output.name}
-
-Suggested path: ${output.suggestedPath}
-${output.dependencies?.length ? `Dependencies: ${output.dependencies.join(", ")}` : ""}
-
-## Figma Definition
-
-${definitionStr}
-
-Use this definition to implement the ${output.type}. When done, call migrationComplete.`,
+			value: JSON.stringify(output.definition, null, 2),
 		}
 	},
 	async *execute({ id }) {
@@ -830,19 +435,7 @@ Use this definition to implement the ${output.type}. When done, call migrationCo
 			yield {
 				status: "error",
 				message: "No migration found",
-				error: "No migration state found. Call migrationInit first.",
-			}
-			return
-		}
-
-		// Try to get Figma data from memory or disk
-		const data = await ensureFigmaData()
-		if (!data) {
-			yield {
-				status: "error",
-				message: "No Figma data",
-				error:
-					"Figma data not available. Call figmaFetch to reload the Figma file.",
+				error: "No migration state found. Use figmaFetch first.",
 			}
 			return
 		}
@@ -870,7 +463,7 @@ Use this definition to implement the ${output.type}. When done, call migrationCo
 			component.status = "in_progress"
 			await writeMigrationState(state)
 
-			const compData = getComponent(data, id)
+			const compData = state.figmaData.components[id]
 			const safeName = component.name.replace(/[^a-zA-Z0-9]/g, "")
 
 			yield {
@@ -909,7 +502,7 @@ Use this definition to implement the ${output.type}. When done, call migrationCo
 			page.status = "in_progress"
 			await writeMigrationState(state)
 
-			const frame = data.frames[id]
+			const frame = state.figmaData.frames[id]
 			const safeName = page.frameName
 				.toLowerCase()
 				.replace(/[^a-z0-9]+/g, "-")
@@ -921,7 +514,7 @@ Use this definition to implement the ${output.type}. When done, call migrationCo
 				type: "page",
 				id,
 				name: page.frameName,
-				definition: frame || null,
+				definition: frame?.definition || null,
 				suggestedPath: `src/app/${safeName}/page.tsx`,
 			}
 			return
@@ -941,13 +534,8 @@ Use this definition to implement the ${output.type}. When done, call migrationCo
 
 const completeDescription = `Mark a migration item as complete.
 
-This tool:
-1. Marks the item as done
-2. Records the output path
-3. Updates dependency status for other items
-4. Returns newly unlocked items
-
-Call this after successfully implementing a component or page.`
+Records the output path and updates dependency status for other items.
+Returns newly unlocked items.`
 
 export const migrationComplete = tool({
 	description: completeDescription,
@@ -1079,12 +667,7 @@ export const migrationComplete = tool({
 // Tool: migrationSkip
 // ============================================================================
 
-const skipDescription = `Skip a migration item.
-
-Use this for:
-- External components (from a library)
-- Components that already exist
-- Items that don't need migration
+const skipDescription = `Skip a migration item (for external/existing components).
 
 Skipped items are treated as "done" for dependency purposes.`
 

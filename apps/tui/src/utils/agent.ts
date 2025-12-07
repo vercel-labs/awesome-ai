@@ -1,4 +1,4 @@
-import type { Agent, ModelMessage } from "ai"
+import { type Agent, convertToModelMessages, type ModelMessage } from "ai"
 import {
 	addMessage,
 	availableAgentsAtom,
@@ -29,15 +29,65 @@ let conversationMessages: ModelMessage[] = []
 let currentAbortController: AbortController | null = null
 let currentStreamingMessageAtom: MessageAtom | null = null
 let agentLoadPromise: Promise<boolean> | null = null
+// Track approval responses to batch them before continuing
+let pendingApprovalResponses: Array<{
+	approvalId: string
+	approved: boolean
+	reason?: string
+}> = []
 
 export function resetConversation() {
 	conversationMessages = []
+	pendingApprovalResponses = []
 	// Note: We intentionally don't reset currentAgentInstance here
 	// The agent can be reused across conversations
 }
 
 function getMessages(): TUIMessage[] {
 	return messagesAtom.get().map((atom) => atom.get())
+}
+
+/**
+ * Rebuild conversationMessages from UI messages when loading a chat from storage
+ * or switching between chats.
+ *
+ * If a previous session was interrupted (app crashed, closed mid-stream), the
+ * saved messages might have incomplete tool calls. These are filtered out since
+ * they can't be continued and would cause API errors.
+ */
+export function syncConversationMessages() {
+	const uiMessages = getMessages()
+	// Filter out system messages (used for TUI notifications, not model context)
+	// and filter out incomplete tool calls from assistant messages
+	const completedToolStates = new Set([
+		"output-available",
+		"output-error",
+		"output-denied",
+	])
+
+	const modelableMessages = uiMessages
+		.filter((m) => m.role !== "system")
+		.map((m) => {
+			if (m.role !== "assistant") return m
+			// Filter out tool parts that haven't completed
+			const filteredParts = m.parts.filter((part) => {
+				// Keep non-tool parts
+				if (!part.type.startsWith("tool-") && part.type !== "dynamic-tool") {
+					return true
+				}
+				// Only keep tool parts with completed states
+				const toolPart = part as { state?: string }
+				return toolPart.state && completedToolStates.has(toolPart.state)
+			})
+			return { ...m, parts: filteredParts }
+		})
+
+	conversationMessages = convertToModelMessages(modelableMessages, {
+		tools: currentAgentInstance?.tools,
+	})
+	debugLog(
+		`Synced conversationMessages: ${conversationMessages.length} messages`,
+	)
 }
 
 async function saveCurrentChat() {
@@ -383,14 +433,27 @@ export async function loadAgent(agentName: string): Promise<boolean> {
 					cwd: cwdAtom.get(),
 				})
 				currentAgentInstance = agent
-				conversationMessages = [] // Reset conversation for new agent
+				// Sync from existing UI messages if available (e.g., loaded from storage)
+				// Otherwise start with empty conversation
+				const existingMessages = getMessages()
+				if (existingMessages.length > 0) {
+					syncConversationMessages()
+				} else {
+					conversationMessages = []
+				}
 				return true
 			}
 
 			// Some agents might export the agent directly
 			if (agentModule.default && agentModule.default.version === "agent-v1") {
 				currentAgentInstance = agentModule.default
-				conversationMessages = []
+				// Sync from existing UI messages if available
+				const existingMessages = getMessages()
+				if (existingMessages.length > 0) {
+					syncConversationMessages()
+				} else {
+					conversationMessages = []
+				}
 				return true
 			}
 
@@ -473,7 +536,8 @@ currentAgentAtom.sub((agentName) => {
 
 /**
  * Handle a tool approval response.
- * Updates the message part to approval-responded and continues the agent stream.
+ * Updates the message part to approval-responded.
+ * Only continues the agent stream after ALL pending approvals are resolved.
  */
 export async function handleToolApproval(approved: boolean): Promise<boolean> {
 	const pendingApproval = pendingApprovalsAtom.get()[0]
@@ -512,12 +576,46 @@ export async function handleToolApproval(approved: boolean): Promise<boolean> {
 		`Tool ${toolName} ${approved ? "approved" : "denied"} (${toolCallId})`,
 	)
 
+	pendingApprovalResponses.push({
+		approvalId,
+		approved,
+		reason: approved ? undefined : "Denied by user",
+	})
+
 	// Save after tool approval state change
 	await saveCurrentChat()
 
-	if (approved && currentAgentInstance) {
+	const remainingApprovals = pendingApprovalsAtom.get()
+	if (remainingApprovals.length > 0) {
+		debugLog(
+			`${remainingApprovals.length} more approval(s) pending, waiting...`,
+		)
+		return true
+	}
+
+	// All approvals resolved - now continue the stream
+	// Check if at least one tool was approved
+	const hasApproved = pendingApprovalResponses.some((r) => r.approved)
+
+	if (hasApproved && currentAgentInstance) {
 		isLoadingAtom.set(true)
 		try {
+			// Add all approval responses to conversationMessages
+			for (const response of pendingApprovalResponses) {
+				conversationMessages.push({
+					role: "tool",
+					content: [
+						{
+							type: "tool-approval-response",
+							approvalId: response.approvalId,
+							approved: response.approved,
+							reason: response.reason,
+						},
+					],
+				})
+			}
+			pendingApprovalResponses = []
+
 			await streamAgentResponse(messageAtom)
 		} catch (error) {
 			// Ignore abort errors (user stopped generation)
@@ -533,6 +631,10 @@ export async function handleToolApproval(approved: boolean): Promise<boolean> {
 		} finally {
 			isLoadingAtom.set(false)
 		}
+	} else {
+		// All tools were denied, clear responses and don't continue
+		pendingApprovalResponses = []
+		debugLog("All tools were denied, not continuing stream")
 	}
 
 	return true

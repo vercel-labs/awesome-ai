@@ -195,7 +195,10 @@ export async function resolveRegistryTree(
 			payload.map((item) => item.devDependencies ?? []),
 		),
 		files: deduplicateFilesByTarget(payload.map((item) => item.files ?? [])),
-		docs: payload.map((item) => item.docs || "").join("\n"),
+		docs: payload
+			.map((item) => item.docs)
+			.filter(Boolean)
+			.join("\n"),
 	})
 
 	return parsed

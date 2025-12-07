@@ -2,7 +2,7 @@ import { useAtom } from "@lfades/atom"
 import type { KeyEvent, ScrollBoxRenderable } from "@opentui/core"
 import { useEffect, useRef } from "react"
 import { colors } from "../theme"
-import { resetConversation, startNewChat } from "../utils/agent"
+import { startNewChat, syncConversationMessages } from "../utils/agent"
 import { saveWorkspaceSettings } from "../utils/settings"
 import { deleteChat, listChats, loadChat } from "../utils/storage"
 import {
@@ -133,7 +133,9 @@ export async function selectChat(chatId: string) {
 	if (chat) {
 		currentChatIdAtom.set(chat.id)
 		setMessages(chat.messages)
-		resetConversation()
+		// Sync conversation messages from loaded UI messages instead of resetting
+		// This ensures tool calls and results are properly reconstructed
+		syncConversationMessages()
 		saveWorkspaceSettings({ lastChatId: chat.id })
 	}
 }

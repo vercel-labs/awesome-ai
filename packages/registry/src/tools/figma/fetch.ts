@@ -2,22 +2,19 @@ import { promises as fs } from "node:fs"
 import * as path from "node:path"
 import { tool } from "ai"
 import { z } from "zod"
-import { extractFigmaStructure, listComponents, listFrames } from "./lib/parser"
-import type { ExtractedData, FigmaFile } from "./lib/types"
+import { extractFigmaStructure } from "./lib/parser"
+import type {
+	ComponentState,
+	ExtractedData,
+	FigmaFile,
+	MigrationState,
+	PageState,
+} from "./lib/types"
 
 const FIGMA_API_BASE = "https://api.figma.com/v1"
-const FIGMA_CACHE_FILE = ".figma-cache.json"
+const MIGRATION_FILE = ".figma-migration.json"
 
-let cachedFigmaData: ExtractedData | null = null
 let currentProjectDir: string | null = null
-
-export function getCachedFigmaData(): ExtractedData | null {
-	return cachedFigmaData
-}
-
-export function setCachedFigmaData(data: ExtractedData | null): void {
-	cachedFigmaData = data
-}
 
 export function setProjectDir(dir: string): void {
 	currentProjectDir = dir
@@ -25,48 +22,6 @@ export function setProjectDir(dir: string): void {
 
 export function getProjectDir(): string {
 	return currentProjectDir || process.cwd()
-}
-
-/**
- * Load Figma data from the cache file on disk
- */
-export async function loadFigmaDataFromDisk(
-	projectDir?: string,
-): Promise<ExtractedData | null> {
-	const dir = projectDir || getProjectDir()
-	try {
-		const filepath = path.join(dir, FIGMA_CACHE_FILE)
-		const content = await fs.readFile(filepath, "utf-8")
-		const data = JSON.parse(content) as ExtractedData
-		cachedFigmaData = data
-		return data
-	} catch {
-		return null
-	}
-}
-
-/**
- * Save Figma data to the cache file on disk
- */
-async function saveFigmaDataToDisk(
-	data: ExtractedData,
-	projectDir?: string,
-): Promise<void> {
-	const dir = projectDir || getProjectDir()
-	const filepath = path.join(dir, FIGMA_CACHE_FILE)
-	await fs.writeFile(filepath, JSON.stringify(data, null, 2))
-}
-
-/**
- * Ensure Figma data is loaded - either from memory cache or disk
- */
-export async function ensureFigmaData(
-	projectDir?: string,
-): Promise<ExtractedData | null> {
-	if (cachedFigmaData) {
-		return cachedFigmaData
-	}
-	return loadFigmaDataFromDisk(projectDir)
 }
 
 function parseFileKeyFromUrl(urlOrKey: string): string {
@@ -109,19 +64,121 @@ async function fetchFigmaFile(
 	return response.json() as Promise<FigmaFile>
 }
 
-const description = `Fetch a Figma file and extract its structure for migration.
+function buildComponentDependencies(
+	data: ExtractedData,
+): Map<string, Set<string>> {
+	const deps = new Map<string, Set<string>>()
+
+	for (const [compId, compData] of Object.entries(data.components)) {
+		const compDeps = new Set<string>()
+		if (compData.definition?.children) {
+			findInstanceDependencies(compData.definition.children, compDeps, compId)
+		}
+		deps.set(compId, compDeps)
+	}
+
+	return deps
+}
+
+function findInstanceDependencies(
+	nodes: ExtractedData["components"][string]["definition"][],
+	deps: Set<string>,
+	selfId: string,
+): void {
+	for (const node of nodes) {
+		if (!node) continue
+		if (
+			node.type === "INSTANCE" &&
+			node.componentId &&
+			node.componentId !== selfId
+		) {
+			deps.add(node.componentId)
+		}
+		if (node.children) {
+			findInstanceDependencies(node.children, deps, selfId)
+		}
+	}
+}
+
+function createMigrationState(
+	data: ExtractedData,
+	fileKey: string,
+	fileUrl: string,
+): MigrationState {
+	const componentDeps = buildComponentDependencies(data)
+
+	const components: Record<string, ComponentState> = {}
+	for (const [compId, compData] of Object.entries(data.components)) {
+		const deps = Array.from(componentDeps.get(compId) || [])
+		components[compId] = {
+			figmaId: compId,
+			name: compData.name,
+			status: "pending",
+			dependencies: deps,
+			dependenciesReady: deps.length === 0,
+			instanceCount: compData.instanceCount,
+		}
+	}
+
+	const pages: Record<string, PageState> = {}
+	for (const [frameId, frameData] of Object.entries(data.frames)) {
+		pages[frameId] = {
+			figmaId: frameId,
+			frameName: frameData.name,
+			status: "blocked",
+			componentsUsed: frameData.componentsUsed,
+			componentsReady: false,
+		}
+	}
+
+	// Update dependency readiness
+	const doneOrSkipped = new Set<string>()
+	for (const comp of Object.values(components)) {
+		comp.dependenciesReady =
+			comp.dependencies.length === 0 ||
+			comp.dependencies.every((dep) => doneOrSkipped.has(dep))
+	}
+	for (const page of Object.values(pages)) {
+		page.componentsReady = page.componentsUsed.every((compId) =>
+			doneOrSkipped.has(compId),
+		)
+		if (page.status === "blocked" && page.componentsReady) {
+			page.status = "pending"
+		}
+	}
+
+	return {
+		figmaFileKey: fileKey,
+		figmaFileUrl: fileUrl,
+		createdAt: new Date().toISOString(),
+		updatedAt: new Date().toISOString(),
+		stats: {
+			totalComponents: Object.keys(components).length,
+			completedComponents: 0,
+			skippedComponents: 0,
+			totalPages: Object.keys(pages).length,
+			completedPages: 0,
+			phase: "components",
+		},
+		components,
+		pages,
+		figmaData: data,
+	}
+}
+
+const description = `Fetch a Figma file and initialize the migration.
 
 This tool:
-1. Fetches the Figma file from the REST API using FIGMA_TOKEN
-2. Extracts all pages, sections, frames, and components
-3. Caches the data for subsequent tool calls
-4. Returns a summary of what was found
+1. Fetches the Figma file from the Figma REST API
+2. Extracts and processes all components and frames
+3. Creates the migration state file (.figma-migration.json)
+4. Returns the components ready to be migrated
 
 Input can be either:
 - A Figma file key (e.g., "abc123XYZ")
 - A full Figma URL (e.g., "https://www.figma.com/file/abc123XYZ/My-Design")
 
-After fetching, use the migration tools to process components and pages.`
+After this, use migrationStart to begin working on components.`
 
 export function createFigmaFetchTool(figmaToken?: string) {
 	return tool({
@@ -144,19 +201,15 @@ export function createFigmaFetchTool(figmaToken?: string) {
 				status: z.literal("success"),
 				message: z.string(),
 				fileKey: z.string(),
-				summary: z.object({
-					totalPages: z.number(),
-					totalSections: z.number(),
-					totalFrames: z.number(),
-					totalComponents: z.number(),
-					componentsWithDefinition: z.number(),
-					topComponents: z.array(
-						z.object({
-							name: z.string(),
-							instanceCount: z.number(),
-						}),
-					),
-				}),
+				totalComponents: z.number(),
+				totalPages: z.number(),
+				readyComponents: z.array(
+					z.object({
+						id: z.string(),
+						name: z.string(),
+						instanceCount: z.number(),
+					}),
+				),
 			}),
 			z.object({
 				status: z.literal("error"),
@@ -168,31 +221,29 @@ export function createFigmaFetchTool(figmaToken?: string) {
 			if (output.status === "error") {
 				return {
 					type: "error-text",
-					value: `Figma fetch failed: ${output.error}`,
+					value: output.error,
 				}
 			}
-			if (output.status === "success") {
-				const { summary } = output
-				const topList = summary.topComponents
-					.map((c) => `  - ${c.name} (${c.instanceCount}x)`)
-					.join("\n")
-				return {
-					type: "text",
-					value: `Fetched Figma file: ${output.fileKey}
-
-Summary:
-- Pages: ${summary.totalPages}
-- Sections: ${summary.totalSections}
-- Frames: ${summary.totalFrames}
-- Components: ${summary.totalComponents} (${summary.componentsWithDefinition} with definitions)
-
-Top components by usage:
-${topList}
-
-Use migrationInit to start the migration process.`,
-				}
+			if (output.status === "pending") {
+				return { type: "text", value: output.message }
 			}
-			return { type: "text", value: output.message }
+
+			const readyList = output.readyComponents
+				.slice(0, 10)
+				.map((c) => `  - ${c.name} (id: ${c.id}, ${c.instanceCount}x)`)
+				.join("\n")
+
+			return {
+				type: "text",
+				value: `Migration initialized for ${output.fileKey}
+
+${output.totalComponents} components, ${output.totalPages} pages
+
+Ready to start (${output.readyComponents.length} components with no dependencies):
+${readyList}${output.readyComponents.length > 10 ? `\n  ... and ${output.readyComponents.length - 10} more` : ""}
+
+Use migrationStart with a component id to begin.`,
+			}
 		},
 		async *execute({ fileKeyOrUrl, skipInvisible }) {
 			const token = figmaToken || process.env.FIGMA_TOKEN
@@ -218,38 +269,33 @@ Use migrationInit to start the migration process.`,
 				const fileData = await fetchFigmaFile(fileKey, token)
 				const extracted = extractFigmaStructure(fileData, { skipInvisible })
 
-				// Cache in memory
-				cachedFigmaData = extracted
+				// Create migration state and save to disk
+				const state = createMigrationState(extracted, fileKey, fileKeyOrUrl)
+				const filepath = path.join(getProjectDir(), MIGRATION_FILE)
+				await fs.writeFile(filepath, JSON.stringify(state, null, 2))
 
-				// Persist to disk for future sessions
-				await saveFigmaDataToDisk(extracted)
-
-				const components = listComponents(extracted)
-				const frames = listFrames(extracted)
-				const componentsWithDef = components.filter(
-					(c) => extracted.components[c.id]?.definition !== null,
-				).length
+				// Find ready components (no dependencies)
+				const readyComponents = Object.values(state.components)
+					.filter((c) => c.status === "pending" && c.dependenciesReady)
+					.sort((a, b) => b.instanceCount - a.instanceCount)
+					.map((c) => ({
+						id: c.figmaId,
+						name: c.name,
+						instanceCount: c.instanceCount,
+					}))
 
 				yield {
 					status: "success",
-					message: `Successfully fetched and parsed Figma file`,
+					message: "Migration initialized",
 					fileKey,
-					summary: {
-						totalPages: extracted.pages.length,
-						totalSections: Object.keys(extracted.sections).length,
-						totalFrames: frames.length,
-						totalComponents: components.length,
-						componentsWithDefinition: componentsWithDef,
-						topComponents: components.slice(0, 10).map((c) => ({
-							name: c.name,
-							instanceCount: c.instanceCount,
-						})),
-					},
+					totalComponents: state.stats.totalComponents,
+					totalPages: state.stats.totalPages,
+					readyComponents,
 				}
 			} catch (error) {
 				yield {
 					status: "error",
-					message: `Failed to fetch Figma file`,
+					message: "Failed to fetch Figma file",
 					error: error instanceof Error ? error.message : String(error),
 				}
 			}

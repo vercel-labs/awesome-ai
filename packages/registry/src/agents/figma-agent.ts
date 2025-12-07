@@ -9,7 +9,6 @@ import { createEditTool } from "@/tools/edit"
 import { createFigmaFetchTool, setProjectDir } from "@/tools/figma/fetch"
 import {
 	migrationComplete,
-	migrationInit,
 	migrationNext,
 	migrationProgress,
 	migrationSkip,
@@ -45,7 +44,6 @@ export async function createAgent({
 	const tools = {
 		// Figma tools
 		figmaFetch: createFigmaFetchTool(figmaToken),
-		migrationInit,
 		migrationProgress,
 		migrationNext,
 		migrationStart,

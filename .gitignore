@@ -5,3 +5,4 @@ dist
 .next
 .agent
 .cursor
+apps/agent/

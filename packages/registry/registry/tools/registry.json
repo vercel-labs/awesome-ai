@@ -48,7 +48,7 @@
 			"name": "figma/fetch",
 			"type": "registry:tool",
 			"title": "Fetch",
-			"description": "Fetch a Figma file and extract its structure for migration.",
+			"description": "Fetch a Figma file and initialize the migration.",
 			"dependencies": ["ai@beta", "zod"]
 		},
 		{

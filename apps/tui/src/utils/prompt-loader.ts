@@ -1,6 +1,7 @@
 import { readdir, stat } from "node:fs/promises"
 import path from "node:path"
-import { debugLog } from "../components/atoms"
+import { useCallback } from "react"
+import { useAppActions } from "../components/atoms"
 
 interface DiscoveredPrompt {
 	name: string
@@ -52,6 +53,7 @@ async function discoverPrompts(
 export async function loadPromptContent(
 	promptsPath: string,
 	promptName: string,
+	debugLog: (...args: unknown[]) => void,
 ): Promise<string | null> {
 	const prompts = await discoverPrompts(promptsPath)
 	const promptInfo = prompts.find((p) => p.name === promptName)
@@ -83,4 +85,13 @@ export async function loadPromptContent(
 		debugLog(`Failed to load prompt ${promptName}:`, error)
 		return null
 	}
+}
+
+export function usePromptLoader() {
+	const { debugLog } = useAppActions()
+	return useCallback(
+		(promptsPath: string, promptName: string) =>
+			loadPromptContent(promptsPath, promptName, debugLog),
+		[debugLog],
+	)
 }

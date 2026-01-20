@@ -1,7 +1,6 @@
-import { useAtom } from "@lfades/atom"
 import { useTerminalDimensions } from "@opentui/react"
 import { colors } from "../../theme"
-import { type AlertMessage, alertsAtom } from "../atoms"
+import { type AlertMessage, useAlerts } from "../atoms"
 
 const ALERT_WIDTH = 36
 
@@ -31,7 +30,7 @@ function AlertItem({ alert }: { alert: AlertMessage }) {
 }
 
 export function AlertContainer() {
-	const [alerts] = useAtom(alertsAtom)
+	const [alerts] = useAlerts()
 	const { width: termWidth, height: termHeight } = useTerminalDimensions()
 
 	if (alerts.length === 0) return null

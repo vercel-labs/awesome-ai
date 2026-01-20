@@ -1,31 +1,16 @@
-import { useAtom } from "@lfades/atom"
-import { useState } from "react"
+import { useCallback, useState } from "react"
 import { COMMANDS } from "../commands"
 import { colors } from "../theme"
 import { createSystemMessage, type TUIMessage } from "../types"
-import {
-	resetConversation,
-	sendMessage,
-	startNewChat,
-	stopGeneration,
-} from "../utils/agent"
+import { useAgentActions } from "../utils/agent"
 import { copyToClipboard } from "../utils/clipboard"
 import {
-	addMessage,
-	clearMessages,
-	commandFilterAtom,
-	currentAgentAtom,
-	inputAtom,
-	isLoadingAtom,
-	messagesAtom,
-	scrollToBottom,
-	selectedCommandAtom,
-	selectedModelAtom,
-	showAgentSelectorAtom,
-	showAlert,
-	showChatPickerAtom,
-	showCommandsAtom,
-	showModelSelectorAtom,
+	useAppActions,
+	useAppAtoms,
+	useCommandFilter,
+	useIsLoading,
+	useSelectedCommand,
+	useShowCommands,
 } from "./atoms"
 
 const chatKeyBindings = [
@@ -36,93 +21,108 @@ const chatKeyBindings = [
 // Max lines before scrolling within textarea
 const MAX_INPUT_LINES = 10
 
-function executeCommand(commandName: string) {
-	const addSystemMsg = (content: string) => {
-		addMessage(createSystemMessage(content))
-	}
+function useCommandExecutor() {
+	const actions = useAppActions()
+	const atoms = useAppAtoms()
+	const agent = useAgentActions()
 
-	const currentAgent = currentAgentAtom.get()
-
-	switch (commandName) {
-		case "/new":
-			startNewChat()
-			showAlert("New chat started")
-			break
-		case "/history":
-			showChatPickerAtom.set(true)
-			break
-		case "/agent":
-			showAgentSelectorAtom.set(true)
-			break
-		case "/model":
-			showModelSelectorAtom.set(true)
-			break
-		case "/help":
-			addSystemMsg(
-				`Available commands:\n${COMMANDS.map((c) => `  ${c.name} - ${c.description}`).join("\n")}`,
-			)
-			break
-		case "/clear":
-			clearMessages()
-			addMessage(createSystemMessage("Terminal cleared."))
-			resetConversation()
-			break
-		case "/summarize":
-			addSystemMsg("Summarizing conversation... (not implemented)")
-			break
-		case "/export": {
-			const messages = messagesAtom.get().reduce<TUIMessage[]>((acc, atom) => {
-				const msg = atom.get()
-				if (msg.role !== "system") acc.push(msg)
-				return acc
-			}, [])
-
-			if (messages.length === 0) {
-				addSystemMsg("No messages to export.")
-				break
+	return useCallback(
+		(commandName: string) => {
+			const addSystemMsg = (content: string) => {
+				actions.addMessage(createSystemMessage(content))
 			}
 
-			const json = JSON.stringify(messages, null, 2)
+			const currentAgent = atoms.currentAgentAtom.get()
 
-			copyToClipboard(json).then((success) => {
-				if (success) {
-					showAlert("Chat saved to clipboard")
-				} else {
-					showAlert("Failed to export", "error")
+			switch (commandName) {
+				case "/new":
+					agent.startNewChat()
+					actions.showAlert("New chat started")
+					break
+				case "/history":
+					atoms.showChatPickerAtom.set(true)
+					break
+				case "/agent":
+					atoms.showAgentSelectorAtom.set(true)
+					break
+				case "/model":
+					atoms.showModelSelectorAtom.set(true)
+					break
+				case "/help":
+					addSystemMsg(
+						`Available commands:\n${COMMANDS.map((c) => `  ${c.name} - ${c.description}`).join("\n")}`,
+					)
+					break
+				case "/clear":
+					actions.clearMessages()
+					actions.addMessage(createSystemMessage("Terminal cleared."))
+					agent.resetConversation()
+					break
+				case "/summarize":
+					addSystemMsg("Summarizing conversation... (not implemented)")
+					break
+				case "/export": {
+					const messages = atoms.messagesAtom
+						.get()
+						.reduce<TUIMessage[]>((acc, atom) => {
+							const msg = atom.get()
+							if (msg.role !== "system") acc.push(msg)
+							return acc
+						}, [])
+
+					if (messages.length === 0) {
+						addSystemMsg("No messages to export.")
+						break
+					}
+
+					const json = JSON.stringify(messages, null, 2)
+
+					copyToClipboard(json).then((success) => {
+						if (success) {
+							actions.showAlert("Chat saved to clipboard")
+						} else {
+							actions.showAlert("Failed to export", "error")
+						}
+					})
+					break
 				}
-			})
-			break
-		}
-		case "/time":
-			addSystemMsg(`Current time: ${new Date().toLocaleString()}`)
-			break
-		case "/version": {
-			const model = selectedModelAtom.get()
-			addSystemMsg(
-				`Agent: ${currentAgent || "none"}\nModel: ${model}\nVersion: 1.0.0`,
-			)
-			break
-		}
-		default:
-			addSystemMsg(`Unknown command: ${commandName}`)
-	}
+				case "/time":
+					addSystemMsg(`Current time: ${new Date().toLocaleString()}`)
+					break
+				case "/version": {
+					const model = atoms.selectedModelAtom.get()
+					addSystemMsg(
+						`Agent: ${currentAgent || "none"}\nModel: ${model}\nVersion: 1.0.0`,
+					)
+					break
+				}
+				default:
+					addSystemMsg(`Unknown command: ${commandName}`)
+			}
+		},
+		[actions, agent, atoms],
+	)
 }
 
 export function InputArea() {
-	const [showCommands, setShowCommands] = useAtom(showCommandsAtom)
-	const [commandFilter, setCommandFilter] = useAtom(commandFilterAtom)
-	const [selectedCommand, setSelectedCommand] = useAtom(selectedCommandAtom)
-	const [isLoading] = useAtom(isLoadingAtom)
+	const [showCommands, setShowCommands] = useShowCommands()
+	const [commandFilter, setCommandFilter] = useCommandFilter()
+	const [selectedCommand, setSelectedCommand] = useSelectedCommand()
+	const [isLoading] = useIsLoading()
+	const actions = useAppActions()
+	const atoms = useAppAtoms()
+	const agent = useAgentActions()
+	const executeCommand = useCommandExecutor()
 	const [lineCount, setLineCount] = useState(1)
 	const filteredCommands = COMMANDS.filter((cmd) =>
 		cmd.name.toLowerCase().includes(commandFilter.toLowerCase()),
 	)
 	const handleSubmit = async () => {
-		const input = inputAtom.get()
+		const input = atoms.inputAtom.get()
 		if (!input) return
 
 		const value = input.plainText
-		if (!value.trim() || isLoadingAtom.get()) return
+		if (!value.trim() || isLoading) return
 
 		input.setText("")
 		setLineCount(1)
@@ -131,7 +131,7 @@ export function InputArea() {
 		setSelectedCommand(0)
 
 		// Reset scroll to bottom when sending a new message
-		scrollToBottom()
+		actions.scrollToBottom()
 
 		if (value.startsWith("/")) {
 			const commandName = value.split(" ")[0]!
@@ -139,7 +139,7 @@ export function InputArea() {
 			return
 		}
 
-		await sendMessage(value)
+		await agent.sendMessage(value)
 	}
 
 	const handleInputChange = (value: string) => {
@@ -155,7 +155,7 @@ export function InputArea() {
 			setSelectedCommand(0)
 		}
 
-		const input = inputAtom.get()
+		const input = atoms.inputAtom.get()
 		if (!input) return
 
 		setLineCount(Math.min(Math.max(1, input.lineCount), MAX_INPUT_LINES))
@@ -163,7 +163,7 @@ export function InputArea() {
 
 	const selectCommand = (index: number) => {
 		const command = filteredCommands[index]
-		const input = inputAtom.get()
+		const input = atoms.inputAtom.get()
 		if (command && input) {
 			input.setText(`${command.name} `)
 			input.gotoBufferEnd()
@@ -188,7 +188,7 @@ export function InputArea() {
 	const closeCommands = () => {
 		setShowCommands(false)
 		setCommandFilter("")
-		inputAtom.get()?.setText("")
+		atoms.inputAtom.get()?.setText("")
 	}
 
 	// Height = lines + 2 for border
@@ -197,7 +197,7 @@ export function InputArea() {
 	return (
 		<box
 			onMouseDown={() => {
-				inputAtom.get()?.focus()
+				atoms.inputAtom.get()?.focus()
 			}}
 			style={{
 				height: boxHeight,
@@ -215,7 +215,7 @@ export function InputArea() {
 					style={{ width: 2, height: 1 }}
 					onMouseDown={(e) => {
 						e.stopPropagation()
-						stopGeneration()
+						agent.stopGeneration()
 					}}
 				>
 					■
@@ -226,14 +226,14 @@ export function InputArea() {
 				</text>
 			)}
 			<textarea
-				ref={(ref) => inputAtom.set(ref)}
+				ref={(ref) => atoms.inputAtom.set(ref)}
 				placeholder={isLoading ? "⌥ X to stop" : "Enter prompt, / for commands"}
 				focused
 				wrapMode="word"
 				keyBindings={chatKeyBindings}
 				onSubmit={handleSubmit}
 				onMouseScroll={(event) => {
-					const input = inputAtom.get()
+					const input = atoms.inputAtom.get()
 					if (!input || !event.scroll) return
 
 					// Move cursor to scroll the view (works regardless of line count)
@@ -248,7 +248,7 @@ export function InputArea() {
 				}}
 				onContentChange={() => {
 					// Recalculate size when content changes (typing, paste, etc.)
-					const input = inputAtom.get()
+					const input = atoms.inputAtom.get()
 					if (input) {
 						handleInputChange(input.plainText)
 					}
@@ -280,7 +280,7 @@ export function InputArea() {
 					// Delete word with option/alt + backspace
 					if (key.name === "backspace" && (key.option || key.meta)) {
 						key.preventDefault()
-						const input = inputAtom.get()
+						const input = atoms.inputAtom.get()
 						if (input) {
 							input.deleteWordBackward()
 						}

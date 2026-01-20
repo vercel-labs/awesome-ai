@@ -1,11 +1,7 @@
 import { useAtom } from "@lfades/atom"
 import { colors } from "../theme"
 import { formatTimestamp, getMessageText } from "../types"
-import {
-	type MessageAtom,
-	messageListScrollboxAtom,
-	messagesAtom,
-} from "./atoms"
+import { type MessageAtom, useAppAtoms, useMessages } from "./atoms"
 import { Markdown } from "./markdown"
 import { ThinkingSection } from "./thinking-section"
 import { type ToolData, ToolPart } from "./tool-part"
@@ -108,7 +104,8 @@ function Message({ messageAtom }: { messageAtom: MessageAtom }) {
 }
 
 export function MessageList() {
-	const [messageAtoms] = useAtom(messagesAtom)
+	const [messageAtoms] = useMessages()
+	const { messageListScrollboxAtom } = useAppAtoms()
 
 	return (
 		<scrollbox

@@ -1,4 +1,5 @@
-import { debugLog } from "../components/atoms"
+import { useCallback } from "react"
+import { useAppActions } from "../components/atoms"
 
 export interface AvailableModel {
 	id: string
@@ -99,82 +100,85 @@ export function isUsingFallbackModels(): boolean {
  * Results are cached to avoid repeated API calls.
  * Falls back to a curated list if gateway is unavailable.
  */
-export async function fetchAvailableModels(): Promise<AvailableModel[]> {
-	if (cachedModels) return cachedModels
+export function useFetchAvailableModels() {
+	const { debugLog } = useAppActions()
+	return useCallback(async () => {
+		if (cachedModels) return cachedModels
 
-	// Dedupe concurrent requests
-	if (fetchPromise) return fetchPromise
+		// Dedupe concurrent requests
+		if (fetchPromise) return fetchPromise
 
-	fetchPromise = (async () => {
-		// Log API key presence for debugging
-		const apiKey = process.env.AI_GATEWAY_API_KEY
+		fetchPromise = (async () => {
+			// Log API key presence for debugging
+			const apiKey = process.env.AI_GATEWAY_API_KEY
 
-		try {
-			// Direct fetch to bypass SDK parsing issues
-			const response = await fetch(
-				"https://ai-gateway.vercel.sh/v1/ai/config",
-				{
-					headers: {
-						Authorization: `Bearer ${apiKey}`,
-						"Content-Type": "application/json",
-						"ai-gateway-protocol-version": "0.0.1",
+			try {
+				// Direct fetch to bypass SDK parsing issues
+				const response = await fetch(
+					"https://ai-gateway.vercel.sh/v1/ai/config",
+					{
+						headers: {
+							Authorization: `Bearer ${apiKey}`,
+							"Content-Type": "application/json",
+							"ai-gateway-protocol-version": "0.0.1",
+						},
 					},
-				},
-			)
+				)
 
-			if (!response.ok) {
-				const errorText = await response.text()
-				debugLog("Gateway error response:", errorText.slice(0, 200))
-				throw new Error(`Gateway returned ${response.status}: ${errorText}`)
+				if (!response.ok) {
+					const errorText = await response.text()
+					debugLog("Gateway error response:", errorText.slice(0, 200))
+					throw new Error(`Gateway returned ${response.status}: ${errorText}`)
+				}
+
+				const data = (await response.json()) as GatewayModelResponse
+				debugLog("Gateway returned", data.models?.length ?? 0, "models")
+
+				const models: AvailableModel[] = data.models
+					.filter((m) => m.modelType === "language" || m.modelType === null)
+					.map((m) => ({
+						id: m.id,
+						name: m.name,
+						description: m.description,
+						provider: m.specification.provider,
+						pricing: m.pricing
+							? {
+									input: m.pricing.input,
+									output: m.pricing.output,
+									cachedInputTokens: m.pricing.input_cache_read ?? undefined,
+									cacheCreationInputTokens:
+										m.pricing.input_cache_write ?? undefined,
+								}
+							: null,
+					}))
+					.sort((a, b) => {
+						// Sort by provider first, then by name
+						const providerCompare = a.provider.localeCompare(b.provider)
+						if (providerCompare !== 0) return providerCompare
+						return a.name.localeCompare(b.name)
+					})
+
+				cachedModels = models
+				usedFallback = false
+				return models
+			} catch (error) {
+				// Log detailed error for debugging
+				debugLog("Failed to fetch models from gateway:")
+				debugLog("  Error type:", error?.constructor?.name)
+				debugLog(
+					"  Message:",
+					error instanceof Error ? error.message : String(error),
+				)
+
+				// Return fallback models
+				cachedModels = FALLBACK_MODELS
+				usedFallback = true
+				return FALLBACK_MODELS
+			} finally {
+				fetchPromise = null
 			}
+		})()
 
-			const data = (await response.json()) as GatewayModelResponse
-			debugLog("Gateway returned", data.models?.length ?? 0, "models")
-
-			const models: AvailableModel[] = data.models
-				.filter((m) => m.modelType === "language" || m.modelType === null)
-				.map((m) => ({
-					id: m.id,
-					name: m.name,
-					description: m.description,
-					provider: m.specification.provider,
-					pricing: m.pricing
-						? {
-								input: m.pricing.input,
-								output: m.pricing.output,
-								cachedInputTokens: m.pricing.input_cache_read ?? undefined,
-								cacheCreationInputTokens:
-									m.pricing.input_cache_write ?? undefined,
-							}
-						: null,
-				}))
-				.sort((a, b) => {
-					// Sort by provider first, then by name
-					const providerCompare = a.provider.localeCompare(b.provider)
-					if (providerCompare !== 0) return providerCompare
-					return a.name.localeCompare(b.name)
-				})
-
-			cachedModels = models
-			usedFallback = false
-			return models
-		} catch (error) {
-			// Log detailed error for debugging
-			debugLog("Failed to fetch models from gateway:")
-			debugLog("  Error type:", error?.constructor?.name)
-			debugLog(
-				"  Message:",
-				error instanceof Error ? error.message : String(error),
-			)
-
-			// Return fallback models
-			cachedModels = FALLBACK_MODELS
-			usedFallback = true
-			return FALLBACK_MODELS
-		} finally {
-			fetchPromise = null
-		}
-	})()
-
-	return fetchPromise
+		return fetchPromise
+	}, [debugLog])
 }

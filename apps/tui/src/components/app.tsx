@@ -1,46 +1,46 @@
-import { useAtom } from "@lfades/atom"
 import { useKeyboard, useRenderer } from "@opentui/react"
 import { colors } from "../theme"
-import {
-	handleToolApproval,
-	startNewChat,
-	stopGeneration,
-} from "../utils/agent"
+import { useAgentActions } from "../utils/agent"
 import { copyToClipboard } from "../utils/clipboard"
-import { AgentSelector, handleAgentSelectorKey } from "./agent-selector"
+import { AgentSelector, useAgentSelectorKeyHandler } from "./agent-selector"
 import {
-	currentAgentAtom,
-	execModeAtom,
-	exitTui,
-	scrollToBottom,
-	showAgentSelectorAtom,
-	showAlert,
-	showChatPickerAtom,
-	showCommandsAtom,
-	showDebugAtom,
-	showModelSelectorAtom,
-	showShortcutsAtom,
+	useAppActions,
+	useCurrentAgent,
+	useExecMode,
+	useShowAgentSelector,
+	useShowChatPicker,
+	useShowCommands,
+	useShowDebug,
+	useShowModelSelector,
+	useShowShortcuts,
 } from "./atoms"
-import { ChatPicker, handleChatPickerKey } from "./chat-picker"
+import { ChatPicker, useChatPickerKeyHandler } from "./chat-picker"
 import { CommandPalette } from "./command-palette"
 import { DebugOverlay } from "./debug-overlay"
 import { Footer } from "./footer"
 import { Header } from "./header"
 import { InputArea } from "./input-area"
 import { MessageList } from "./message-list"
-import { handleModelSelectorKey, ModelSelector } from "./model-selector"
-import { handlePromptApproval, PromptApproval } from "./prompt-approval"
+import { ModelSelector, useModelSelectorKeyHandler } from "./model-selector"
+import { PromptApproval, usePromptApprovalHandler } from "./prompt-approval"
 import { ShortcutsPanel } from "./shortcuts-panel"
 import { AlertContainer } from "./ui/alert"
 
 function Chat() {
-	const [showDebug, setShowDebug] = useAtom(showDebugAtom)
-	const [showShortcuts] = useAtom(showShortcutsAtom)
-	const [showCommands] = useAtom(showCommandsAtom)
-	const [showAgentSelector] = useAtom(showAgentSelectorAtom)
-	const [showModelSelector] = useAtom(showModelSelectorAtom)
-	const [showChatPicker] = useAtom(showChatPickerAtom)
-	const [currentAgent] = useAtom(currentAgentAtom)
+	const [showDebug, setShowDebug] = useShowDebug()
+	const [showShortcuts, setShowShortcuts] = useShowShortcuts()
+	const [showCommands] = useShowCommands()
+	const [showAgentSelector, setShowAgentSelector] = useShowAgentSelector()
+	const [showModelSelector, setShowModelSelector] = useShowModelSelector()
+	const [showChatPicker, setShowChatPicker] = useShowChatPicker()
+	const [currentAgent] = useCurrentAgent()
+	const actions = useAppActions()
+	const { exitTui, scrollToBottom, showAlert } = actions
+	const agent = useAgentActions()
+	const { handleToolApproval, startNewChat, stopGeneration } = agent
+	const handleAgentSelectorKey = useAgentSelectorKeyHandler()
+	const handleModelSelectorKey = useModelSelectorKeyHandler()
+	const handleChatPickerKey = useChatPickerKeyHandler()
 	const renderer = useRenderer()
 
 	useKeyboard((key) => {
@@ -72,28 +72,28 @@ function Chat() {
 		// Alt+A to toggle agent selector
 		if (key.name === "a" && (key.meta || key.option)) {
 			key.preventDefault()
-			showAgentSelectorAtom.set(!showAgentSelectorAtom.get())
+			setShowAgentSelector(!showAgentSelector)
 			return
 		}
 
 		// Alt+M to toggle model selector
 		if (key.name === "m" && (key.meta || key.option)) {
 			key.preventDefault()
-			showModelSelectorAtom.set(!showModelSelectorAtom.get())
+			setShowModelSelector(!showModelSelector)
 			return
 		}
 
 		// Alt+D to toggle debug overlay
 		if (key.name === "d" && (key.meta || key.option)) {
 			key.preventDefault()
-			setShowDebug(!showDebugAtom.get())
+			setShowDebug(!showDebug)
 			return
 		}
 
 		// Alt+S to toggle shortcuts panel
 		if (key.name === "s" && (key.meta || key.option)) {
 			key.preventDefault()
-			showShortcutsAtom.set(!showShortcutsAtom.get())
+			setShowShortcuts(!showShortcuts)
 			return
 		}
 
@@ -115,7 +115,7 @@ function Chat() {
 		// Alt+H to open chat history picker
 		if (key.name === "h" && (key.meta || key.option)) {
 			key.preventDefault()
-			showChatPickerAtom.set(!showChatPickerAtom.get())
+			setShowChatPicker(!showChatPicker)
 			return
 		}
 
@@ -148,9 +148,9 @@ function Chat() {
 		}
 
 		// Escape to close shortcuts panel
-		if (key.name === "escape" && showShortcutsAtom.get()) {
+		if (key.name === "escape" && showShortcuts) {
 			key.preventDefault()
-			showShortcutsAtom.set(false)
+			setShowShortcuts(false)
 			return
 		}
 
@@ -204,7 +204,9 @@ function Chat() {
 }
 
 export function App() {
-	const [execMode] = useAtom(execModeAtom)
+	const [execMode] = useExecMode()
+	const { exitTui } = useAppActions()
+	const handlePromptApproval = usePromptApprovalHandler()
 
 	if (execMode) {
 		return (

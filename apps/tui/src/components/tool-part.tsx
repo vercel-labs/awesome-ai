@@ -122,7 +122,15 @@ export function ToolPart({ data, messageAtom }: ToolPartProps) {
 				removePendingApproval(data.toolCallId)
 			}
 		}
-	}, [state, approval?.id, data.toolCallId, toolName, messageAtom])
+	}, [
+		state,
+		approval?.id,
+		data.toolCallId,
+		toolName,
+		messageAtom,
+		addPendingApproval,
+		removePendingApproval,
+	])
 
 	// Determine display message
 	let displayMessage = toolMessage

@@ -10,7 +10,7 @@ import {
 	useState,
 	useTransition,
 } from "react"
-import { parseIncompleteMarkdown } from "streamdown"
+import remend from "remend"
 import { colors } from "../theme"
 import { CodeBlock } from "./code-block"
 
@@ -522,7 +522,7 @@ export function Markdown({ children, streaming = false }: MarkdownProps) {
 
 	// Process incomplete markdown for streaming
 	const processed = useMemo(
-		() => (streaming ? parseIncompleteMarkdown(children) : children),
+		() => (streaming ? remend(children) : children),
 		[children, streaming],
 	)
 

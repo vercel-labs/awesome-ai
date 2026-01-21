@@ -15,7 +15,8 @@
 		".": "./src/index.tsx"
 	},
 	"scripts": {
-		"dev": "bun run src/index.tsx"
+		"dev:tui": "bun run src/index.tsx --agents-path ../../packages/registry/src/agents",
+		"test": "bun test"
 	},
 	"dependencies": {
 		"@ai-sdk/gateway": "3.0.17",

@@ -1,15 +1,14 @@
-import { useAtom } from "@lfades/atom"
 import type { ScrollBoxRenderable } from "@opentui/core"
 import { useEffect, useRef } from "react"
 import { COMMANDS } from "../commands"
 import { colors } from "../theme"
-import { commandFilterAtom, selectedCommandAtom } from "./atoms"
+import { useCommandFilter, useSelectedCommand } from "./atoms"
 
 const MAX_VISIBLE_ITEMS = 10
 
 export function CommandPalette() {
-	const [filter] = useAtom(commandFilterAtom)
-	const [selectedIndex, setSelectedIndex] = useAtom(selectedCommandAtom)
+	const [filter] = useCommandFilter()
+	const [selectedIndex, setSelectedIndex] = useSelectedCommand()
 	const scrollRef = useRef<ScrollBoxRenderable>(null)
 	const commands = COMMANDS.filter((cmd) =>
 		cmd.name.toLowerCase().includes(filter.toLowerCase()),

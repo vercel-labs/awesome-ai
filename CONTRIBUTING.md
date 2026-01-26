@@ -107,23 +107,21 @@ pnpm changeset pre enter beta
 1. Create the agent in `packages/registry/src/agents/`
 2. Create the corresponding prompt in `packages/registry/src/prompts/`
 3. Run `pnpm build:registry` to generate the JSON files
-4. Test with `awesome-ai add <agent-name>`
 
 ### Adding a New Tool
 
 1. Create the tool in `packages/registry/src/tools/`
 2. Run `pnpm build:registry`
-3. Test with `awesome-ai add <tool-name> --tool`
-
-## Code Style
-
-This project uses [Biome](https://biomejs.dev/) for formatting and linting:
-
-```bash
-pnpm format
-```
 
 ## Testing
+
+You can test the agents and tools locally in the TUI with:
+
+```bash
+pnpm dev:tui
+```
+
+To run the tests:
 
 ```bash
 # Run all tests
@@ -136,3 +134,10 @@ pnpm test:watch
 pnpm --filter awesome-ai test
 ```
 
+## Code Style
+
+This project uses [Biome](https://biomejs.dev/) for formatting and linting:
+
+```bash
+pnpm format
+```

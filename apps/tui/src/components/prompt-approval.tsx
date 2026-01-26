@@ -1,12 +1,12 @@
-import { useAtom } from "@lfades/atom"
 import { useKeyboard } from "@opentui/react"
+import { useCallback } from "react"
 import { colors } from "../theme"
-import { sendMessage } from "../utils/agent"
+import { useAgentActions } from "../utils/agent"
 import {
-	currentAgentAtom,
-	execModeAtom,
-	execPromptAtom,
-	showShortcutsAtom,
+	useAppAtoms,
+	useCurrentAgent,
+	useExecPrompt,
+	useShowShortcuts,
 } from "./atoms"
 import { Footer } from "./footer"
 import { Header } from "./header"
@@ -68,9 +68,9 @@ export interface PromptApprovalProps {
 }
 
 export function PromptApproval({ onApprove, onDeny }: PromptApprovalProps) {
-	const [execPrompt] = useAtom(execPromptAtom)
-	const [currentAgent] = useAtom(currentAgentAtom)
-	const [showShortcuts] = useAtom(showShortcutsAtom)
+	const [execPrompt] = useExecPrompt()
+	const [currentAgent] = useCurrentAgent()
+	const [showShortcuts, setShowShortcuts] = useShowShortcuts()
 
 	useKeyboard((key) => {
 		// Alt+Y to approve
@@ -90,14 +90,14 @@ export function PromptApproval({ onApprove, onDeny }: PromptApprovalProps) {
 		// Alt+S to toggle shortcuts panel
 		if (key.name === "s" && (key.meta || key.option)) {
 			key.preventDefault()
-			showShortcutsAtom.set(!showShortcutsAtom.get())
+			setShowShortcuts(!showShortcuts)
 			return
 		}
 
 		// Escape to close shortcuts panel
-		if (key.name === "escape" && showShortcutsAtom.get()) {
+		if (key.name === "escape" && showShortcuts) {
 			key.preventDefault()
-			showShortcutsAtom.set(false)
+			setShowShortcuts(false)
 			return
 		}
 
@@ -165,19 +165,24 @@ export function PromptApproval({ onApprove, onDeny }: PromptApprovalProps) {
 /**
  * Handle prompt approval: switch to chat mode and send the prompt
  */
-export async function handlePromptApproval(): Promise<void> {
-	const execPrompt = execPromptAtom.get()
+export function usePromptApprovalHandler() {
+	const atoms = useAppAtoms()
+	const agent = useAgentActions()
 
-	if (!execPrompt) {
-		return
-	}
+	return useCallback(async () => {
+		const execPrompt = atoms.execPromptAtom.get()
 
-	// Switch to chat mode (agent is already set)
-	execModeAtom.set(false)
+		if (!execPrompt) {
+			return
+		}
 
-	// Small delay to let the UI switch before sending the message
-	await new Promise((resolve) => setTimeout(resolve, 50))
+		// Switch to chat mode (agent is already set)
+		atoms.execModeAtom.set(false)
 
-	// Send the prompt as the first user message
-	await sendMessage(execPrompt.content)
+		// Small delay to let the UI switch before sending the message
+		await new Promise((resolve) => setTimeout(resolve, 50))
+
+		// Send the prompt as the first user message
+		await agent.sendMessage(execPrompt.content)
+	}, [agent, atoms])
 }

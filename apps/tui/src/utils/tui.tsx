@@ -1,19 +1,9 @@
 import { createCliRenderer } from "@opentui/core"
 import { createRoot } from "@opentui/react"
 import { App } from "../components/app"
-import {
-	addMessage,
-	availableAgentsAtom,
-	currentAgentAtom,
-	currentChatIdAtom,
-	cwdAtom,
-	execModeAtom,
-	execPromptAtom,
-	rendererAtom,
-	selectedModelAtom,
-	setMessages,
-} from "../components/atoms"
+import { AppAtomsProvider, createAppStore } from "../components/atoms"
 import { createSystemMessage } from "../types"
+import { AgentControllerProvider } from "./agent"
 import { discoverAgents } from "./agent-discovery"
 import { loadPromptContent } from "./prompt-loader"
 import { loadSettings } from "./settings"
@@ -33,26 +23,28 @@ export interface RunTuiOptions {
 export async function runTui(options: RunTuiOptions) {
 	const { agentPaths, initialAgent, cwd, promptsPaths, promptName } = options
 	const isExecMode = promptsPaths && promptsPaths.length > 0 && promptName
+	const store = createAppStore({ cwd })
+	const { atoms, actions } = store
 
-	cwdAtom.set(cwd)
+	atoms.cwdAtom.set(cwd)
 
-	const settings = await loadSettings()
+	const settings = await loadSettings(cwd)
 
 	if (settings.model) {
-		selectedModelAtom.set(settings.model)
+		atoms.selectedModelAtom.set(settings.model)
 	}
 
 	// Load last chat if available
 	if (settings.lastChatId) {
-		const chat = await loadChat(settings.lastChatId)
+		const chat = await loadChat(cwd, settings.lastChatId)
 		if (chat) {
-			currentChatIdAtom.set(chat.id)
-			setMessages(chat.messages)
+			atoms.currentChatIdAtom.set(chat.id)
+			actions.setMessages(chat.messages)
 		}
 	}
 
 	const agents = await discoverAgents(agentPaths)
-	availableAgentsAtom.set(agents)
+	atoms.availableAgentsAtom.set(agents)
 
 	// In exec mode, require at least one agent
 	if (isExecMode && agents.length === 0) {
@@ -71,7 +63,7 @@ export async function runTui(options: RunTuiOptions) {
 		const agentExists = agents.find((a) => a.name === agentToSelect)
 
 		if (agentExists) {
-			currentAgentAtom.set(agentToSelect)
+			atoms.currentAgentAtom.set(agentToSelect)
 		} else if (isExecMode && initialAgent) {
 			// Fatal error in exec mode when explicitly requested
 			console.error(
@@ -80,26 +72,26 @@ export async function runTui(options: RunTuiOptions) {
 			process.exit(1)
 		} else if (initialAgent) {
 			// Non-fatal for CLI-specified agent in regular mode
-			addMessage(
+			actions.addMessage(
 				createSystemMessage(
 					`Agent "${agentToSelect}" not found. Available agents: ${agents.map((a) => a.name).join(", ") || "none"}`,
 				),
 			)
 			// Fall back to first agent
 			if (firstAgent) {
-				currentAgentAtom.set(firstAgent.name)
+				atoms.currentAgentAtom.set(firstAgent.name)
 			}
 		} else {
 			// Saved agent not found, silently fall back to first agent
 			if (firstAgent) {
-				currentAgentAtom.set(firstAgent.name)
+				atoms.currentAgentAtom.set(firstAgent.name)
 			}
 		}
 	} else if (firstAgent) {
 		// Auto-select first agent if none specified
-		currentAgentAtom.set(firstAgent.name)
+		atoms.currentAgentAtom.set(firstAgent.name)
 	} else {
-		addMessage(
+		actions.addMessage(
 			createSystemMessage(
 				`No agents found in ${agentPaths.join(" or ")}. Create agent files in this directory.`,
 			),
@@ -110,7 +102,11 @@ export async function runTui(options: RunTuiOptions) {
 		let promptContent: string | null = null
 
 		for (const promptPath of promptsPaths) {
-			promptContent = await loadPromptContent(promptPath, promptName)
+			promptContent = await loadPromptContent(
+				promptPath,
+				promptName,
+				actions.debugLog,
+			)
 			if (promptContent) break
 		}
 
@@ -121,15 +117,21 @@ export async function runTui(options: RunTuiOptions) {
 			process.exit(1)
 		}
 
-		execModeAtom.set(true)
-		execPromptAtom.set({ name: promptName, content: promptContent })
+		atoms.execModeAtom.set(true)
+		atoms.execPromptAtom.set({ name: promptName, content: promptContent })
 	}
 
 	const renderer = await createCliRenderer({
 		exitOnCtrlC: false,
 	})
 
-	rendererAtom.set(renderer)
+	atoms.rendererAtom.set(renderer)
 
-	createRoot(renderer).render(<App />)
+	createRoot(renderer).render(
+		<AppAtomsProvider atoms={atoms}>
+			<AgentControllerProvider>
+				<App />
+			</AgentControllerProvider>
+		</AppAtomsProvider>,
+	)
 }

@@ -1,24 +1,24 @@
-import { useAtom } from "@lfades/atom"
 import type { KeyEvent, ScrollBoxRenderable } from "@opentui/core"
-import { useEffect, useRef, useState } from "react"
+import { useCallback, useEffect, useRef, useState } from "react"
 import { colors } from "../theme"
-import { fetchAvailableModels, isUsingFallbackModels } from "../utils/models"
+import { isUsingFallbackModels, useFetchAvailableModels } from "../utils/models"
 import { saveWorkspaceSettings } from "../utils/settings"
 import {
-	availableModelsAtom,
-	inputAtom,
-	isLoadingModelsAtom,
-	selectedModelAtom,
-	selectedModelIndexAtom,
-	showModelSelectorAtom,
+	useAppAtoms,
+	useAvailableModels,
+	useIsLoadingModels,
+	useSelectedModel,
+	useSelectedModelIndex,
 } from "./atoms"
 import { Dialog, DialogSpacer, DialogText, DialogTitle } from "./ui/dialog"
 
 export function ModelSelector() {
-	const [models] = useAtom(availableModelsAtom)
-	const [selectedIndex] = useAtom(selectedModelIndexAtom)
-	const [currentModel] = useAtom(selectedModelAtom)
-	const [isLoading] = useAtom(isLoadingModelsAtom)
+	const [models, setModels] = useAvailableModels()
+	const [selectedIndex] = useSelectedModelIndex()
+	const [currentModel] = useSelectedModel()
+	const [isLoading, setIsLoading] = useIsLoadingModels()
+	const fetchAvailableModels = useFetchAvailableModels()
+	const atoms = useAppAtoms()
 	const [usingFallback, setUsingFallback] = useState(false)
 	const scrollRef = useRef<ScrollBoxRenderable>(null)
 	const panelWidth = 60
@@ -27,15 +27,15 @@ export function ModelSelector() {
 	// Load models when selector opens
 	useEffect(() => {
 		if (models.length === 0 && !isLoading) {
-			isLoadingModelsAtom.set(true)
+			setIsLoading(true)
 			fetchAvailableModels()
 				.then((m) => {
-					availableModelsAtom.set(m)
+					setModels(m)
 					setUsingFallback(isUsingFallbackModels())
 				})
-				.finally(() => isLoadingModelsAtom.set(false))
+				.finally(() => setIsLoading(false))
 		}
-	}, [models.length, isLoading])
+	}, [fetchAvailableModels, isLoading, models.length, setIsLoading, setModels])
 
 	// Auto-scroll to keep selected item visible
 	useEffect(() => {
@@ -49,9 +49,9 @@ export function ModelSelector() {
 	// Refocus input when model selector closes (scrollbox steals focus)
 	useEffect(() => {
 		return () => {
-			inputAtom.get()?.focus()
+			atoms.inputAtom.get()?.focus()
 		}
-	}, [])
+	}, [atoms])
 
 	// Find current model index in the list
 	const currentModelIndex = models.findIndex((m) => m.id === currentModel)
@@ -166,43 +166,52 @@ export function ModelSelector() {
  * Handle keyboard input for the model selector.
  * Returns true if the key was handled.
  */
-export function handleModelSelectorKey(key: KeyEvent): boolean {
-	const showSelector = showModelSelectorAtom.get()
-	if (!showSelector) return false
+export function useModelSelectorKeyHandler() {
+	const atoms = useAppAtoms()
 
-	const models = availableModelsAtom.get()
-	const selectedIndex = selectedModelIndexAtom.get()
+	return useCallback(
+		(key: KeyEvent): boolean => {
+			const showSelector = atoms.showModelSelectorAtom.get()
+			if (!showSelector) return false
 
-	switch (key.name) {
-		case "up":
-			selectedModelIndexAtom.set(
-				selectedIndex > 0 ? selectedIndex - 1 : models.length - 1,
-			)
-			return true
+			const models = atoms.availableModelsAtom.get()
+			const selectedIndex = atoms.selectedModelIndexAtom.get()
 
-		case "down":
-			selectedModelIndexAtom.set(
-				selectedIndex < models.length - 1 ? selectedIndex + 1 : 0,
-			)
-			return true
+			switch (key.name) {
+				case "up":
+					atoms.selectedModelIndexAtom.set(
+						selectedIndex > 0 ? selectedIndex - 1 : models.length - 1,
+					)
+					return true
 
-		case "return": {
-			const selectedModel = models[selectedIndex]
-			if (selectedModel) {
-				selectedModelAtom.set(selectedModel.id)
-				showModelSelectorAtom.set(false)
-				selectedModelIndexAtom.set(0)
-				saveWorkspaceSettings({ selectedModel: selectedModel.id })
+				case "down":
+					atoms.selectedModelIndexAtom.set(
+						selectedIndex < models.length - 1 ? selectedIndex + 1 : 0,
+					)
+					return true
+
+				case "return": {
+					const selectedModel = models[selectedIndex]
+					if (selectedModel) {
+						atoms.selectedModelAtom.set(selectedModel.id)
+						atoms.showModelSelectorAtom.set(false)
+						atoms.selectedModelIndexAtom.set(0)
+						saveWorkspaceSettings(atoms.cwdAtom.get(), {
+							selectedModel: selectedModel.id,
+						})
+					}
+					return true
+				}
+
+				case "escape":
+					atoms.showModelSelectorAtom.set(false)
+					atoms.selectedModelIndexAtom.set(0)
+					return true
+
+				default:
+					return false
 			}
-			return true
-		}
-
-		case "escape":
-			showModelSelectorAtom.set(false)
-			selectedModelIndexAtom.set(0)
-			return true
-
-		default:
-			return false
-	}
+		},
+		[atoms],
+	)
 }

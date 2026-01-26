@@ -1,10 +1,9 @@
-import { useAtom } from "@lfades/atom"
 import { colors } from "../theme"
-import { selectedModelAtom, showDebugAtom } from "./atoms"
+import { useSelectedModel, useShowDebug } from "./atoms"
 
 export function Footer() {
-	const [model] = useAtom(selectedModelAtom)
-	const [showDebug] = useAtom(showDebugAtom)
+	const [model] = useSelectedModel()
+	const [showDebug] = useShowDebug()
 
 	return (
 		<box

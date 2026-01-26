@@ -3,7 +3,6 @@ import { promises as fs } from "node:fs"
 import os from "node:os"
 import path from "node:path"
 import { $ } from "bun"
-import { cwdAtom } from "../components/atoms"
 import type { TUIMessage } from "../types"
 
 const APP_NAME = "awesome-ai"
@@ -137,8 +136,7 @@ function getFirstUserPrompt(messages: TUIMessage[]) {
 	return textPart?.text || "New Chat"
 }
 
-async function getChatsDir() {
-	const cwd = cwdAtom.get()
+async function getChatsDir(cwd: string) {
 	const workspacePath = await getWorkspaceCachePath(cwd)
 
 	return path.join(workspacePath, "chats")
@@ -148,8 +146,8 @@ export function generateChatId() {
 	return crypto.randomUUID()
 }
 
-export async function saveChat(chat: StoredChat) {
-	const chatsDir = await getChatsDir()
+export async function saveChat(cwd: string, chat: StoredChat) {
+	const chatsDir = await getChatsDir(cwd)
 	const chatPath = path.join(chatsDir, chat.id, "chat.json")
 
 	await writeJson(chatPath, {
@@ -159,15 +157,15 @@ export async function saveChat(chat: StoredChat) {
 	})
 }
 
-export async function loadChat(chatId: string) {
-	const chatsDir = await getChatsDir()
+export async function loadChat(cwd: string, chatId: string) {
+	const chatsDir = await getChatsDir(cwd)
 	const chatPath = path.join(chatsDir, chatId, "chat.json")
 
 	return readJson<StoredChat>(chatPath)
 }
 
-export async function listChats(): Promise<StoredChat[]> {
-	const chatsDir = await getChatsDir()
+export async function listChats(cwd: string): Promise<StoredChat[]> {
+	const chatsDir = await getChatsDir(cwd)
 
 	try {
 		const entries = await fs.readdir(chatsDir, { withFileTypes: true })
@@ -175,7 +173,7 @@ export async function listChats(): Promise<StoredChat[]> {
 		const chats: StoredChat[] = []
 
 		for (const dir of chatDirs) {
-			const chat = await loadChat(dir.name)
+			const chat = await loadChat(cwd, dir.name)
 			if (chat) chats.push(chat)
 		}
 
@@ -186,7 +184,7 @@ export async function listChats(): Promise<StoredChat[]> {
 	}
 }
 
-export async function createChat() {
+export async function createChat(cwd: string) {
 	const now = Date.now()
 	const chat: StoredChat = {
 		id: generateChatId(),
@@ -195,12 +193,12 @@ export async function createChat() {
 		createdAt: now,
 		updatedAt: now,
 	}
-	await saveChat(chat)
+	await saveChat(cwd, chat)
 	return chat
 }
 
-export async function deleteChat(chatId: string) {
-	const chatsDir = await getChatsDir()
+export async function deleteChat(cwd: string, chatId: string) {
+	const chatsDir = await getChatsDir(cwd)
 	const chatPath = path.join(chatsDir, chatId)
 
 	await fs.rm(chatPath, { recursive: true, force: true })

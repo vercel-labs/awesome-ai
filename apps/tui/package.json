@@ -15,23 +15,25 @@
 		".": "./src/index.tsx"
 	},
 	"scripts": {
-		"dev": "bun run src/index.tsx"
+		"dev:tui": "bun run src/index.tsx --agents-path ../../packages/registry/src/agents",
+		"test": "bun test"
 	},
 	"dependencies": {
-		"@ai-sdk/gateway": "2.0.0-beta.69",
-		"@lfades/atom": "^1.0.1",
-		"@opentui/core": "^0.1.54",
-		"@opentui/react": "^0.1.54",
+		"@ai-sdk/gateway": "3.0.17",
+		"@lfades/atom": "^2.0.0",
+		"@opentui/core": "^0.1.74",
+		"@opentui/react": "^0.1.74",
 		"@types/bun": "catalog:",
 		"ai": "catalog:",
-		"react": "^19.2.0",
-		"shiki": "^3.12.2",
-		"streamdown": "1.6.9",
+		"react": "^19.2.3",
+		"remend": "^1.1.0",
+		"shiki": "^3.21.0",
+		"streamdown": "2.1.0",
 		"zod": "catalog:"
 	},
 	"devDependencies": {
-		"@types/node": "^22",
-		"@types/react": "^19.1.8",
+		"@types/node": "^25.0.9",
+		"@types/react": "^19.2.9",
 		"typescript": "catalog:"
 	}
 }

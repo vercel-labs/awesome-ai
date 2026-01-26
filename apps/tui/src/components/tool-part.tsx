@@ -1,14 +1,12 @@
-import { useAtom } from "@lfades/atom"
 import { useEffect, useState } from "react"
 import { colors } from "../theme"
 import { getToolError, getToolMessage, getToolStatus } from "../types"
-import { handleToolApproval } from "../utils/agent"
+import { useAgentActions } from "../utils/agent"
 import {
-	addPendingApproval,
 	type MessageAtom,
 	type PendingApproval,
-	pendingApprovalsAtom,
-	removePendingApproval,
+	useAppActions,
+	usePendingApprovals,
 } from "./atoms"
 import { Spinner } from "./ui/spinner"
 
@@ -89,7 +87,9 @@ export interface ToolPartProps {
 
 export function ToolPart({ data, messageAtom }: ToolPartProps) {
 	const { input, output, state, errorText, approval } = data
-	const [pendingApprovals] = useAtom(pendingApprovalsAtom)
+	const [pendingApprovals] = usePendingApprovals()
+	const { addPendingApproval, removePendingApproval } = useAppActions()
+	const { handleToolApproval } = useAgentActions()
 	// Extract tool name: for typed tools it's `tool-${name}`, for dynamic it's in toolName
 	const toolName =
 		data.type === "dynamic-tool"
@@ -122,7 +122,15 @@ export function ToolPart({ data, messageAtom }: ToolPartProps) {
 				removePendingApproval(data.toolCallId)
 			}
 		}
-	}, [state, approval?.id, data.toolCallId, toolName, messageAtom])
+	}, [
+		state,
+		approval?.id,
+		data.toolCallId,
+		toolName,
+		messageAtom,
+		addPendingApproval,
+		removePendingApproval,
+	])
 
 	// Determine display message
 	let displayMessage = toolMessage

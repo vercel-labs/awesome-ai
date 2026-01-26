@@ -1,21 +1,20 @@
-import { useAtom } from "@lfades/atom"
 import type { KeyEvent, ScrollBoxRenderable } from "@opentui/core"
-import { useEffect, useRef } from "react"
+import { useCallback, useEffect, useRef } from "react"
 import { colors } from "../theme"
 import { saveWorkspaceSettings } from "../utils/settings"
 import {
-	availableAgentsAtom,
-	currentAgentAtom,
-	inputAtom,
-	selectedAgentIndexAtom,
-	showAgentSelectorAtom,
+	useAppAtoms,
+	useAvailableAgents,
+	useCurrentAgent,
+	useSelectedAgentIndex,
 } from "./atoms"
 import { Dialog, DialogSpacer, DialogText, DialogTitle } from "./ui/dialog"
 
 export function AgentSelector() {
-	const [agents] = useAtom(availableAgentsAtom)
-	const [selectedIndex] = useAtom(selectedAgentIndexAtom)
-	const [currentAgent] = useAtom(currentAgentAtom)
+	const [agents] = useAvailableAgents()
+	const [selectedIndex] = useSelectedAgentIndex()
+	const [currentAgent] = useCurrentAgent()
+	const atoms = useAppAtoms()
 	const scrollRef = useRef<ScrollBoxRenderable>(null)
 	const panelHeight = Math.min(agents.length + 6, 20)
 
@@ -31,9 +30,9 @@ export function AgentSelector() {
 	// Refocus input when agent selector closes (scrollbox steals focus)
 	useEffect(() => {
 		return () => {
-			inputAtom.get()?.focus()
+			atoms.inputAtom.get()?.focus()
 		}
-	}, [])
+	}, [atoms])
 
 	if (agents.length === 0) {
 		return (
@@ -107,43 +106,52 @@ export function AgentSelector() {
  * Handle keyboard input for the agent selector.
  * Returns true if the key was handled.
  */
-export function handleAgentSelectorKey(key: KeyEvent): boolean {
-	const showSelector = showAgentSelectorAtom.get()
-	if (!showSelector) return false
+export function useAgentSelectorKeyHandler() {
+	const atoms = useAppAtoms()
 
-	const agents = availableAgentsAtom.get()
-	const selectedIndex = selectedAgentIndexAtom.get()
+	return useCallback(
+		(key: KeyEvent): boolean => {
+			const showSelector = atoms.showAgentSelectorAtom.get()
+			if (!showSelector) return false
 
-	switch (key.name) {
-		case "up":
-			selectedAgentIndexAtom.set(
-				selectedIndex > 0 ? selectedIndex - 1 : agents.length - 1,
-			)
-			return true
+			const agents = atoms.availableAgentsAtom.get()
+			const selectedIndex = atoms.selectedAgentIndexAtom.get()
 
-		case "down":
-			selectedAgentIndexAtom.set(
-				selectedIndex < agents.length - 1 ? selectedIndex + 1 : 0,
-			)
-			return true
+			switch (key.name) {
+				case "up":
+					atoms.selectedAgentIndexAtom.set(
+						selectedIndex > 0 ? selectedIndex - 1 : agents.length - 1,
+					)
+					return true
 
-		case "return": {
-			const selectedAgent = agents[selectedIndex]
-			if (selectedAgent) {
-				currentAgentAtom.set(selectedAgent.name)
-				showAgentSelectorAtom.set(false)
-				selectedAgentIndexAtom.set(0)
-				saveWorkspaceSettings({ selectedAgent: selectedAgent.name })
+				case "down":
+					atoms.selectedAgentIndexAtom.set(
+						selectedIndex < agents.length - 1 ? selectedIndex + 1 : 0,
+					)
+					return true
+
+				case "return": {
+					const selectedAgent = agents[selectedIndex]
+					if (selectedAgent) {
+						atoms.currentAgentAtom.set(selectedAgent.name)
+						atoms.showAgentSelectorAtom.set(false)
+						atoms.selectedAgentIndexAtom.set(0)
+						saveWorkspaceSettings(atoms.cwdAtom.get(), {
+							selectedAgent: selectedAgent.name,
+						})
+					}
+					return true
+				}
+
+				case "escape":
+					atoms.showAgentSelectorAtom.set(false)
+					atoms.selectedAgentIndexAtom.set(0)
+					return true
+
+				default:
+					return false
 			}
-			return true
-		}
-
-		case "escape":
-			showAgentSelectorAtom.set(false)
-			selectedAgentIndexAtom.set(0)
-			return true
-
-		default:
-			return false
-	}
+		},
+		[atoms],
+	)
 }

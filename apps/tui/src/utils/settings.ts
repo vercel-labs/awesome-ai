@@ -1,5 +1,4 @@
 import path from "node:path"
-import { cwdAtom } from "../components/atoms"
 import {
 	getStoragePaths,
 	getWorkspaceCachePath,
@@ -40,8 +39,7 @@ function getRootSettingsPath(): string {
 	return path.join(config, "settings.json")
 }
 
-async function getWorkspaceSettingsPath(): Promise<string> {
-	const cwd = cwdAtom.get()
+async function getWorkspaceSettingsPath(cwd: string): Promise<string> {
 	const workspacePath = await getWorkspaceCachePath(cwd)
 	return path.join(workspacePath, "settings.json")
 }
@@ -57,18 +55,20 @@ export async function loadRootSettings(): Promise<RootSettings> {
 /**
  * Load workspace-specific settings
  */
-export async function loadWorkspaceSettings(): Promise<WorkspaceSettings> {
-	const settingsPath = await getWorkspaceSettingsPath()
+export async function loadWorkspaceSettings(
+	cwd: string,
+): Promise<WorkspaceSettings> {
+	const settingsPath = await getWorkspaceSettingsPath(cwd)
 	return (await readJson<WorkspaceSettings>(settingsPath)) || {}
 }
 
 /**
  * Load and resolve settings (workspace overrides root)
  */
-export async function loadSettings(): Promise<ResolvedSettings> {
+export async function loadSettings(cwd: string): Promise<ResolvedSettings> {
 	const [rootSettings, workspaceSettings] = await Promise.all([
 		loadRootSettings(),
-		loadWorkspaceSettings(),
+		loadWorkspaceSettings(cwd),
 	])
 
 	return {
@@ -79,10 +79,11 @@ export async function loadSettings(): Promise<ResolvedSettings> {
 }
 
 export async function saveWorkspaceSettings(
+	cwd: string,
 	settings: Partial<WorkspaceSettings>,
 ) {
-	const settingsPath = await getWorkspaceSettingsPath()
-	const existing = await loadWorkspaceSettings()
+	const settingsPath = await getWorkspaceSettingsPath(cwd)
+	const existing = await loadWorkspaceSettings(cwd)
 
 	await writeJson<WorkspaceSettings>(settingsPath, {
 		...existing,

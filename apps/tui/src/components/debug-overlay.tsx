@@ -1,12 +1,12 @@
-import { useAtom } from "@lfades/atom"
 import type { ScrollBoxRenderable } from "@opentui/core"
 import { useTerminalDimensions } from "@opentui/react"
 import { useEffect, useRef } from "react"
 import { colors } from "../theme"
-import { debugLogsAtom, inputAtom } from "./atoms"
+import { useAppAtoms, useDebugLogs } from "./atoms"
 
 export function DebugOverlay() {
-	const [logs] = useAtom(debugLogsAtom)
+	const [logs] = useDebugLogs()
+	const { inputAtom } = useAppAtoms()
 	const { width, height } = useTerminalDimensions()
 	const scrollRef = useRef<ScrollBoxRenderable>(null)
 
@@ -24,7 +24,7 @@ export function DebugOverlay() {
 		return () => {
 			inputAtom.get()?.focus()
 		}
-	}, [])
+	}, [inputAtom])
 
 	return (
 		<box

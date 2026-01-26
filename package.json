@@ -2,12 +2,13 @@
 	"name": "agent-cli",
 	"private": true,
 	"scripts": {
-		"build": "turbo run build",
+		"build": "turbo run build --filter=!ui",
 		"dev": "turbo run dev",
 		"lint": "turbo run lint",
 		"test": "turbo run test",
 		"format": "biome check",
 		"build:registry": "pnpm --filter=awesome-ai-registry build:registry",
+		"dev:tui": "pnpm --filter=awesome-ai-tui dev:tui",
 		"changeset": "changeset",
 		"version": "changeset version",
 		"release": "turbo run build && changeset publish"

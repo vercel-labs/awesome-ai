@@ -15,7 +15,7 @@ async function discoverAgentsFromPath(
 		const entries = await readdir(agentsPath)
 
 		for (const entry of entries) {
-			const entryPath = path.join(agentsPath, entry)
+			const entryPath = path.resolve(agentsPath, entry)
 			const entryStat = await stat(entryPath)
 
 			if (entryStat.isDirectory()) continue

@@ -23,16 +23,14 @@ import {
 import { saveWorkspaceSettings } from "./settings"
 import { createChat, type StoredChat, saveChat } from "./storage"
 
-export interface AgentController {
+interface AgentController {
 	resetConversation: () => void
 	syncConversationMessages: () => void
 	startNewChat: () => Promise<StoredChat>
-	isAgentLoaded: () => boolean
 	stopGeneration: () => boolean
 	loadAgent: (agentName: string) => Promise<boolean>
 	sendMessage: (userPrompt: string) => Promise<void>
 	handleToolApproval: (approved: boolean) => Promise<boolean>
-	subscribeToAgentChanges: () => () => void
 }
 
 function createAgentController(
@@ -122,8 +120,6 @@ function createAgentController(
 		saveWorkspaceSettings(cwd, { lastChatId: chat.id })
 		return chat
 	}
-
-	const isAgentLoaded = () => currentAgentInstance !== null
 
 	const stopGeneration = () => {
 		if (!currentAbortController) return false
@@ -646,23 +642,14 @@ function createAgentController(
 		return true
 	}
 
-	const subscribeToAgentChanges = () =>
-		atoms.currentAgentAtom.sub((agentName) => {
-			if (agentName) {
-				loadAgent(agentName)
-			}
-		})
-
 	return {
 		resetConversation,
 		syncConversationMessages,
 		startNewChat,
-		isAgentLoaded,
 		stopGeneration,
 		loadAgent,
 		sendMessage,
 		handleToolApproval,
-		subscribeToAgentChanges,
 	}
 }
 
@@ -677,9 +664,17 @@ export function AgentControllerProvider({ children }: { children: ReactNode }) {
 	)
 
 	useEffect(() => {
-		const unsubscribe = controller.subscribeToAgentChanges()
-		return () => unsubscribe()
-	}, [controller])
+		const initialAgent = atoms.currentAgentAtom.get()
+		if (initialAgent) {
+			controller.loadAgent(initialAgent)
+		}
+
+		return atoms.currentAgentAtom.sub((agentName) => {
+			if (agentName) {
+				controller.loadAgent(agentName)
+			}
+		})
+	}, [controller, atoms.currentAgentAtom])
 
 	return (
 		<AgentControllerContext.Provider value={controller}>

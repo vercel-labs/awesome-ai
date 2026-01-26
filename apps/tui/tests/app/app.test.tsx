@@ -12,7 +12,6 @@ mock.module("../../src/utils/agent", () => ({
 		resetConversation: () => {},
 		syncConversationMessages: () => {},
 		subscribeToAgentChanges: () => () => {},
-		isAgentLoaded: () => true,
 		loadAgent: () => Promise.resolve(true),
 	}),
 }))

@@ -33,6 +33,8 @@ describe("createTodoTools", () => {
 		// Read them back
 		const result = await execute(todoRead, {})
 		expect(result).toEqual({
+			status: "success",
+			message: "Retrieved 1 todos.",
 			todos: [{ id: "1", content: "Test task", status: "pending" }],
 			count: 1,
 			pending: 1,
@@ -72,6 +74,8 @@ describe("todoRead", () => {
 		const result = await execute(todoRead, {})
 
 		expect(result).toEqual({
+			status: "success",
+			message: "No todos yet.",
 			todos: [],
 			count: 0,
 			pending: 0,
@@ -92,6 +96,8 @@ describe("todoRead", () => {
 		const result = await execute(todoRead, {})
 
 		expect(result).toEqual({
+			status: "success",
+			message: "Retrieved 3 todos.",
 			todos: [
 				{ id: "1", content: "Task 1", status: "pending" },
 				{ id: "2", content: "Task 2", status: "in_progress" },
@@ -115,6 +121,8 @@ describe("todoWrite", () => {
 		})
 
 		expect(result).toEqual({
+			status: "success",
+			message: "Saved 2 todos.",
 			todos: [
 				{ id: "1", content: "First task", status: "pending" },
 				{ id: "2", content: "Second task", status: "pending" },
@@ -143,6 +151,8 @@ describe("todoWrite", () => {
 		const result = await execute(todoRead, {})
 
 		expect(result).toEqual({
+			status: "success",
+			message: "Retrieved 1 todos.",
 			todos: [{ id: "3", content: "Task C", status: "in_progress" }],
 			count: 1,
 			pending: 1,
@@ -173,6 +183,8 @@ describe("todoWrite", () => {
 		const result = await execute(todoWrite, { todos: [] })
 
 		expect(result).toEqual({
+			status: "success",
+			message: "Cleared all todos.",
 			todos: [],
 			count: 0,
 			pending: 0,
@@ -192,6 +204,8 @@ describe("todoWrite", () => {
 
 		const result = await execute(todoRead, {})
 		expect(result).toEqual({
+			status: "success",
+			message: "No todos yet.",
 			todos: [],
 			count: 0,
 			pending: 0,

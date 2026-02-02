@@ -1,9 +1,18 @@
 import type { UIMessage, UIMessagePart } from "ai"
 
+export interface TokenUsage {
+	inputTokens?: number
+	outputTokens?: number
+	totalTokens?: number
+	reasoningTokens?: number
+	cachedInputTokens?: number
+}
+
 // Message metadata includes timestamp for display
 export interface TUIMessageMetadata {
 	timestamp: number
 	streaming?: true
+	usage?: TokenUsage
 }
 
 export type TUIMessage = UIMessage<TUIMessageMetadata>

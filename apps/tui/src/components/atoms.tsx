@@ -101,24 +101,7 @@ export function createAppAtoms(initial?: Partial<AppAtomsInit>) {
 
 export type AppAtoms = ReturnType<typeof createAppAtoms>
 
-export interface AppActions {
-	addMessage: (message: TUIMessage) => MessageAtom
-	clearMessages: () => void
-	setMessages: (messages: TUIMessage[]) => void
-	scrollToBottom: () => void
-	addPendingApproval: (approval: PendingApproval) => void
-	removePendingApproval: (toolCallId: string) => void
-	debugLog: (...args: unknown[]) => void
-	showAlert: (
-		message: string,
-		type?: AlertMessage["type"],
-		duration?: number,
-	) => string
-	dismissAlert: (id: string) => void
-	exitTui: (message?: string) => void
-}
-
-export function createAppActions(atoms: AppAtoms): AppActions {
+export function createAppActions(atoms: AppAtoms) {
 	let alertIdCounter = 0
 
 	const addMessage = (message: TUIMessage): MessageAtom => {
@@ -219,12 +202,9 @@ export function createAppActions(atoms: AppAtoms): AppActions {
 	}
 }
 
-export interface AppStore {
-	atoms: AppAtoms
-	actions: AppActions
-}
+export type AppActions = ReturnType<typeof createAppActions>
 
-export function createAppStore(initial?: Partial<AppAtomsInit>): AppStore {
+export function createAppStore(initial?: Partial<AppAtomsInit>) {
 	const atoms = createAppAtoms(initial)
 	const actions = createAppActions(atoms)
 	return { atoms, actions }

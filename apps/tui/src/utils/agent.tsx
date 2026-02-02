@@ -70,29 +70,153 @@ function createAgentController(
 			"output-denied",
 		])
 
+		const toolStateCounts = new Map<string, number>()
+		const toolOutputStatusCounts = new Map<string, number>()
+		const problematicToolParts: Array<{
+			messageId: string
+			toolCallId?: string
+			type: string
+			state?: string
+			outputStatus?: string
+		}> = []
+
 		const modelableMessages = uiMessages
 			.filter((m) => m.role !== "system")
 			.map((m) => {
 				if (m.role !== "assistant") return m
 				// Filter out tool parts that haven't completed
 				const filteredParts = m.parts.filter((part) => {
+					if (part.type.startsWith("tool-") || part.type === "dynamic-tool") {
+						const toolPart = part as {
+							type: string
+							toolCallId?: string
+							state?: string
+							output?: unknown
+						}
+						if (toolPart.state) {
+							toolStateCounts.set(
+								toolPart.state,
+								(toolStateCounts.get(toolPart.state) ?? 0) + 1,
+							)
+						}
+
+						const outputStatus =
+							toolPart.output &&
+							typeof toolPart.output === "object" &&
+							"status" in toolPart.output
+								? (toolPart.output as { status?: string }).status
+								: "undefined"
+
+						if (outputStatus) {
+							toolOutputStatusCounts.set(
+								outputStatus,
+								(toolOutputStatusCounts.get(outputStatus) ?? 0) + 1,
+							)
+						}
+
+						if (
+							(toolPart.state === "output-available" ||
+								toolPart.state === "output-error") &&
+							(outputStatus === "pending" ||
+								outputStatus === "streaming" ||
+								outputStatus === "undefined")
+						) {
+							problematicToolParts.push({
+								messageId: m.id,
+								toolCallId: toolPart.toolCallId,
+								type: toolPart.type,
+								state: toolPart.state,
+								outputStatus,
+							})
+						}
+					}
+
 					// Keep non-tool parts
 					if (!part.type.startsWith("tool-") && part.type !== "dynamic-tool") {
 						return true
 					}
 					// Only keep tool parts with completed states
-					const toolPart = part as { state?: string }
-					return toolPart.state && completedToolStates.has(toolPart.state)
+					const toolPart = part as { state?: string; output?: unknown }
+					if (!toolPart.state || !completedToolStates.has(toolPart.state)) {
+						if (toolPart.state) {
+							actions.debugLog(
+								"Skipping incomplete tool part",
+								toolPart.state,
+							)
+						}
+						return false
+					}
+
+					if (
+						toolPart.state === "output-available" ||
+						toolPart.state === "output-error"
+					) {
+						const outputStatus =
+							toolPart.output &&
+							typeof toolPart.output === "object" &&
+							"status" in toolPart.output
+								? (toolPart.output as { status?: string }).status
+								: undefined
+
+						if (outputStatus === "pending" || outputStatus === "streaming") {
+							actions.debugLog(
+								"Tool output not finalized",
+								toolPart.state,
+								outputStatus,
+							)
+						}
+
+					}
+
+					return true
 				})
 				return { ...m, parts: filteredParts }
 			})
 
-		conversationMessages = convertToModelMessages(modelableMessages, {
-			tools: currentAgentInstance?.tools,
-		})
-		actions.debugLog(
-			`Synced conversationMessages: ${conversationMessages.length} messages`,
-		)
+		if (toolStateCounts.size > 0) {
+			actions.debugLog(
+				"Tool part states",
+				Object.fromEntries(toolStateCounts),
+			)
+		}
+		if (toolOutputStatusCounts.size > 0) {
+			actions.debugLog(
+				"Tool output statuses",
+				Object.fromEntries(toolOutputStatusCounts),
+			)
+		}
+		if (problematicToolParts.length > 0) {
+			actions.debugLog(
+				"Tool parts with non-final outputs",
+				problematicToolParts.slice(0, 5),
+			)
+		}
+
+		try {
+			conversationMessages = convertToModelMessages(modelableMessages, {
+				tools: currentAgentInstance?.tools,
+				ignoreIncompleteToolCalls: true,
+			})
+		} catch (error) {
+			actions.debugLog(
+				"convertToModelMessages failed, retrying without tool schemas",
+				error instanceof Error ? error.message : String(error),
+			)
+			conversationMessages = convertToModelMessages(modelableMessages, {
+				ignoreIncompleteToolCalls: true,
+			})
+		}
+
+		const messageCount = Array.isArray(conversationMessages)
+			? conversationMessages.length
+			: 0
+		if (!Array.isArray(conversationMessages)) {
+			actions.debugLog(
+				"conversationMessages is not an array",
+				typeof conversationMessages,
+			)
+		}
+		actions.debugLog(`Synced conversationMessages: ${messageCount} messages`)
 	}
 
 	const saveCurrentChat = async () => {
@@ -506,7 +630,7 @@ function createAgentController(
 		atoms.isLoadingAtom.set(true)
 
 		try {
-			conversationMessages.push({ role: "user", content: userPrompt })
+			syncConversationMessages()
 			// Create assistant message with streaming flag already set
 			const assistantMsg = createAssistantMessage()
 			assistantMsg.metadata = {

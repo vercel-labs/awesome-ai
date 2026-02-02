@@ -1,5 +1,6 @@
 import { tool } from "ai"
 import { z } from "zod"
+import { toolOutput } from "./lib/tool-output"
 
 export const TodoItem = z.object({
 	id: z.string().describe("Unique identifier for the todo item"),
@@ -65,15 +66,20 @@ const TODO_WRITE_DESCRIPTION = `Create and manage a structured task list for the
 
 export function createTodoTools(storage?: TodoStorage) {
 	const store = storage ?? createInMemoryStorage()
+	const outputSchema = toolOutput({
+		pending: {},
+		success: {
+			todos: z.array(TodoItem),
+			count: z.number(),
+			pending: z.number(),
+		},
+		error: {},
+	})
 
 	const todoRead = tool({
 		description: TODO_READ_DESCRIPTION,
 		inputSchema: z.object({}),
-		outputSchema: z.object({
-			todos: z.array(TodoItem),
-			count: z.number(),
-			pending: z.number(),
-		}),
+		outputSchema,
 		async execute() {
 			const todos = await store.get()
 			const pending = todos.filter(
@@ -81,6 +87,11 @@ export function createTodoTools(storage?: TodoStorage) {
 			).length
 
 			return {
+				status: "success",
+				message:
+					todos.length === 0
+						? "No todos yet."
+						: `Retrieved ${todos.length} todos.`,
 				todos,
 				count: todos.length,
 				pending,
@@ -93,11 +104,7 @@ export function createTodoTools(storage?: TodoStorage) {
 		inputSchema: z.object({
 			todos: z.array(TodoItem).describe("The complete updated todo list"),
 		}),
-		outputSchema: z.object({
-			todos: z.array(TodoItem),
-			count: z.number(),
-			pending: z.number(),
-		}),
+		outputSchema,
 		async execute({ todos }) {
 			await store.set(todos)
 			const pending = todos.filter(
@@ -105,6 +112,11 @@ export function createTodoTools(storage?: TodoStorage) {
 			).length
 
 			return {
+				status: "success",
+				message:
+					todos.length === 0
+						? "Cleared all todos."
+						: `Saved ${todos.length} todos.`,
 				todos,
 				count: todos.length,
 				pending,

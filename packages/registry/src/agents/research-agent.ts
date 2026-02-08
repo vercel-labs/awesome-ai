@@ -1,5 +1,11 @@
+/**
+ * Read-only agent that explores, analyzes, and explains codebases without modifying any files.
+ */
 import { Experimental_Agent as Agent, type LanguageModel } from "ai"
-import { summarizeMessages } from "@/agents/lib/context"
+import {
+	createContextSummarizer,
+	stopOnTextResponse,
+} from "@/agents/lib/step-utils"
 import {
 	type EnvironmentOptions,
 	getEnvironmentContext,
@@ -27,35 +33,19 @@ export async function createAgent({
 	const env = await getEnvironmentContext({ cwd, ...environment })
 	const instructions = prompt(env)
 	const { todoRead, todoWrite } = createTodoTools(todoStorage)
-	const tools = {
-		read: readTool,
-		list: listTool,
-		grep: grepTool,
-		glob: globTool,
-		todoRead,
-		todoWrite,
-	}
 
-	const agent = new Agent({
+	return new Agent({
 		model,
 		instructions,
-		tools,
-		async prepareStep({ steps, messages }) {
-			const threshold = 200_000
-			const lastStep = steps.at(-1)
-			const inputTokens = lastStep?.usage?.inputTokens
-
-			if (!inputTokens || inputTokens < threshold) {
-				return {}
-			}
-
-			const summarized = await summarizeMessages(messages, model, {
-				threshold,
-				keepRecent: 8,
-				protectTokens: 40_000,
-			})
-			return summarized ? { messages: summarized } : {}
+		tools: {
+			read: readTool,
+			list: listTool,
+			grep: grepTool,
+			glob: globTool,
+			todoRead,
+			todoWrite,
 		},
+		prepareStep: createContextSummarizer(model),
 		providerOptions: {
 			openai: {
 				reasoningEffort: "medium",
@@ -68,19 +58,6 @@ export async function createAgent({
 				},
 			},
 		},
-		stopWhen: ({ steps }) => {
-			if (steps.length === 0) return false
-
-			const lastStep = steps[steps.length - 1]
-			if (!lastStep) return false
-
-			if (lastStep.toolCalls && lastStep.toolCalls.length > 0) {
-				return false
-			}
-
-			return true
-		},
+		stopWhen: stopOnTextResponse,
 	})
-
-	return agent
 }

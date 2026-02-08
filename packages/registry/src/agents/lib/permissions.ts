@@ -56,6 +56,25 @@ export const DANGEROUS_COMMANDS: Record<string, Permission> = {
 	"chmod 777*": "deny",
 }
 
+/** Full bash access with dangerous command guards. Requires user approval for unknown commands. */
+export const FULL_BASH_PERMISSIONS: Record<string, Permission> = {
+	...FILE_READ_COMMANDS,
+	...SEARCH_COMMANDS,
+	...TEXT_PROCESSING_COMMANDS,
+	...GIT_READ_COMMANDS,
+	...DANGEROUS_COMMANDS,
+	"*": "ask",
+}
+
+/** Read-only bash access. Denies any command not explicitly allowed. */
+export const READONLY_BASH_PERMISSIONS: Record<string, Permission> = {
+	...FILE_READ_COMMANDS,
+	...SEARCH_COMMANDS,
+	...TEXT_PROCESSING_COMMANDS,
+	...GIT_READ_COMMANDS,
+	"*": "deny",
+}
+
 /**
  * Match a value against a wildcard pattern.
  *

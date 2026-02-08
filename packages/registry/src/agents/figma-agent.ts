@@ -1,5 +1,11 @@
+/**
+ * Converts Figma designs into pixel-perfect code using Next.js, Tailwind CSS, and TypeScript.
+ */
 import { Experimental_Agent as Agent, type LanguageModel } from "ai"
-import { summarizeMessages } from "@/agents/lib/context"
+import {
+	createContextSummarizer,
+	stopOnTextResponse,
+} from "@/agents/lib/step-utils"
 import {
 	type EnvironmentOptions,
 	getEnvironmentContext,
@@ -36,50 +42,28 @@ export async function createAgent({
 	const env = await getEnvironmentContext({ cwd, ...environment })
 	const instructions = prompt(env)
 
-	// Set the project directory for Figma tools to use for persistence
 	if (cwd) {
 		setProjectDir(cwd)
 	}
 
-	const tools = {
-		// Figma tools
-		figmaFetch: createFigmaFetchTool(figmaToken),
-		migrationProgress,
-		migrationNext,
-		migrationStart,
-		migrationComplete,
-		migrationSkip,
-
-		// File system tools
-		read: readTool,
-		write: createWriteTool(),
-		edit: createEditTool(),
-		list: listTool,
-		glob: globTool,
-		grep: grepTool,
-	}
-
-	const agent = new Agent({
+	return new Agent({
 		model,
 		instructions,
-		tools,
-		async prepareStep({ steps, messages }) {
-			const threshold = 200_000
-			const lastStep = steps.at(-1)
-			const inputTokens = lastStep?.usage?.inputTokens
-
-			if (!inputTokens || inputTokens < threshold) {
-				return {}
-			}
-
-			const summarized = await summarizeMessages(messages, model, {
-				threshold,
-				keepRecent: 8,
-				protectTokens: 40_000,
-			})
-
-			return summarized ? { messages: summarized } : {}
+		tools: {
+			figmaFetch: createFigmaFetchTool(figmaToken),
+			migrationProgress,
+			migrationNext,
+			migrationStart,
+			migrationComplete,
+			migrationSkip,
+			read: readTool,
+			write: createWriteTool(),
+			edit: createEditTool(),
+			list: listTool,
+			glob: globTool,
+			grep: grepTool,
 		},
+		prepareStep: createContextSummarizer(model),
 		providerOptions: {
 			openai: {
 				reasoningEffort: "medium",
@@ -92,19 +76,6 @@ export async function createAgent({
 				},
 			},
 		},
-		stopWhen: ({ steps }) => {
-			if (steps.length === 0) return false
-
-			const lastStep = steps[steps.length - 1]
-			if (!lastStep) return false
-
-			if (lastStep.toolCalls && lastStep.toolCalls.length > 0) {
-				return false
-			}
-
-			return true
-		},
+		stopWhen: stopOnTextResponse,
 	})
-
-	return agent
 }

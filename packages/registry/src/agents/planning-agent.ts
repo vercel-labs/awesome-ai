@@ -1,16 +1,16 @@
+/**
+ * Read-only agent that analyzes code architecture, creates implementation plans, and reviews code for potential issues.
+ */
 import { Experimental_Agent as Agent, type LanguageModel } from "ai"
-import { summarizeMessages } from "@/agents/lib/context"
+import {
+	createContextSummarizer,
+	stopOnTextResponse,
+} from "@/agents/lib/step-utils"
 import {
 	type EnvironmentOptions,
 	getEnvironmentContext,
 } from "@/agents/lib/environment"
-import {
-	FILE_READ_COMMANDS,
-	GIT_READ_COMMANDS,
-	type Permission,
-	SEARCH_COMMANDS,
-	TEXT_PROCESSING_COMMANDS,
-} from "@/agents/lib/permissions"
+import { READONLY_BASH_PERMISSIONS } from "@/agents/lib/permissions"
 import { prompt } from "@/prompts/planning-agent"
 import { createBashTool } from "@/tools/bash"
 import { globTool } from "@/tools/glob"
@@ -18,14 +18,6 @@ import { grepTool } from "@/tools/grep"
 import { listTool } from "@/tools/list"
 import { readTool } from "@/tools/read"
 import { createTodoTools, type TodoStorage } from "@/tools/todo"
-
-const BASH_PERMISSIONS: Record<string, Permission> = {
-	...FILE_READ_COMMANDS,
-	...SEARCH_COMMANDS,
-	...TEXT_PROCESSING_COMMANDS,
-	...GIT_READ_COMMANDS,
-	"*": "deny",
-}
 
 export interface AgentSettings {
 	model: LanguageModel
@@ -43,36 +35,20 @@ export async function createAgent({
 	const env = await getEnvironmentContext({ cwd, ...environment })
 	const instructions = prompt(env)
 	const { todoRead, todoWrite } = createTodoTools(todoStorage)
-	const tools = {
-		read: readTool,
-		bash: createBashTool(BASH_PERMISSIONS),
-		list: listTool,
-		grep: grepTool,
-		glob: globTool,
-		todoRead,
-		todoWrite,
-	}
 
-	const agent = new Agent({
+	return new Agent({
 		model,
 		instructions,
-		tools,
-		async prepareStep({ steps, messages }) {
-			const threshold = 200_000
-			const lastStep = steps.at(-1)
-			const inputTokens = lastStep?.usage?.inputTokens
-
-			if (!inputTokens || inputTokens < threshold) {
-				return {}
-			}
-
-			const summarized = await summarizeMessages(messages, model, {
-				threshold,
-				keepRecent: 8,
-				protectTokens: 40_000,
-			})
-			return summarized ? { messages: summarized } : {}
+		tools: {
+			read: readTool,
+			bash: createBashTool(READONLY_BASH_PERMISSIONS),
+			list: listTool,
+			grep: grepTool,
+			glob: globTool,
+			todoRead,
+			todoWrite,
 		},
+		prepareStep: createContextSummarizer(model),
 		providerOptions: {
 			openai: {
 				reasoningEffort: "medium",
@@ -85,21 +61,6 @@ export async function createAgent({
 				},
 			},
 		},
-		stopWhen: ({ steps }) => {
-			if (steps.length === 0) return false
-
-			const lastStep = steps[steps.length - 1]
-			if (!lastStep) return false
-
-			// Continue if last step had tool calls (agent is still working)
-			if (lastStep.toolCalls && lastStep.toolCalls.length > 0) {
-				return false
-			}
-
-			// Default: Agent generated text, so stop.
-			return true
-		},
+		stopWhen: stopOnTextResponse,
 	})
-
-	return agent
 }

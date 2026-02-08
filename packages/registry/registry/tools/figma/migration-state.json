@@ -3,7 +3,10 @@
 	"type": "registry:tool",
 	"title": "Migration State",
 	"description": "Migration State tool for AI agents",
-	"dependencies": ["ai@beta", "zod"],
+	"dependencies": [
+		"ai",
+		"zod"
+	],
 	"files": [
 		{
 			"path": "tools/figma/migration-state.ts",

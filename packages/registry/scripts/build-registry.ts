@@ -34,9 +34,7 @@ async function loadNpmPackages(): Promise<Set<string>> {
  * Version overrides for specific packages.
  * Use this to pin to specific versions or tags (e.g., "beta" for pre-releases).
  */
-const VERSION_OVERRIDES: Record<string, string> = {
-	ai: "beta",
-}
+const VERSION_OVERRIDES: Record<string, string> = {}
 
 /**
  * Format dependency with version for output.

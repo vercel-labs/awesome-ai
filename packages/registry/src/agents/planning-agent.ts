@@ -1,5 +1,7 @@
 /**
  * Read-only agent that analyzes code architecture, creates implementation plans, and reviews code for potential issues.
+ * @category planning
+ * @category read-only
  */
 import { Experimental_Agent as Agent, type LanguageModel } from "ai"
 import {

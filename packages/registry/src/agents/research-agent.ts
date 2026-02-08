@@ -1,5 +1,7 @@
 /**
  * Read-only agent that explores, analyzes, and explains codebases without modifying any files.
+ * @category research
+ * @category read-only
  */
 import { Experimental_Agent as Agent, type LanguageModel } from "ai"
 import {

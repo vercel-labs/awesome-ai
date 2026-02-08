@@ -57,6 +57,14 @@ const registryFileSchema = z.object({
 	content: z.string(),
 })
 
+const registryConfigSchema = z.object({
+	name: z.string(),
+	type: z.string(),
+	required: z.boolean(),
+	description: z.string(),
+	env: z.string().optional(),
+})
+
 const registryItemSchema = z.object({
 	$schema: z.string().optional(),
 	name: z.string(),
@@ -66,6 +74,8 @@ const registryItemSchema = z.object({
 	dependencies: z.array(z.string()).optional(),
 	devDependencies: z.array(z.string()).optional(),
 	registryDependencies: z.array(z.string()).optional(),
+	categories: z.array(z.string()).optional(),
+	config: z.array(registryConfigSchema).optional(),
 	files: z.array(registryFileSchema),
 })
 
@@ -77,6 +87,7 @@ const registryIndexItemSchema = z.object({
 	dependencies: z.array(z.string()).optional(),
 	registryDependencies: z.array(z.string()).optional(),
 	categories: z.array(z.string()).optional(),
+	config: z.array(registryConfigSchema).optional(),
 })
 
 const registryIndexSchema = z.object({
@@ -143,6 +154,82 @@ function extractDescription(
 		prompts: `System prompt for ${toTitleCase(name)}`,
 	}
 	return defaults[type] || `${toTitleCase(name)} for AI agents`
+}
+
+/**
+ * Extract @category tags from JSDoc comments.
+ * Matches `@category <value>` lines inside a top-level JSDoc block.
+ */
+function extractCategories(content: string): string[] {
+	const jsdocMatch = content.match(/^\/\*\*([\s\S]*?)\*\//)
+	if (!jsdocMatch) return []
+
+	const categories: string[] = []
+	const categoryRegex = /@category\s+(\S+)/g
+	let match: RegExpExecArray | null
+	while ((match = categoryRegex.exec(jsdocMatch[1]!)) !== null) {
+		categories.push(match[1]!)
+	}
+	return categories
+}
+
+type ConfigEntry = z.infer<typeof registryConfigSchema>
+
+/**
+ * Extract @config tags from JSDoc comments.
+ *
+ * Supports two formats:
+ *   @config <name> <type>[?] - <description>   (field definition)
+ *   @config <name> env <ENV_VAR_NAME>           (env var binding)
+ *
+ * Multiple tags with the same name are merged into a single entry.
+ */
+function extractConfig(content: string): ConfigEntry[] {
+	const jsdocMatch = content.match(/^\/\*\*([\s\S]*?)\*\//)
+	if (!jsdocMatch) return []
+
+	const configMap = new Map<string, ConfigEntry>()
+	const configRegex = /@config\s+(\S+)\s+(.+)/g
+	let match: RegExpExecArray | null
+
+	while ((match = configRegex.exec(jsdocMatch[1]!)) !== null) {
+		const name = match[1]!
+		const rest = match[2]!.trim()
+
+		// Check if this is an env var binding: @config <name> env <ENV_VAR>
+		const envMatch = rest.match(/^env\s+(\S+)$/)
+		if (envMatch) {
+			const existing = configMap.get(name)
+			if (existing) {
+				existing.env = envMatch[1]!
+			} else {
+				configMap.set(name, {
+					name,
+					type: "string",
+					required: false,
+					description: "",
+					env: envMatch[1]!,
+				})
+			}
+			continue
+		}
+
+		// Field definition: @config <name> <type>[?] - <description>
+		const fieldMatch = rest.match(/^(\w+)(\?)?\s*-\s*(.+)$/)
+		if (fieldMatch) {
+			const existing = configMap.get(name)
+			const entry: ConfigEntry = {
+				name,
+				type: fieldMatch[1]!,
+				required: !fieldMatch[2],
+				description: fieldMatch[3]!.trim(),
+				...(existing?.env ? { env: existing.env } : {}),
+			}
+			configMap.set(name, entry)
+		}
+	}
+
+	return [...configMap.values()]
 }
 
 async function readLibFile(
@@ -261,6 +348,16 @@ async function processFile(
 		item.registryDependencies = registryDeps
 	}
 
+	const categories = extractCategories(content)
+	if (categories.length > 0) {
+		item.categories = categories
+	}
+
+	const config = extractConfig(content)
+	if (config.length > 0) {
+		item.config = config
+	}
+
 	return item
 }
 
@@ -336,6 +433,8 @@ async function writeRegistryIndex(
 			description: item.description,
 			dependencies: item.dependencies,
 			registryDependencies: item.registryDependencies,
+			categories: item.categories,
+			config: item.config,
 		})),
 	}
 

@@ -1,5 +1,7 @@
 /**
  * General-purpose coding agent that helps with software engineering tasks including writing, editing, debugging, and reviewing code.
+ * @category coding
+ * @category write
  */
 import { Experimental_Agent as Agent, type LanguageModel } from "ai"
 import {

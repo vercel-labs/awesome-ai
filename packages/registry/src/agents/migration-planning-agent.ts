@@ -1,5 +1,8 @@
 /**
  * Analyzes codebases and creates detailed migration plans with phased strategies, breaking change detection, and rollback points.
+ * @category migration
+ * @category planning
+ * @category read-only
  */
 import { Experimental_Agent as Agent, type LanguageModel } from "ai"
 import {

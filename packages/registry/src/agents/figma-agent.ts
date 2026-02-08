@@ -1,5 +1,9 @@
 /**
  * Converts Figma designs into pixel-perfect code using Next.js, Tailwind CSS, and TypeScript.
+ * @category design
+ * @category write
+ * @config figmaToken string? - Figma API access token for fetching designs
+ * @config figmaToken env FIGMA_ACCESS_TOKEN
  */
 import { Experimental_Agent as Agent, type LanguageModel } from "ai"
 import {

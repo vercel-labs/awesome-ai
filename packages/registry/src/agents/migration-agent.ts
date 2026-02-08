@@ -1,5 +1,7 @@
 /**
  * Executes code migrations by implementing changes from a migration plan in a phased, verified approach.
+ * @category migration
+ * @category write
  */
 import { Experimental_Agent as Agent, type LanguageModel } from "ai"
 import {

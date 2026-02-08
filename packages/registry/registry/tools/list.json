@@ -3,10 +3,7 @@
 	"type": "registry:tool",
 	"title": "List",
 	"description": "Lists files and directories in a given path.",
-	"dependencies": [
-		"ai",
-		"zod"
-	],
+	"dependencies": ["ai", "zod"],
 	"files": [
 		{
 			"path": "tools/list.ts",

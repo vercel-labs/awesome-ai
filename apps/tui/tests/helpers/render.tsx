@@ -1,6 +1,6 @@
+import { afterEach } from "bun:test"
 import { createTestRenderer } from "@opentui/core/testing"
 import { createRoot, flushSync } from "@opentui/react"
-import { afterEach } from "bun:test"
 import type { ReactNode } from "react"
 import { AppAtomsProvider, createAppStore } from "../../src/components/atoms"
 

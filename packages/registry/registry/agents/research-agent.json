@@ -3,9 +3,7 @@
 	"type": "registry:agent",
 	"title": "Research Agent",
 	"description": "Read-only agent that explores, analyzes, and explains codebases without modifying any files.",
-	"dependencies": [
-		"ai"
-	],
+	"dependencies": ["ai"],
 	"registryDependencies": [
 		"prompts:research-agent",
 		"tools:glob",
@@ -14,10 +12,7 @@
 		"tools:read",
 		"tools:todo"
 	],
-	"categories": [
-		"research",
-		"read-only"
-	],
+	"categories": ["research", "read-only"],
 	"files": [
 		{
 			"path": "agents/research-agent.ts",

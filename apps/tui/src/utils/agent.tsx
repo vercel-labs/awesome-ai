@@ -139,10 +139,7 @@ function createAgentController(
 					const toolPart = part as { state?: string; output?: unknown }
 					if (!toolPart.state || !completedToolStates.has(toolPart.state)) {
 						if (toolPart.state) {
-							actions.debugLog(
-								"Skipping incomplete tool part",
-								toolPart.state,
-							)
+							actions.debugLog("Skipping incomplete tool part", toolPart.state)
 						}
 						return false
 					}
@@ -165,7 +162,6 @@ function createAgentController(
 								outputStatus,
 							)
 						}
-
 					}
 
 					return true
@@ -174,10 +170,7 @@ function createAgentController(
 			})
 
 		if (toolStateCounts.size > 0) {
-			actions.debugLog(
-				"Tool part states",
-				Object.fromEntries(toolStateCounts),
-			)
+			actions.debugLog("Tool part states", Object.fromEntries(toolStateCounts))
 		}
 		if (toolOutputStatusCounts.size > 0) {
 			actions.debugLog(

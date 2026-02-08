@@ -7,13 +7,13 @@
  */
 import { Experimental_Agent as Agent, type LanguageModel } from "ai"
 import {
-	createContextSummarizer,
-	stopOnTextResponse,
-} from "@/agents/lib/step-utils"
-import {
 	type EnvironmentOptions,
 	getEnvironmentContext,
 } from "@/agents/lib/environment"
+import {
+	createContextSummarizer,
+	stopOnTextResponse,
+} from "@/agents/lib/step-utils"
 import { prompt } from "@/prompts/figma-agent"
 import { createEditTool } from "@/tools/edit"
 import { createFigmaFetchTool, setProjectDir } from "@/tools/figma/fetch"

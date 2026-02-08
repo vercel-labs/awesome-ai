@@ -3,10 +3,7 @@
 	"type": "registry:tool",
 	"title": "Glob",
 	"description": "Searches for files matching a glob pattern.",
-	"dependencies": [
-		"ai",
-		"zod"
-	],
+	"dependencies": ["ai", "zod"],
 	"files": [
 		{
 			"path": "tools/glob.ts",

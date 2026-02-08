@@ -3,9 +3,7 @@
 	"type": "registry:agent",
 	"title": "Migration Agent",
 	"description": "Executes code migrations by implementing changes from a migration plan in a phased, verified approach.",
-	"dependencies": [
-		"ai"
-	],
+	"dependencies": ["ai"],
 	"registryDependencies": [
 		"prompts:migration-agent",
 		"tools:bash",
@@ -17,10 +15,7 @@
 		"tools:todo",
 		"tools:write"
 	],
-	"categories": [
-		"migration",
-		"write"
-	],
+	"categories": ["migration", "write"],
 	"files": [
 		{
 			"path": "agents/migration-agent.ts",

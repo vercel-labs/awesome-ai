@@ -3,9 +3,7 @@
 	"type": "registry:agent",
 	"title": "Planning Agent",
 	"description": "Read-only agent that analyzes code architecture, creates implementation plans, and reviews code for potential issues.",
-	"dependencies": [
-		"ai"
-	],
+	"dependencies": ["ai"],
 	"registryDependencies": [
 		"prompts:planning-agent",
 		"tools:bash",
@@ -15,10 +13,7 @@
 		"tools:read",
 		"tools:todo"
 	],
-	"categories": [
-		"planning",
-		"read-only"
-	],
+	"categories": ["planning", "read-only"],
 	"files": [
 		{
 			"path": "agents/planning-agent.ts",

@@ -3,9 +3,7 @@
 	"type": "registry:agent",
 	"title": "Coding Agent",
 	"description": "General-purpose coding agent that helps with software engineering tasks including writing, editing, debugging, and reviewing code.",
-	"dependencies": [
-		"ai"
-	],
+	"dependencies": ["ai"],
 	"registryDependencies": [
 		"prompts:coding-agent",
 		"tools:bash",
@@ -17,10 +15,7 @@
 		"tools:todo",
 		"tools:write"
 	],
-	"categories": [
-		"coding",
-		"write"
-	],
+	"categories": ["coding", "write"],
 	"files": [
 		{
 			"path": "agents/coding-agent.ts",

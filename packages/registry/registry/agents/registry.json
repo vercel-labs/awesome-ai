@@ -7,9 +7,7 @@
 			"type": "registry:agent",
 			"title": "Figma Agent",
 			"description": "Converts Figma designs into pixel-perfect code using Next.js, Tailwind CSS, and TypeScript.",
-			"dependencies": [
-				"ai"
-			],
+			"dependencies": ["ai"],
 			"registryDependencies": [
 				"prompts:figma-agent",
 				"tools:edit",
@@ -21,10 +19,7 @@
 				"tools:read",
 				"tools:write"
 			],
-			"categories": [
-				"design",
-				"write"
-			],
+			"categories": ["design", "write"],
 			"config": [
 				{
 					"name": "figmaToken",
@@ -40,9 +35,7 @@
 			"type": "registry:agent",
 			"title": "Migration Planning Agent",
 			"description": "Analyzes codebases and creates detailed migration plans with phased strategies, breaking change detection, and rollback points.",
-			"dependencies": [
-				"ai"
-			],
+			"dependencies": ["ai"],
 			"registryDependencies": [
 				"prompts:migration-planning-agent",
 				"tools:bash",
@@ -52,20 +45,14 @@
 				"tools:read",
 				"tools:todo"
 			],
-			"categories": [
-				"migration",
-				"planning",
-				"read-only"
-			]
+			"categories": ["migration", "planning", "read-only"]
 		},
 		{
 			"name": "migration-agent",
 			"type": "registry:agent",
 			"title": "Migration Agent",
 			"description": "Executes code migrations by implementing changes from a migration plan in a phased, verified approach.",
-			"dependencies": [
-				"ai"
-			],
+			"dependencies": ["ai"],
 			"registryDependencies": [
 				"prompts:migration-agent",
 				"tools:bash",
@@ -77,19 +64,14 @@
 				"tools:todo",
 				"tools:write"
 			],
-			"categories": [
-				"migration",
-				"write"
-			]
+			"categories": ["migration", "write"]
 		},
 		{
 			"name": "research-agent",
 			"type": "registry:agent",
 			"title": "Research Agent",
 			"description": "Read-only agent that explores, analyzes, and explains codebases without modifying any files.",
-			"dependencies": [
-				"ai"
-			],
+			"dependencies": ["ai"],
 			"registryDependencies": [
 				"prompts:research-agent",
 				"tools:glob",
@@ -98,19 +80,14 @@
 				"tools:read",
 				"tools:todo"
 			],
-			"categories": [
-				"research",
-				"read-only"
-			]
+			"categories": ["research", "read-only"]
 		},
 		{
 			"name": "planning-agent",
 			"type": "registry:agent",
 			"title": "Planning Agent",
 			"description": "Read-only agent that analyzes code architecture, creates implementation plans, and reviews code for potential issues.",
-			"dependencies": [
-				"ai"
-			],
+			"dependencies": ["ai"],
 			"registryDependencies": [
 				"prompts:planning-agent",
 				"tools:bash",
@@ -120,19 +97,14 @@
 				"tools:read",
 				"tools:todo"
 			],
-			"categories": [
-				"planning",
-				"read-only"
-			]
+			"categories": ["planning", "read-only"]
 		},
 		{
 			"name": "coding-agent",
 			"type": "registry:agent",
 			"title": "Coding Agent",
 			"description": "General-purpose coding agent that helps with software engineering tasks including writing, editing, debugging, and reviewing code.",
-			"dependencies": [
-				"ai"
-			],
+			"dependencies": ["ai"],
 			"registryDependencies": [
 				"prompts:coding-agent",
 				"tools:bash",
@@ -144,10 +116,7 @@
 				"tools:todo",
 				"tools:write"
 			],
-			"categories": [
-				"coding",
-				"write"
-			]
+			"categories": ["coding", "write"]
 		}
 	]
 }

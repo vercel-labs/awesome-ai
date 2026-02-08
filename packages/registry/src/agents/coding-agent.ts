@@ -5,14 +5,14 @@
  */
 import { Experimental_Agent as Agent, type LanguageModel } from "ai"
 import {
-	createContextSummarizer,
-	stopOnTextResponse,
-} from "@/agents/lib/step-utils"
-import {
 	type EnvironmentOptions,
 	getEnvironmentContext,
 } from "@/agents/lib/environment"
 import { FULL_BASH_PERMISSIONS } from "@/agents/lib/permissions"
+import {
+	createContextSummarizer,
+	stopOnTextResponse,
+} from "@/agents/lib/step-utils"
 import { prompt } from "@/prompts/coding-agent"
 import { createBashTool } from "@/tools/bash"
 import { createEditTool } from "@/tools/edit"

@@ -5,13 +5,13 @@
  */
 import { Experimental_Agent as Agent, type LanguageModel } from "ai"
 import {
-	createContextSummarizer,
-	stopOnTextResponse,
-} from "@/agents/lib/step-utils"
-import {
 	type EnvironmentOptions,
 	getEnvironmentContext,
 } from "@/agents/lib/environment"
+import {
+	createContextSummarizer,
+	stopOnTextResponse,
+} from "@/agents/lib/step-utils"
 import { prompt } from "@/prompts/research-agent"
 import { globTool } from "@/tools/glob"
 import { grepTool } from "@/tools/grep"

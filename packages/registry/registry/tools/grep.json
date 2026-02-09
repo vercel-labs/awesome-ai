@@ -3,7 +3,10 @@
 	"type": "registry:tool",
 	"title": "Grep",
 	"description": "Searches for patterns in files using ripgrep.",
-	"dependencies": ["ai", "zod"],
+	"dependencies": [
+		"ai",
+		"zod"
+	],
 	"files": [
 		{
 			"path": "tools/grep.ts",

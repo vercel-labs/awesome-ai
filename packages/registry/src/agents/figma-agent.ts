@@ -4,11 +4,13 @@
  * @category write
  * @config figmaToken string? - Figma API access token for fetching designs
  * @config figmaToken env FIGMA_ACCESS_TOKEN
+ * @context coding
  */
 import { Experimental_Agent as Agent, type LanguageModel } from "ai"
 import {
 	type EnvironmentOptions,
 	getEnvironmentContext,
+	applyEnvironment,
 } from "@/agents/lib/environment"
 import {
 	createContextSummarizer,
@@ -44,7 +46,7 @@ export async function createAgent({
 	figmaToken,
 }: AgentSettings) {
 	const env = await getEnvironmentContext({ cwd, ...environment })
-	const instructions = prompt(env)
+	const instructions = applyEnvironment(prompt, env)
 
 	if (cwd) {
 		setProjectDir(cwd)

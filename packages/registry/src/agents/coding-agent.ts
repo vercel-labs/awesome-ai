@@ -2,11 +2,13 @@
  * General-purpose coding agent that helps with software engineering tasks including writing, editing, debugging, and reviewing code.
  * @category coding
  * @category write
+ * @context coding
  */
 import { Experimental_Agent as Agent, type LanguageModel } from "ai"
 import {
 	type EnvironmentOptions,
 	getEnvironmentContext,
+	applyEnvironment,
 } from "@/agents/lib/environment"
 import { FULL_BASH_PERMISSIONS } from "@/agents/lib/permissions"
 import {
@@ -37,7 +39,7 @@ export async function createAgent({
 	todoStorage,
 }: AgentSettings) {
 	const env = await getEnvironmentContext({ cwd, ...environment })
-	const instructions = prompt(env)
+	const instructions = applyEnvironment(prompt, env)
 	const { todoRead, todoWrite } = createTodoTools(todoStorage)
 
 	return new Agent({

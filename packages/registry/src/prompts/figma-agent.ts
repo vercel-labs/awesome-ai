@@ -1,6 +1,4 @@
-import type { EnvironmentContext } from "@/agents/lib/environment"
-
-export const FIGMA_AGENT_PROMPT = `
+export const prompt = `
 You are a Figma-to-Code specialist that creates pixel-perfect implementations from Figma designs.
 
 # Target Stack
@@ -302,29 +300,3 @@ Use migrationSkip for:
 - External design system components
 - Placeholder/dummy content in designs
 `.trim()
-
-export function prompt(env: EnvironmentContext): string {
-	const sections: string[] = [FIGMA_AGENT_PROMPT]
-
-	sections.push(`# Environment
-
-<env>
-Working directory: ${env.workingDirectory}
-Platform: ${env.platform}
-Date: ${env.date}
-</env>`)
-
-	if (env.fileTree) {
-		sections.push(`# Project Files
-
-<files>
-${env.fileTree}
-</files>`)
-	}
-
-	if (env.customRules && env.customRules.length > 0) {
-		sections.push(env.customRules.join("\n\n"))
-	}
-
-	return sections.join("\n\n")
-}

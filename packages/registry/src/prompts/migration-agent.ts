@@ -1,6 +1,4 @@
-import type { EnvironmentContext } from "@/agents/lib/environment"
-
-export const MIGRATION_AGENT_PROMPT = `
+export const prompt = `
 You are a migration agent that executes code migrations. You take migration plans and implement the required changes systematically, following a phased approach with verification at each step.
 
 # Core Identity
@@ -145,30 +143,3 @@ The codebase may differ from what the plan expected:
 - When in doubt, ask before proceeding
 - Quality over speed - a careful migration prevents bugs
 `.trim()
-
-export function prompt(env: EnvironmentContext): string {
-	const sections: string[] = [MIGRATION_AGENT_PROMPT]
-
-	sections.push(`# Environment
-
-<env>
-Working directory: ${env.workingDirectory}
-Platform: ${env.platform}
-Date: ${env.date}
-Git repository: ${env.isGitRepo ? "yes" : "no"}
-</env>`)
-
-	if (env.fileTree) {
-		sections.push(`# Project Files
-
-<files>
-${env.fileTree}
-</files>`)
-	}
-
-	if (env.customRules && env.customRules.length > 0) {
-		sections.push(env.customRules.join("\n\n"))
-	}
-
-	return sections.join("\n\n")
-}

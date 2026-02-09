@@ -74,6 +74,7 @@ const registryItemSchema = z.object({
 	registryDependencies: z.array(z.string()).optional(),
 	categories: z.array(z.string()).optional(),
 	config: z.array(registryConfigSchema).optional(),
+	context: z.array(z.string()).optional(),
 	files: z.array(registryFileSchema),
 })
 
@@ -86,6 +87,7 @@ const registryIndexItemSchema = z.object({
 	registryDependencies: z.array(z.string()).optional(),
 	categories: z.array(z.string()).optional(),
 	config: z.array(registryConfigSchema).optional(),
+	context: z.array(z.string()).optional(),
 })
 
 const registryIndexSchema = z.object({
@@ -230,6 +232,24 @@ function extractConfig(content: string): ConfigEntry[] {
 	return [...configMap.values()]
 }
 
+/**
+ * Extract @context tags from JSDoc comments.
+ * Matches `@context <type>` lines (e.g., `@context coding`).
+ * Each type represents a kind of runtime context the agent needs from its host.
+ */
+function extractContext(content: string): string[] {
+	const jsdocMatch = content.match(/^\/\*\*([\s\S]*?)\*\//)
+	if (!jsdocMatch) return []
+
+	const contexts: string[] = []
+	const contextRegex = /@context\s+(\S+)/g
+	let match: RegExpExecArray | null
+	while ((match = contextRegex.exec(jsdocMatch[1]!)) !== null) {
+		contexts.push(match[1]!)
+	}
+	return contexts
+}
+
 async function readLibFile(
 	libName: string,
 	type: "tools" | "agents" = "tools",
@@ -356,6 +376,11 @@ async function processFile(
 		item.config = config
 	}
 
+	const context = extractContext(content)
+	if (context.length > 0) {
+		item.context = context
+	}
+
 	return item
 }
 
@@ -433,6 +458,7 @@ async function writeRegistryIndex(
 			registryDependencies: item.registryDependencies,
 			categories: item.categories,
 			config: item.config,
+			context: item.context,
 		})),
 	}
 

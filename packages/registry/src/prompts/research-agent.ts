@@ -1,6 +1,4 @@
-import type { EnvironmentContext } from "@/agents/lib/environment"
-
-export const RESEARCH_AGENT_PROMPT = `
+export const prompt = `
 You are a research agent that answers questions about codebases. You explore, analyze, and explain code — but you do not modify anything.
 
 # Core Identity
@@ -99,30 +97,3 @@ When answering questions:
 - Keep responses focused and relevant
 - Cite your sources (files, line numbers)
 `.trim()
-
-export function prompt(env: EnvironmentContext): string {
-	const sections: string[] = [RESEARCH_AGENT_PROMPT]
-
-	sections.push(`# Environment
-
-<env>
-Working directory: ${env.workingDirectory}
-Platform: ${env.platform}
-Date: ${env.date}
-Git repository: ${env.isGitRepo ? "yes" : "no"}
-</env>`)
-
-	if (env.fileTree) {
-		sections.push(`# Project Files
-
-<files>
-${env.fileTree}
-</files>`)
-	}
-
-	if (env.customRules && env.customRules.length > 0) {
-		sections.push(env.customRules.join("\n\n"))
-	}
-
-	return sections.join("\n\n")
-}

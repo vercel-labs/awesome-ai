@@ -2,11 +2,13 @@
  * Executes code migrations by implementing changes from a migration plan in a phased, verified approach.
  * @category migration
  * @category write
+ * @context coding
  */
 import { Experimental_Agent as Agent, type LanguageModel } from "ai"
 import {
 	type EnvironmentOptions,
 	getEnvironmentContext,
+	applyEnvironment,
 } from "@/agents/lib/environment"
 import { FULL_BASH_PERMISSIONS } from "@/agents/lib/permissions"
 import {
@@ -37,7 +39,7 @@ export async function createAgent({
 	todoStorage,
 }: AgentSettings) {
 	const env = await getEnvironmentContext({ cwd, ...environment })
-	const instructions = prompt(env)
+	const instructions = applyEnvironment(prompt, env)
 	const { todoRead, todoWrite } = createTodoTools(todoStorage)
 
 	return new Agent({

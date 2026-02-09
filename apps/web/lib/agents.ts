@@ -19,6 +19,7 @@ export interface Agent {
 	promptName: string | null
 	dependencies: string[]
 	config: AgentConfig[]
+	context: string[]
 }
 
 interface RegistryIndex {
@@ -33,6 +34,7 @@ interface RegistryIndex {
 		registryDependencies?: string[]
 		categories?: string[]
 		config?: AgentConfig[]
+		context?: string[]
 	}>
 }
 
@@ -69,6 +71,7 @@ function toAgent(item: RegistryIndex["items"][number]): Agent {
 		promptName,
 		dependencies: item.dependencies ?? [],
 		config: item.config ?? [],
+		context: item.context ?? [],
 	}
 }
 
@@ -90,17 +93,6 @@ export async function getAllCategories(): Promise<string[]> {
 	const agents = await getAllAgents()
 	const categories = new Set(agents.flatMap((a) => a.categories))
 	return [...categories].sort()
-}
-
-export async function getAllTools(): Promise<
-	Array<{ name: string; title: string; description: string }>
-> {
-	const registry = await fetchRegistryFile<RegistryIndex>("tools/registry.json")
-	return registry.items.map((item) => ({
-		name: item.name,
-		title: item.title,
-		description: item.description,
-	}))
 }
 
 /**

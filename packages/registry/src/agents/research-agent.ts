@@ -2,11 +2,13 @@
  * Read-only agent that explores, analyzes, and explains codebases without modifying any files.
  * @category research
  * @category read-only
+ * @context coding
  */
 import { Experimental_Agent as Agent, type LanguageModel } from "ai"
 import {
 	type EnvironmentOptions,
 	getEnvironmentContext,
+	applyEnvironment,
 } from "@/agents/lib/environment"
 import {
 	createContextSummarizer,
@@ -33,7 +35,7 @@ export async function createAgent({
 	todoStorage,
 }: AgentSettings) {
 	const env = await getEnvironmentContext({ cwd, ...environment })
-	const instructions = prompt(env)
+	const instructions = applyEnvironment(prompt, env)
 	const { todoRead, todoWrite } = createTodoTools(todoStorage)
 
 	return new Agent({

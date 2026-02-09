@@ -169,3 +169,37 @@ export async function getEnvironmentContext(
 		customRules,
 	}
 }
+
+/**
+ * Appends environment context (working directory, platform, file tree,
+ * custom rules) to a base prompt string.
+ */
+export function applyEnvironment(
+	basePrompt: string,
+	env: EnvironmentContext,
+): string {
+	const sections: string[] = [basePrompt]
+
+	sections.push(`# Environment
+
+<env>
+Working directory: ${env.workingDirectory}
+Platform: ${env.platform}
+Date: ${env.date}
+Git repository: ${env.isGitRepo ? "yes" : "no"}
+</env>`)
+
+	if (env.fileTree) {
+		sections.push(`# Project Files
+
+<files>
+${env.fileTree}
+</files>`)
+	}
+
+	if (env.customRules && env.customRules.length > 0) {
+		sections.push(env.customRules.join("\n\n"))
+	}
+
+	return sections.join("\n\n")
+}

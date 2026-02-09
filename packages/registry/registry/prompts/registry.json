@@ -12,7 +12,7 @@
 			"name": "pages-to-app-router",
 			"type": "registry:prompt",
 			"title": "Pages To App Router",
-			"description": "System prompt for Pages To App Router"
+			"description": "Analyze this Next.js project and create a comprehensive migration plan for converting from Pages Rou..."
 		},
 		{
 			"name": "migration-planning-agent",

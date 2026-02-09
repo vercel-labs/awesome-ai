@@ -1,5 +1,4 @@
-export function prompt(): string {
-	return `
+export const prompt = `
 Analyze this Next.js project and create a comprehensive migration plan for converting from Pages Router to App Router.
 
 # Migration Requirements
@@ -272,4 +271,3 @@ Please analyze the project and create a detailed, phased migration plan. Use tod
 6. **Risk level** (Low/Medium/High) with justification
 7. **Verification steps** to confirm successful migration
 `.trim()
-}

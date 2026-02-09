@@ -2,11 +2,13 @@
  * Read-only agent that analyzes code architecture, creates implementation plans, and reviews code for potential issues.
  * @category planning
  * @category read-only
+ * @context coding
  */
 import { Experimental_Agent as Agent, type LanguageModel } from "ai"
 import {
 	type EnvironmentOptions,
 	getEnvironmentContext,
+	applyEnvironment,
 } from "@/agents/lib/environment"
 import { READONLY_BASH_PERMISSIONS } from "@/agents/lib/permissions"
 import {
@@ -35,7 +37,7 @@ export async function createAgent({
 	todoStorage,
 }: AgentSettings) {
 	const env = await getEnvironmentContext({ cwd, ...environment })
-	const instructions = prompt(env)
+	const instructions = applyEnvironment(prompt, env)
 	const { todoRead, todoWrite } = createTodoTools(todoStorage)
 
 	return new Agent({

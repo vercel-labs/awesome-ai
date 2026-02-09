@@ -1,4 +1,4 @@
-import { ArrowLeft, Settings, Tag, Wrench } from "lucide-react"
+import { ArrowLeft, Info, Settings, Tag, Wrench } from "lucide-react"
 import Link from "next/link"
 import { notFound } from "next/navigation"
 import { CliCommand } from "@/components/cli-command"
@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { getAgentBySlug, getAllAgents, getPromptContent } from "@/lib/agents"
+import { getAllTools } from "@/lib/tools"
 
 export async function generateStaticParams() {
 	const agents = await getAllAgents()
@@ -43,9 +44,12 @@ export default async function AgentPage({
 		notFound()
 	}
 
-	const promptContent = agent.promptName
-		? await getPromptContent(agent.promptName)
-		: null
+	const [promptContent, allTools] = await Promise.all([
+		agent.promptName ? getPromptContent(agent.promptName) : null,
+		getAllTools(),
+	])
+
+	const toolSet = new Set(allTools.map((t) => t.name))
 
 	return (
 		<div className="min-h-screen bg-background">
@@ -127,13 +131,24 @@ export default async function AgentPage({
 							<Wrench className="h-5 w-5 text-primary" />
 							Tools
 						</h2>
-						<div className="flex flex-wrap gap-2">
-							{agent.tools.map((tool) => (
+					<div className="flex flex-wrap gap-2">
+						{agent.tools.map((tool) =>
+							toolSet.has(tool) ? (
+								<Link key={tool} href={`/tools/${tool}`}>
+									<Badge
+										variant="outline"
+										className="hover:border-primary/50 hover:text-primary transition-colors cursor-pointer"
+									>
+										{tool}
+									</Badge>
+								</Link>
+							) : (
 								<Badge key={tool} variant="outline">
 									{tool}
 								</Badge>
-							))}
-						</div>
+							),
+						)}
+					</div>
 					</div>
 				)}
 
@@ -174,20 +189,30 @@ export default async function AgentPage({
 					</div>
 				)}
 
-				{/* System Prompt Section */}
-				{promptContent && (
-					<div className="mb-12">
-						<h2 className="text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
-							<span className="text-primary">{"$"}</span>
-							System Prompt
-						</h2>
-						<Card className="overflow-x-auto">
-							<CardContent className="pt-6">
-								<MarkdownRenderer content={promptContent} />
-							</CardContent>
-						</Card>
-					</div>
-				)}
+			{/* System Prompt Section */}
+			{promptContent && (
+				<div className="mb-12">
+					<h2 className="text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
+						<span className="text-primary">{"$"}</span>
+						System Prompt
+					</h2>
+					{agent.context.includes("coding") && (
+						<div className="flex items-start gap-3 p-3 rounded border border-border bg-secondary/50 mb-4 text-sm text-muted-foreground">
+							<Info className="h-4 w-4 mt-0.5 shrink-0 text-primary" />
+							<p>
+								This agent requires a working directory. At runtime,
+								environment context (platform, file tree, and custom rules)
+								is appended to the prompt automatically.
+							</p>
+						</div>
+					)}
+					<Card className="overflow-x-auto">
+						<CardContent className="pt-6">
+							<MarkdownRenderer content={promptContent} />
+						</CardContent>
+					</Card>
+				</div>
+			)}
 			</main>
 
 			{/* Footer */}

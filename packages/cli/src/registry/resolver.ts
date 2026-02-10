@@ -201,7 +201,12 @@ export async function resolveRegistryTree(
 			.join("\n"),
 	})
 
-	return parsed
+	// Strip the internal _source field to return clean RegistryItem[]
+	const resolvedItems: RegistryItem[] = payload.map(
+		({ _source, ...rest }) => rest,
+	)
+
+	return { ...parsed, resolvedItems }
 }
 
 async function resolveDependenciesRecursively(

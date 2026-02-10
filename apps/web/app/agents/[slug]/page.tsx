@@ -131,24 +131,24 @@ export default async function AgentPage({
 							<Wrench className="h-5 w-5 text-primary" />
 							Tools
 						</h2>
-					<div className="flex flex-wrap gap-2">
-						{agent.tools.map((tool) =>
-							toolSet.has(tool) ? (
-								<Link key={tool} href={`/tools/${tool}`}>
-									<Badge
-										variant="outline"
-										className="hover:border-primary/50 hover:text-primary transition-colors cursor-pointer"
-									>
+						<div className="flex flex-wrap gap-2">
+							{agent.tools.map((tool) =>
+								toolSet.has(tool) ? (
+									<Link key={tool} href={`/tools/${tool}`}>
+										<Badge
+											variant="outline"
+											className="hover:border-primary/50 hover:text-primary transition-colors cursor-pointer"
+										>
+											{tool}
+										</Badge>
+									</Link>
+								) : (
+									<Badge key={tool} variant="outline">
 										{tool}
 									</Badge>
-								</Link>
-							) : (
-								<Badge key={tool} variant="outline">
-									{tool}
-								</Badge>
-							),
-						)}
-					</div>
+								),
+							)}
+						</div>
 					</div>
 				)}
 
@@ -189,30 +189,30 @@ export default async function AgentPage({
 					</div>
 				)}
 
-			{/* System Prompt Section */}
-			{promptContent && (
-				<div className="mb-12">
-					<h2 className="text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
-						<span className="text-primary">{"$"}</span>
-						System Prompt
-					</h2>
-					{agent.context.includes("coding") && (
-						<div className="flex items-start gap-3 p-3 rounded border border-border bg-secondary/50 mb-4 text-sm text-muted-foreground">
-							<Info className="h-4 w-4 mt-0.5 shrink-0 text-primary" />
-							<p>
-								This agent requires a working directory. At runtime,
-								environment context (platform, file tree, and custom rules)
-								is appended to the prompt automatically.
-							</p>
-						</div>
-					)}
-					<Card className="overflow-x-auto">
-						<CardContent className="pt-6">
-							<MarkdownRenderer content={promptContent} />
-						</CardContent>
-					</Card>
-				</div>
-			)}
+				{/* System Prompt Section */}
+				{promptContent && (
+					<div className="mb-12">
+						<h2 className="text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
+							<span className="text-primary">{"$"}</span>
+							System Prompt
+						</h2>
+						{agent.context.includes("coding") && (
+							<div className="flex items-start gap-3 p-3 rounded border border-border bg-secondary/50 mb-4 text-sm text-muted-foreground">
+								<Info className="h-4 w-4 mt-0.5 shrink-0 text-primary" />
+								<p>
+									This agent requires a working directory. At runtime,
+									environment context (platform, file tree, and custom rules) is
+									appended to the prompt automatically.
+								</p>
+							</div>
+						)}
+						<Card className="overflow-x-auto">
+							<CardContent className="pt-6">
+								<MarkdownRenderer content={promptContent} />
+							</CardContent>
+						</Card>
+					</div>
+				)}
 			</main>
 
 			{/* Footer */}

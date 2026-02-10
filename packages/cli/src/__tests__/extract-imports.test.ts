@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest"
-import { extractImports } from "../extract-imports"
+import { extractImports } from "../utils/extract-imports"
 
 describe("extractImports", () => {
 	const defaultOptions = {

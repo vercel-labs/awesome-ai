@@ -50,17 +50,15 @@ function toTool(item: RegistryIndex["items"][number]): Tool {
 }
 
 export async function getAllTools(): Promise<Tool[]> {
-	const registry = await fetchRegistryFile<RegistryIndex>(
-		"tools/registry.json",
-	)
+	const registry = await fetchRegistryFile<RegistryIndex>("tools/registry.json")
 	return registry.items.map(toTool)
 }
 
-export async function getToolBySlug(slug: string): Promise<ToolDetail | undefined> {
+export async function getToolBySlug(
+	slug: string,
+): Promise<ToolDetail | undefined> {
 	try {
-		const item = await fetchRegistryFile<RegistryItem>(
-			`tools/${slug}.json`,
-		)
+		const item = await fetchRegistryFile<RegistryItem>(`tools/${slug}.json`)
 		return {
 			name: item.name,
 			title: item.title,

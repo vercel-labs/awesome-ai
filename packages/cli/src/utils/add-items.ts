@@ -1,12 +1,18 @@
 import { configWithDefaults } from "../registry/config"
 import { resolveRegistryTree } from "../registry/resolver"
-import type { RegistryItemCategory } from "../registry/schema"
+import type { RegistryItem, RegistryItemCategory } from "../registry/schema"
 import type { Config } from "../schema"
 import { handleError } from "./handle-error"
 import { logger } from "./logger"
 import { spinner } from "./spinner"
 import { updateDependencies } from "./update-dependencies"
 import { updateFiles } from "./update-files"
+
+export interface AddItemsResult {
+	filesCreated: string[]
+	filesUpdated: string[]
+	resolvedItems: RegistryItem[]
+}
 
 export async function addItems(
 	items: string[],
@@ -18,7 +24,7 @@ export async function addItems(
 		path?: string
 		yes?: boolean
 	},
-) {
+): Promise<AddItemsResult | undefined> {
 	options = {
 		overwrite: false,
 		silent: false,
@@ -68,5 +74,11 @@ export async function addItems(
 
 	if (tree.docs) {
 		logger.info(tree.docs)
+	}
+
+	return {
+		filesCreated,
+		filesUpdated,
+		resolvedItems: tree.resolvedItems,
 	}
 }

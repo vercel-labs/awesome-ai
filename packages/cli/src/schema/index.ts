@@ -9,6 +9,7 @@ export const rawConfigSchema = z
 	.object({
 		$schema: z.string().optional(),
 		tsx: coerceBoolean,
+		registryDir: z.string().optional(),
 		aliases: z.object({
 			agents: z.string(),
 			tools: z.string(),
@@ -24,6 +25,7 @@ export const configSchema = rawConfigSchema.extend({
 		agents: z.string(),
 		tools: z.string(),
 		prompts: z.string(),
+		registry: z.string(),
 	}),
 })
 

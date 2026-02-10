@@ -182,10 +182,7 @@ export async function summarizeMessages(
 	// Keep at least 1 "old" message when possible so summarization can still run
 	// for short-but-very-large conversations.
 	const systemMsg = messages[0]!
-	const recentCount = Math.min(
-		keepRecent,
-		Math.max(1, messages.length - 2),
-	)
+	const recentCount = Math.min(keepRecent, Math.max(1, messages.length - 2))
 	let splitIndex = messages.length - recentCount
 	if (splitIndex < 1) splitIndex = 1
 

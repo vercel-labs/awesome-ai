@@ -3,27 +3,6 @@
 	"type": "registry:agent",
 	"title": "Migration Agent",
 	"description": "Executes code migrations by implementing changes from a migration plan in a phased, verified approach.",
-	"dependencies": [
-		"ai"
-	],
-	"registryDependencies": [
-		"prompts:migration-agent",
-		"tools:bash",
-		"tools:edit",
-		"tools:glob",
-		"tools:grep",
-		"tools:list",
-		"tools:read",
-		"tools:todo",
-		"tools:write"
-	],
-	"categories": [
-		"migration",
-		"write"
-	],
-	"context": [
-		"coding"
-	],
 	"files": [
 		{
 			"path": "agents/migration-agent.ts",
@@ -43,7 +22,21 @@
 		{
 			"path": "agents/lib/step-utils.ts",
 			"type": "registry:lib",
-			"content": "import type { LanguageModel, ModelMessage } from \"ai\"\nimport { summarizeMessages } from \"@/agents/lib/context\"\n\nconst SUMMARIZE_THRESHOLD = 200_000\nconst SUMMARIZE_KEEP_RECENT = 8\nconst SUMMARIZE_PROTECT_TOKENS = 40_000\n\n/**\n * Creates a `prepareStep` handler that automatically summarizes\n * older messages once the conversation exceeds the token threshold.\n */\nexport function createContextSummarizer(model: LanguageModel) {\n\treturn async ({\n\t\tsteps,\n\t\tmessages,\n\t}: {\n\t\tsteps: Array<{ usage?: { inputTokens?: number } }>\n\t\tmessages: ModelMessage[]\n\t}) => {\n\t\tconst lastStep = steps.at(-1)\n\t\tconst inputTokens = lastStep?.usage?.inputTokens\n\n\t\tif (!inputTokens || inputTokens < SUMMARIZE_THRESHOLD) {\n\t\t\treturn {}\n\t\t}\n\n\t\tconst summarized = await summarizeMessages(messages, model, {\n\t\t\tthreshold: SUMMARIZE_THRESHOLD,\n\t\t\tkeepRecent: SUMMARIZE_KEEP_RECENT,\n\t\t\tprotectTokens: SUMMARIZE_PROTECT_TOKENS,\n\t\t})\n\n\t\treturn summarized ? { messages: summarized } : {}\n\t}\n}\n\n/**\n * Stops the agent loop when the last step produced text\n * without making any tool calls (i.e., the agent is done).\n */\nexport function stopOnTextResponse({\n\tsteps,\n}: {\n\tsteps: Array<{ toolCalls?: Array<unknown> }>\n}) {\n\tif (steps.length === 0) return false\n\n\tconst lastStep = steps[steps.length - 1]\n\tif (!lastStep) return false\n\n\tif (lastStep.toolCalls && lastStep.toolCalls.length > 0) {\n\t\treturn false\n\t}\n\n\treturn true\n}\n"
+			"content": "import type { LanguageModel, ModelMessage } from \"ai\"\nimport { summarizeMessages } from \"@/agents/lib/context\"\n\nconst SUMMARIZE_THRESHOLD = 180_000\nconst SUMMARIZE_KEEP_RECENT = 8\nconst SUMMARIZE_PROTECT_TOKENS = 40_000\n\n/**\n * Rough token estimate: ~4 chars per token.\n * Used as a fallback when actual usage data isn't available (e.g. first step).\n */\nfunction estimateMessageTokens(messages: ModelMessage[]): number {\n\tlet chars = 0\n\tfor (const msg of messages) {\n\t\tif (typeof msg.content === \"string\") {\n\t\t\tchars += msg.content.length\n\t\t} else if (Array.isArray(msg.content)) {\n\t\t\tfor (const part of msg.content) {\n\t\t\t\tif (\"text\" in part && typeof part.text === \"string\") {\n\t\t\t\t\tchars += part.text.length\n\t\t\t\t} else if (\"value\" in part) {\n\t\t\t\t\tchars += JSON.stringify(part.value).length\n\t\t\t\t} else if (\"input\" in part) {\n\t\t\t\t\tchars += JSON.stringify(part.input).length\n\t\t\t\t}\n\t\t\t\tif (\"output\" in part) {\n\t\t\t\t\tchars += JSON.stringify(part.output).length\n\t\t\t\t}\n\t\t\t}\n\t\t}\n\t}\n\treturn Math.ceil(chars / 4)\n}\n\n/**\n * Creates a `prepareStep` handler that automatically summarizes\n * older messages once the conversation exceeds the token threshold.\n *\n * Uses the previous step's actual inputTokens when available,\n * and falls back to a character-based estimate for the first step\n * (where no usage data exists yet).\n */\nexport function createContextSummarizer(model: LanguageModel) {\n\treturn async ({\n\t\tsteps,\n\t\tmessages,\n\t}: {\n\t\tsteps: Array<{ usage?: { inputTokens?: number } }>\n\t\tmessages: ModelMessage[]\n\t}) => {\n\t\tconst lastStep = steps.at(-1)\n\t\tconst inputTokens =\n\t\t\tlastStep?.usage?.inputTokens ?? estimateMessageTokens(messages)\n\n\t\tif (inputTokens < SUMMARIZE_THRESHOLD) {\n\t\t\treturn {}\n\t\t}\n\n\t\tconst summarized = await summarizeMessages(messages, model, {\n\t\t\tthreshold: SUMMARIZE_THRESHOLD,\n\t\t\tkeepRecent: SUMMARIZE_KEEP_RECENT,\n\t\t\tprotectTokens: SUMMARIZE_PROTECT_TOKENS,\n\t\t})\n\n\t\treturn summarized ? { messages: summarized } : {}\n\t}\n}\n\n/**\n * Stops the agent loop when the last step produced text\n * without making any tool calls (i.e., the agent is done).\n */\nexport function stopOnTextResponse({\n\tsteps,\n}: {\n\tsteps: Array<{ toolCalls?: Array<unknown> }>\n}) {\n\tif (steps.length === 0) return false\n\n\tconst lastStep = steps[steps.length - 1]\n\tif (!lastStep) return false\n\n\tif (lastStep.toolCalls && lastStep.toolCalls.length > 0) {\n\t\treturn false\n\t}\n\n\treturn true\n}\n"
 		}
-	]
+	],
+	"dependencies": ["ai"],
+	"registryDependencies": [
+		"prompts:migration-agent",
+		"tools:bash",
+		"tools:edit",
+		"tools:glob",
+		"tools:grep",
+		"tools:list",
+		"tools:read",
+		"tools:todo",
+		"tools:write"
+	],
+	"categories": ["migration", "write"],
+	"context": ["coding"]
 }

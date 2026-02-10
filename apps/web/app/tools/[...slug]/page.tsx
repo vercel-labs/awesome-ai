@@ -1,13 +1,13 @@
 import { ArrowLeft, Box, Package, Terminal } from "lucide-react"
 import Link from "next/link"
 import { notFound } from "next/navigation"
-import { Header } from "@/components/header"
 import { CliCommand } from "@/components/cli-command"
+import { Header } from "@/components/header"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { getAllTools, getToolBySlug } from "@/lib/tools"
 import { getAllAgents } from "@/lib/agents"
+import { getAllTools, getToolBySlug } from "@/lib/tools"
 
 export async function generateStaticParams() {
 	const tools = await getAllTools()
@@ -45,9 +45,7 @@ export default async function ToolPage({
 	}
 
 	const agents = await getAllAgents()
-	const usedByAgents = agents.filter((agent) =>
-		agent.tools.includes(tool.name),
-	)
+	const usedByAgents = agents.filter((agent) => agent.tools.includes(tool.name))
 
 	const mainFile = tool.files.find((f) => f.type === "registry:tool")
 
@@ -88,8 +86,7 @@ export default async function ToolPage({
 						<CardContent>
 							<CliCommand command={`awesome-ai add ${tool.name}`} />
 							<p className="mt-4 text-xs text-muted-foreground">
-								Run this command in your project directory to install this
-								tool.
+								Run this command in your project directory to install this tool.
 							</p>
 						</CardContent>
 					</Card>

@@ -1,0 +1,10 @@
+{
+	"$schema": "https://awesome-ai.com/schema.json",
+	"tsx": true,
+	"registryDir": "registry",
+	"aliases": {
+		"agents": "src/agents",
+		"tools": "src/tools",
+		"prompts": "src/prompts"
+	}
+}

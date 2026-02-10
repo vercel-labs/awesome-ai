@@ -11,6 +11,7 @@ import { createConfig, getConfig } from "../utils/get-config"
 import { handleError } from "../utils/handle-error"
 import { highlighter } from "../utils/highlighter"
 import { logger } from "../utils/logger"
+import { writeLocalRegistry } from "../utils/write-local-registry"
 import { runInit } from "./init"
 
 export const addOptionsSchema = z.object({
@@ -100,11 +101,16 @@ export const add = new Command()
 				)
 			}
 
-			await addItems(options.items, type, config, {
+			const result = await addItems(options.items, type, config, {
 				overwrite: options.overwrite,
 				silent: options.silent,
 				yes: options.yes,
 			})
+
+			// Write resolved items to local .awesome-ai/registry/
+			if (result?.resolvedItems?.length) {
+				await writeLocalRegistry(options.cwd, result.resolvedItems)
+			}
 		} catch (error) {
 			logger.break()
 			handleError(error)

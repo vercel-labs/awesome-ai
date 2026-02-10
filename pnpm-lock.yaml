@@ -348,6 +348,9 @@ importers:
       '@types/unzipper':
         specifier: ^0.10.10
         version: 0.10.11
+      awesome-ai:
+        specifier: workspace:^
+        version: link:../cli
       typescript:
         specifier: 'catalog:'
         version: 5.9.3

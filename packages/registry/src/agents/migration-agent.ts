@@ -6,9 +6,9 @@
  */
 import { Experimental_Agent as Agent, type LanguageModel } from "ai"
 import {
+	applyEnvironment,
 	type EnvironmentOptions,
 	getEnvironmentContext,
-	applyEnvironment,
 } from "@/agents/lib/environment"
 import { FULL_BASH_PERMISSIONS } from "@/agents/lib/permissions"
 import {

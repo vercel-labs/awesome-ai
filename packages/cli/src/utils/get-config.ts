@@ -14,6 +14,7 @@ import { resolveImport } from "./resolve-import"
 export const DEFAULT_AGENTS = "@/agents"
 export const DEFAULT_TOOLS = "@/tools"
 export const DEFAULT_PROMPTS = "@/prompts"
+export const DEFAULT_REGISTRY_DIR = ".awesome-ai/registry"
 
 export const explorer = cosmiconfig("agents", {
 	searchPlaces: ["agents.json"],
@@ -62,6 +63,7 @@ export async function resolveConfigPaths(
 			prompts:
 				(await resolveImport(config.aliases.prompts, tsConfig)) ||
 				path.resolve(cwd, "src/prompts"),
+			registry: path.resolve(cwd, config.registryDir ?? DEFAULT_REGISTRY_DIR),
 		},
 	})
 }
@@ -106,8 +108,10 @@ export function createConfig(partial?: DeepPartial<Config>): Config {
 			agents: "",
 			tools: "",
 			prompts: "",
+			registry: "",
 		},
 		tsx: true,
+		registryDir: DEFAULT_REGISTRY_DIR,
 		aliases: {
 			agents: DEFAULT_AGENTS,
 			tools: DEFAULT_TOOLS,

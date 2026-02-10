@@ -9,16 +9,10 @@
 			"description": "You are a Figma-to-Code specialist that creates pixel-perfect implementations from Figma designs."
 		},
 		{
-			"name": "pages-to-app-router",
+			"name": "planning-agent",
 			"type": "registry:prompt",
-			"title": "Pages To App Router",
-			"description": "Analyze this Next.js project and create a comprehensive migration plan for converting from Pages Rou..."
-		},
-		{
-			"name": "migration-planning-agent",
-			"type": "registry:prompt",
-			"title": "Migration Planning Agent",
-			"description": "You are a code migration planning agent that helps users analyze codebases and create detailed migra..."
+			"title": "Planning Agent",
+			"description": "You are a planning agent that helps users analyze code and create implementation plans. You can expl..."
 		},
 		{
 			"name": "migration-agent",
@@ -33,10 +27,16 @@
 			"description": "You are a research agent that answers questions about codebases. You explore, analyze, and explain c..."
 		},
 		{
-			"name": "planning-agent",
+			"name": "migration-planning-agent",
 			"type": "registry:prompt",
-			"title": "Planning Agent",
-			"description": "You are a planning agent that helps users analyze code and create implementation plans. You can expl..."
+			"title": "Migration Planning Agent",
+			"description": "You are a code migration planning agent that helps users analyze codebases and create detailed migra..."
+		},
+		{
+			"name": "pages-to-app-router",
+			"type": "registry:prompt",
+			"title": "Pages To App Router",
+			"description": "Analyze this Next.js project and create a comprehensive migration plan for converting from Pages Rou..."
 		},
 		{
 			"name": "coding-agent",

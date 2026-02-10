@@ -5,7 +5,7 @@
 	"type": "module",
 	"scripts": {
 		"build": "tsc",
-		"build:registry": "bun scripts/build-registry.ts",
+		"build:registry": "bun ../cli/src/index.ts sync --cwd .",
 		"dev": "tsc --watch",
 		"test": "vitest run",
 		"test:watch": "vitest"

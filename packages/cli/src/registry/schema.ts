@@ -17,6 +17,16 @@ export const registryItemFileSchema = z.object({
 	target: z.string().optional(),
 })
 
+export const registryItemConfigSchema = z.object({
+	name: z.string(),
+	type: z.string(),
+	required: z.boolean(),
+	description: z.string(),
+	env: z.string().optional(),
+})
+
+export type RegistryItemConfig = z.infer<typeof registryItemConfigSchema>
+
 // Base fields shared between index entries and full items
 const registryItemBaseSchema = z.object({
 	$schema: z.string().optional(),
@@ -31,6 +41,8 @@ const registryItemBaseSchema = z.object({
 	meta: z.record(z.string(), z.any()).optional(),
 	docs: z.string().optional(),
 	categories: z.array(z.string()).optional(),
+	config: z.array(registryItemConfigSchema).optional(),
+	context: z.array(z.string()).optional(),
 })
 
 // Full registry item - has files with content

@@ -9,6 +9,7 @@ import { list } from "./commands/list"
 import { migrate } from "./commands/migrate"
 import { run } from "./commands/run"
 import { search } from "./commands/search"
+import { sync } from "./commands/sync"
 import { view } from "./commands/view"
 
 process.on("SIGINT", () => process.exit(0))
@@ -34,6 +35,7 @@ async function main() {
 		.addCommand(exec)
 		.addCommand(migrate)
 		.addCommand(search)
+		.addCommand(sync)
 		.addCommand(view)
 		.addCommand(diff)
 

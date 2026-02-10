@@ -178,14 +178,28 @@ export async function summarizeMessages(
 ): Promise<ModelMessage[] | null> {
 	const { keepRecent, protectTokens, summaryModel } = config
 
-	// Split messages: system + old messages vs recent messages
+	// Split messages: system + old messages vs recent messages.
+	// Keep at least 1 "old" message when possible so summarization can still run
+	// for short-but-very-large conversations.
 	const systemMsg = messages[0]!
-	const recentCount = Math.min(keepRecent, messages.length - 1)
-	const oldMessages = messages.slice(1, -recentCount || undefined)
-	const recentMessages = recentCount > 0 ? messages.slice(-recentCount) : []
+	const recentCount = Math.min(
+		keepRecent,
+		Math.max(1, messages.length - 2),
+	)
+	let splitIndex = messages.length - recentCount
+	if (splitIndex < 1) splitIndex = 1
 
-	// If not enough old messages to summarize, skip
-	if (oldMessages.length < 3) return null
+	// Never split such that recent messages start with a tool message.
+	// Tool messages need the preceding assistant tool-call context.
+	while (splitIndex > 1 && messages[splitIndex]?.role === "tool") {
+		splitIndex--
+	}
+
+	const oldMessages = messages.slice(1, splitIndex)
+	const recentMessages = messages.slice(splitIndex)
+
+	// If there are no old messages to summarize, skip
+	if (oldMessages.length === 0) return null
 
 	// Prune old tool outputs
 	const { messages: prunedOld } = pruneToolOutputs(oldMessages, protectTokens)

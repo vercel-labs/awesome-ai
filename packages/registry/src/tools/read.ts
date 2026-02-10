@@ -5,7 +5,9 @@ import { z } from "zod"
 import { toolOutput } from "@/tools/lib/tool-output"
 
 const DEFAULT_READ_LIMIT = 2000
+const MAX_READ_LIMIT = 1500
 const MAX_LINE_LENGTH = 2000
+const MAX_MODEL_OUTPUT_CHARS = 40_000
 
 /**
  * Known binary file extensions - skip byte analysis for these
@@ -191,7 +193,7 @@ export const readTool = tool({
 			filePath: z.string(),
 		},
 	}),
-	toModelOutput: (output) => {
+	toModelOutput: ({ output }) => {
 		if (output.status === "error") {
 			return {
 				type: "error-text",
@@ -206,11 +208,17 @@ export const readTool = tool({
 				result = `⚠️ ${output.warning}\n\n${result}`
 			}
 
+			// Truncate very large outputs to avoid blowing the context window
+			if (result.length > MAX_MODEL_OUTPUT_CHARS) {
+				result = `${result.slice(0, MAX_MODEL_OUTPUT_CHARS)}\n\n... (output truncated at ${MAX_MODEL_OUTPUT_CHARS} chars - file has ${output.totalLines} total lines. Use offset/limit to read specific sections.)`
+			}
+
 			return { type: "text", value: result }
 		}
 		throw new Error("Invalid output status in toModelOutput")
 	},
-	async *execute({ filePath, offset, limit }) {
+	async *execute({ filePath, offset, limit: rawLimit }) {
+		const limit = Math.min(rawLimit, MAX_READ_LIMIT)
 		let filepath = filePath
 		if (!path.isAbsolute(filepath)) {
 			filepath = path.join(process.cwd(), filepath)

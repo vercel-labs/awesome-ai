@@ -217,7 +217,7 @@ export function createFigmaFetchTool(figmaToken?: string) {
 				error: z.string(),
 			}),
 		]),
-		toModelOutput: (output) => {
+		toModelOutput: ({ output }) => {
 			if (output.status === "error") {
 				return {
 					type: "error-text",

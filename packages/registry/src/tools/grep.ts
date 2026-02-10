@@ -136,7 +136,7 @@ export const grepTool = tool({
 			searchPath: z.string(),
 		},
 	}),
-	toModelOutput: (output) => {
+	toModelOutput: ({ output }) => {
 		if (output.status === "error") {
 			return {
 				type: "error-text",

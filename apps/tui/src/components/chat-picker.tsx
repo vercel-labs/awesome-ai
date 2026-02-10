@@ -145,7 +145,7 @@ export function useChatPickerKeyHandler() {
 				actions.setMessages(chat.messages)
 				// Sync conversation messages from loaded UI messages instead of resetting
 				// This ensures tool calls and results are properly reconstructed
-				agent.syncConversationMessages()
+				await agent.syncConversationMessages()
 				saveWorkspaceSettings(cwdAtom.get(), { lastChatId: chat.id })
 			}
 		},

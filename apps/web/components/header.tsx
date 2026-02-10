@@ -18,9 +18,6 @@ export function Header() {
 							<Link href="/">agents</Link>
 						</Button>
 						<Button variant="ghost" size="sm" asChild>
-							<Link href="/chat">chat</Link>
-						</Button>
-						<Button variant="ghost" size="sm" asChild>
 							<a
 								href="https://github.com"
 								target="_blank"

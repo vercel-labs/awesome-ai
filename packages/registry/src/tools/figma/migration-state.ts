@@ -142,7 +142,7 @@ export const migrationProgress = tool({
 			error: z.string(),
 		}),
 	]),
-	toModelOutput: (output) => {
+	toModelOutput: ({ output }) => {
 		if (output.status === "error") {
 			return { type: "error-text", value: output.error }
 		}
@@ -285,7 +285,7 @@ export const migrationNext = tool({
 			error: z.string(),
 		}),
 	]),
-	toModelOutput: (output) => {
+	toModelOutput: ({ output }) => {
 		if (output.status === "error") {
 			return { type: "error-text", value: output.error }
 		}
@@ -411,7 +411,7 @@ export const migrationStart = tool({
 			error: z.string(),
 		}),
 	]),
-	toModelOutput: (output) => {
+	toModelOutput: ({ output }) => {
 		if (output.status === "error") {
 			return { type: "error-text", value: output.error }
 		}
@@ -564,7 +564,7 @@ export const migrationComplete = tool({
 			error: z.string(),
 		}),
 	]),
-	toModelOutput: (output) => {
+	toModelOutput: ({ output }) => {
 		if (output.status === "error") {
 			return { type: "error-text", value: output.error }
 		}
@@ -697,7 +697,7 @@ export const migrationSkip = tool({
 			error: z.string(),
 		}),
 	]),
-	toModelOutput: (output) => {
+	toModelOutput: ({ output }) => {
 		if (output.status === "error") {
 			return { type: "error-text", value: output.error }
 		}

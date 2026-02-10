@@ -101,7 +101,7 @@ export function createWriteTool(
 			// Return true if approval needed (ask), false if auto-allowed
 			return permission === "ask"
 		},
-		toModelOutput: (output) => {
+		toModelOutput: ({ output }) => {
 			if (output.status === "error") {
 				return {
 					type: "error-text",

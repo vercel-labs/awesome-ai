@@ -25,7 +25,7 @@ import { createChat, type StoredChat, saveChat } from "./storage"
 
 interface AgentController {
 	resetConversation: () => void
-	syncConversationMessages: () => void
+	syncConversationMessages: () => Promise<void>
 	startNewChat: () => Promise<StoredChat>
 	stopGeneration: () => boolean
 	loadAgent: (agentName: string) => Promise<boolean>
@@ -45,6 +45,7 @@ function createAgentController(
 	let agentLoadPromise: Promise<boolean> | null = null
 	// Track approval responses to batch them before continuing
 	let pendingApprovalResponses: Array<{
+		toolCallId: string
 		approvalId: string
 		approved: boolean
 		reason?: string
@@ -60,7 +61,7 @@ function createAgentController(
 	const getMessages = (): TUIMessage[] =>
 		atoms.messagesAtom.get().map((atom) => atom.get())
 
-	const syncConversationMessages = () => {
+	const syncConversationMessages = async () => {
 		const uiMessages = getMessages()
 		// Filter out system messages (used for TUI notifications, not model context)
 		// and filter out incomplete tool calls from assistant messages
@@ -186,7 +187,7 @@ function createAgentController(
 		}
 
 		try {
-			conversationMessages = convertToModelMessages(modelableMessages, {
+			conversationMessages = await convertToModelMessages(modelableMessages, {
 				tools: currentAgentInstance?.tools,
 				ignoreIncompleteToolCalls: true,
 			})
@@ -195,7 +196,7 @@ function createAgentController(
 				"convertToModelMessages failed, retrying without tool schemas",
 				error instanceof Error ? error.message : String(error),
 			)
-			conversationMessages = convertToModelMessages(modelableMessages, {
+			conversationMessages = await convertToModelMessages(modelableMessages, {
 				ignoreIncompleteToolCalls: true,
 			})
 		}
@@ -562,7 +563,7 @@ function createAgentController(
 					// Otherwise start with empty conversation
 					const existingMessages = getMessages()
 					if (existingMessages.length > 0) {
-						syncConversationMessages()
+						await syncConversationMessages()
 					} else {
 						conversationMessages = []
 					}
@@ -575,7 +576,7 @@ function createAgentController(
 					// Sync from existing UI messages if available
 					const existingMessages = getMessages()
 					if (existingMessages.length > 0) {
-						syncConversationMessages()
+						await syncConversationMessages()
 					} else {
 						conversationMessages = []
 					}
@@ -623,7 +624,7 @@ function createAgentController(
 		atoms.isLoadingAtom.set(true)
 
 		try {
-			syncConversationMessages()
+			await syncConversationMessages()
 			// Create assistant message with streaming flag already set
 			const assistantMsg = createAssistantMessage()
 			assistantMsg.metadata = {
@@ -695,6 +696,7 @@ function createAgentController(
 		)
 
 		pendingApprovalResponses.push({
+			toolCallId,
 			approvalId,
 			approved,
 			reason: approved ? undefined : "Denied by user",
@@ -711,27 +713,55 @@ function createAgentController(
 			return true
 		}
 
-		// All approvals resolved - now continue the stream
-		// Check if at least one tool was approved
-		const hasApproved = pendingApprovalResponses.some((r) => r.approved)
+		// All approvals resolved - always continue the stream with approval responses.
+		// Even when all are denied, the model must receive tool responses to close
+		// outstanding tool_use blocks and keep message history valid.
+		const hasResponses = pendingApprovalResponses.length > 0
 
-		if (hasApproved && currentAgentInstance) {
+		if (hasResponses && currentAgentInstance) {
 			atoms.isLoadingAtom.set(true)
 			try {
-				// Add all approval responses to conversationMessages
-				for (const response of pendingApprovalResponses) {
+				// Ensure each approval response has a corresponding request in history.
+				// This can drift when conversation state is reconstructed from UI parts.
+				const missingApprovalRequests = pendingApprovalResponses.filter(
+					(response) =>
+						!conversationMessages.some(
+							(message) =>
+								message.role === "assistant" &&
+								Array.isArray(message.content) &&
+								message.content.some(
+									(part) =>
+										part.type === "tool-approval-request" &&
+										part.approvalId === response.approvalId,
+								),
+						),
+				)
+				if (missingApprovalRequests.length > 0) {
+					actions.debugLog(
+						"Synthesizing missing tool-approval-request parts",
+						missingApprovalRequests.map((r) => r.approvalId),
+					)
 					conversationMessages.push({
-						role: "tool",
-						content: [
-							{
-								type: "tool-approval-response",
-								approvalId: response.approvalId,
-								approved: response.approved,
-								reason: response.reason,
-							},
-						],
+						role: "assistant",
+						content: missingApprovalRequests.map((response) => ({
+							type: "tool-approval-request" as const,
+							approvalId: response.approvalId,
+							toolCallId: response.toolCallId,
+						})),
 					})
 				}
+
+				// Add all approval responses as a single tool message
+				// (collectToolApprovals only checks the last message)
+				conversationMessages.push({
+					role: "tool",
+					content: pendingApprovalResponses.map((response) => ({
+						type: "tool-approval-response" as const,
+						approvalId: response.approvalId,
+						approved: response.approved,
+						reason: response.reason,
+					})),
+				})
 				pendingApprovalResponses = []
 
 				await streamAgentResponse(messageAtom)
@@ -751,9 +781,9 @@ function createAgentController(
 				atoms.isLoadingAtom.set(false)
 			}
 		} else {
-			// All tools were denied, clear responses and don't continue
+			// No responses to process or no active agent.
 			pendingApprovalResponses = []
-			actions.debugLog("All tools were denied, not continuing stream")
+			actions.debugLog("No pending approval responses to process")
 		}
 
 		return true

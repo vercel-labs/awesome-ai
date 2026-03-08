@@ -4,7 +4,7 @@
  * @category write
  * @context coding
  */
-import { Experimental_Agent as Agent, type LanguageModel } from "ai"
+import { type LanguageModel, ToolLoopAgent } from "ai"
 import {
 	applyEnvironment,
 	type EnvironmentOptions,
@@ -42,7 +42,7 @@ export async function createAgent({
 	const instructions = applyEnvironment(prompt, env)
 	const { todoRead, todoWrite } = createTodoTools(todoStorage)
 
-	return new Agent({
+	return new ToolLoopAgent({
 		model,
 		instructions,
 		tools: {

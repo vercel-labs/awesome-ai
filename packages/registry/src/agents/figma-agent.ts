@@ -6,7 +6,7 @@
  * @config figmaToken env FIGMA_ACCESS_TOKEN
  * @context coding
  */
-import { Experimental_Agent as Agent, type LanguageModel } from "ai"
+import { type LanguageModel, ToolLoopAgent } from "ai"
 import {
 	applyEnvironment,
 	type EnvironmentOptions,
@@ -52,7 +52,7 @@ export async function createAgent({
 		setProjectDir(cwd)
 	}
 
-	return new Agent({
+	return new ToolLoopAgent({
 		model,
 		instructions,
 		tools: {

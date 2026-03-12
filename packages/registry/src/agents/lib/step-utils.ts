@@ -1,15 +1,27 @@
 import type { LanguageModel, ModelMessage } from "ai"
 import { summarizeMessages } from "@/agents/lib/context"
 
-const SUMMARIZE_THRESHOLD = 180_000
-const SUMMARIZE_KEEP_RECENT = 8
-const SUMMARIZE_PROTECT_TOKENS = 40_000
+export interface ContextCompactionOptions {
+	thresholdTokens: number
+	proactiveBufferTokens: number
+	keepRecent: number
+	protectTokens: number
+	minimumPruneTokens: number
+}
+
+const DEFAULT_COMPACTION_OPTIONS: ContextCompactionOptions = {
+	thresholdTokens: 180_000,
+	proactiveBufferTokens: 20_000,
+	keepRecent: 8,
+	protectTokens: 40_000,
+	minimumPruneTokens: 20_000,
+}
 
 /**
  * Rough token estimate: ~4 chars per token.
  * Used as a fallback when actual usage data isn't available (e.g. first step).
  */
-function estimateMessageTokens(messages: ModelMessage[]): number {
+export function estimateMessageTokens(messages: ModelMessage[]): number {
 	let chars = 0
 	for (const msg of messages) {
 		if (typeof msg.content === "string") {
@@ -40,7 +52,14 @@ function estimateMessageTokens(messages: ModelMessage[]): number {
  * and falls back to a character-based estimate for the first step
  * (where no usage data exists yet).
  */
-export function createContextSummarizer(model: LanguageModel) {
+export function createContextSummarizer(
+	model: LanguageModel,
+	options: ContextCompactionOptions = DEFAULT_COMPACTION_OPTIONS,
+) {
+	const triggerThreshold = Math.max(
+		1,
+		options.thresholdTokens - options.proactiveBufferTokens,
+	)
 	return async ({
 		steps,
 		messages,
@@ -52,14 +71,15 @@ export function createContextSummarizer(model: LanguageModel) {
 		const inputTokens =
 			lastStep?.usage?.inputTokens ?? estimateMessageTokens(messages)
 
-		if (inputTokens < SUMMARIZE_THRESHOLD) {
+		if (inputTokens < triggerThreshold) {
 			return {}
 		}
 
 		const summarized = await summarizeMessages(messages, model, {
-			threshold: SUMMARIZE_THRESHOLD,
-			keepRecent: SUMMARIZE_KEEP_RECENT,
-			protectTokens: SUMMARIZE_PROTECT_TOKENS,
+			thresholdTokens: options.thresholdTokens,
+			keepRecent: options.keepRecent,
+			protectTokens: options.protectTokens,
+			minimumPruneTokens: options.minimumPruneTokens,
 		})
 
 		return summarized ? { messages: summarized } : {}

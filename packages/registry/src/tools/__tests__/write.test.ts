@@ -3,6 +3,7 @@ import * as os from "os"
 import * as path from "path"
 import { afterEach, assert, beforeEach, describe, expect, it } from "vitest"
 import { PermissionDeniedError } from "@/agents/lib/permissions"
+import { clearReads, markRead } from "../lib/file-time"
 import { createWriteTool, writeTool } from "../write"
 import { executeTool } from "./lib/test-utils"
 
@@ -11,6 +12,7 @@ describe("writeTool", () => {
 
 	beforeEach(async () => {
 		tempDir = await fs.mkdtemp(path.join(os.tmpdir(), "write-test-"))
+		clearReads()
 	})
 
 	afterEach(async () => {
@@ -41,6 +43,7 @@ describe("writeTool", () => {
 	it("overwrites an existing file", async () => {
 		const filePath = path.join(tempDir, "existing.txt")
 		await fs.writeFile(filePath, "original content", "utf-8")
+		await markRead("global", filePath)
 
 		const newContent = "new content"
 		const results = await executeTool(writeTool, {
@@ -61,6 +64,32 @@ describe("writeTool", () => {
 
 		const written = await fs.readFile(filePath, "utf-8")
 		expect(written).toBe(newContent)
+	})
+
+	it("fails to overwrite existing file without prior read", async () => {
+		const filePath = path.join(tempDir, "existing-no-read.txt")
+		await fs.writeFile(filePath, "old", "utf-8")
+		const results = await executeTool(writeTool, { filePath, content: "new" })
+		const finalResult = results[results.length - 1] as {
+			status: string
+			error?: string
+		}
+		expect(finalResult.status).toBe("error")
+		expect(finalResult.error).toContain("must be read before editing")
+	})
+
+	it("isolates freshness tracking by scope", async () => {
+		const filePath = path.join(tempDir, "scope-file.txt")
+		await fs.writeFile(filePath, "old", "utf-8")
+		await markRead("scope-a", filePath)
+		const scoped = createWriteTool("ask", { scope: "scope-b" })
+		const results = await executeTool(scoped, { filePath, content: "new" })
+		const finalResult = results[results.length - 1] as {
+			status: string
+			error?: string
+		}
+		expect(finalResult.status).toBe("error")
+		expect(finalResult.error).toContain("must be read before editing")
 	})
 
 	it("creates nested directories if they don't exist", async () => {
@@ -134,6 +163,7 @@ describe("writeTool", () => {
 		const filePath = path.join(tempDir, "unchanged.txt")
 		const content = "same content"
 		await fs.writeFile(filePath, content, "utf-8")
+		await markRead("global", filePath)
 
 		const results = await executeTool(writeTool, { filePath, content })
 
@@ -203,6 +233,7 @@ describe("writeTool", () => {
 	it("result message shows 'overwritten' for existing files", async () => {
 		const filePath = path.join(tempDir, "overwrite-msg.txt")
 		await fs.writeFile(filePath, "old", "utf-8")
+		await markRead("global", filePath)
 
 		const results = await executeTool(writeTool, { filePath, content: "new" })
 

@@ -1,4 +1,4 @@
-import { type ChildProcess, execSync, spawn } from "child_process"
+import { type ChildProcess, spawn } from "child_process"
 import * as fs from "fs/promises"
 import * as os from "os"
 import * as path from "path"
@@ -19,6 +19,29 @@ function getBinDir(): string {
 
 let cachedRgPath: string | undefined
 
+async function which(bin: string): Promise<string | undefined> {
+	const pathValue = process.env.PATH ?? ""
+	const exts =
+		process.platform === "win32"
+			? (process.env.PATHEXT?.split(";").filter(Boolean) ?? [".EXE", ".CMD", ".BAT"])
+			: [""]
+
+	for (const dir of pathValue.split(path.delimiter)) {
+		if (!dir) continue
+		for (const ext of exts) {
+			const full = path.join(dir, process.platform === "win32" ? `${bin}${ext}` : bin)
+			try {
+				await fs.access(full, fs.constants.X_OK)
+				return full
+			} catch {
+				// keep searching
+			}
+		}
+	}
+
+	return undefined
+}
+
 /**
  * Get the path to the ripgrep binary.
  * Checks for system ripgrep first, then downloads from GitHub if needed.
@@ -27,15 +50,10 @@ export async function getRipgrepPath(): Promise<string> {
 	if (cachedRgPath) return cachedRgPath
 
 	// 1. Check for system ripgrep
-	try {
-		const cmd = process.platform === "win32" ? "where rg" : "which rg"
-		const systemRg = execSync(cmd, { encoding: "utf-8" }).split("\n")[0]?.trim()
-		if (systemRg) {
-			cachedRgPath = systemRg
-			return systemRg
-		}
-	} catch {
-		// Not found on system
+	const systemRg = await which("rg")
+	if (systemRg) {
+		cachedRgPath = systemRg
+		return systemRg
 	}
 
 	// 2. Check if already downloaded
@@ -210,10 +228,7 @@ export async function* search(
 	const rgPath = await getRipgrepPath()
 
 	const args = [
-		"--line-number", // Include line numbers
-		"--column", // Include column numbers
-		"--no-heading", // Don't group by file
-		"--with-filename", // Always show filename
+		"--json", // Stable parsing across platforms and paths
 		"--hidden", // Include hidden files
 		"--glob=!.git/*", // Always exclude .git
 	]
@@ -237,14 +252,23 @@ export async function* search(
 	})
 
 	for await (const line of streamLines(proc)) {
-		// Parse ripgrep output: filename:line:column:text
-		const match = line.match(/^([^:]+):(\d+):\d+:(.*)$/)
-		if (match) {
-			yield {
-				path: match[1]!,
-				lineNumber: parseInt(match[2]!, 10),
-				lineText: match[3]!,
+		const parsed = JSON.parse(line) as {
+			type?: string
+			data?: {
+				path?: { text?: string }
+				lines?: { text?: string }
+				line_number?: number
 			}
+		}
+		if (parsed.type !== "match") continue
+		const file = parsed.data?.path?.text
+		const text = parsed.data?.lines?.text
+		const lineNumber = parsed.data?.line_number
+		if (!file || text === undefined || !lineNumber) continue
+		yield {
+			path: file,
+			lineNumber,
+			lineText: text.replace(/\r?\n$/, ""),
 		}
 	}
 }

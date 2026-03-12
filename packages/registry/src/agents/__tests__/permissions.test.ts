@@ -1,5 +1,10 @@
 import { describe, expect, it } from "vitest"
-import { checkPermission, matchWildcard } from "@/agents/lib/permissions"
+import {
+	checkPermission,
+	DEFAULT_TASK_PERMISSIONS,
+	matchWildcard,
+	mergePermissionPatterns,
+} from "@/agents/lib/permissions"
 
 // ============================================================================
 // matchWildcard tests
@@ -72,5 +77,38 @@ describe("checkPermission", () => {
 		expect(checkPermission("git status --short", patterns)).toBe("allow")
 		expect(checkPermission("git diff", patterns)).toBe("ask")
 		expect(checkPermission("rm -rf", patterns)).toBe("deny")
+	})
+
+	it("supports default task permission policy", () => {
+		expect(checkPermission("coding-agent", DEFAULT_TASK_PERMISSIONS)).toBe(
+			"allow",
+		)
+		expect(checkPermission("planning-agent", DEFAULT_TASK_PERMISSIONS)).toBe(
+			"allow",
+		)
+		expect(checkPermission("custom-agent", DEFAULT_TASK_PERMISSIONS)).toBe(
+			"ask",
+		)
+	})
+})
+
+describe("mergePermissionPatterns", () => {
+	it("overrides specific patterns while keeping defaults", () => {
+		const merged = mergePermissionPatterns(DEFAULT_TASK_PERMISSIONS, {
+			"planning-agent": "deny",
+		})
+		expect(checkPermission("planning-agent", merged)).toBe("deny")
+		expect(checkPermission("coding-agent", merged)).toBe("allow")
+		expect(checkPermission("unknown-agent", merged)).toBe("ask")
+	})
+
+	it("supports constructor-style injected wildcard governance", () => {
+		const injected = mergePermissionPatterns(DEFAULT_TASK_PERMISSIONS, {
+			"research-*": "deny",
+			"*": "ask",
+		})
+		expect(checkPermission("research-agent", injected)).toBe("allow")
+		expect(checkPermission("research-helper", injected)).toBe("deny")
+		expect(checkPermission("new-agent", injected)).toBe("ask")
 	})
 })

@@ -3,6 +3,7 @@ import { createTwoFilesPatch } from "diff"
 import { promises as fs } from "fs"
 import * as path from "path"
 import { z } from "zod"
+import { assertFreshRead } from "@/tools/lib/file-time"
 import {
 	checkPermission,
 	type Permission,
@@ -33,7 +34,7 @@ const inputSchema = z.object({
 	filePath: z
 		.string()
 		.describe(
-			"The absolute path to the file to write (must be absolute, not relative)",
+			"The path to the file to write (absolute or relative)",
 		),
 	content: z.string().describe("The content to write to the file"),
 })
@@ -79,9 +80,11 @@ const outputSchema = toolOutput({
  */
 export function createWriteTool(
 	permissions: Permission | Record<string, Permission> = "ask",
+	opts: { scope?: string } = {},
 ) {
 	const permissionPatterns =
 		typeof permissions === "string" ? { "*": permissions } : permissions
+	const scope = opts.scope ?? "global"
 
 	return tool({
 		description,
@@ -150,6 +153,9 @@ export function createWriteTool(
 					previousContent = await fs.readFile(filepath, "utf-8")
 				} catch {
 					// File doesn't exist
+				}
+				if (exists) {
+					await assertFreshRead(scope, filepath)
 				}
 
 				// Write the file

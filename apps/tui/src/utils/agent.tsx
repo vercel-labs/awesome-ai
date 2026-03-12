@@ -33,6 +33,16 @@ interface AgentController {
 	handleToolApproval: (approved: boolean) => Promise<boolean>
 }
 
+interface SubagentState {
+	id: string
+	type?: string
+	status: string
+	depth?: number
+	parentId?: string
+	updatedAt: number
+	lastError?: string
+}
+
 function createAgentController(
 	atoms: AppAtoms,
 	actions: AppActions,
@@ -43,6 +53,7 @@ function createAgentController(
 	let currentAbortController: AbortController | null = null
 	let currentStreamingMessageAtom: MessageAtom | null = null
 	let agentLoadPromise: Promise<boolean> | null = null
+	let subagentStates = new Map<string, SubagentState>()
 	// Track approval responses to batch them before continuing
 	let pendingApprovalResponses: Array<{
 		toolCallId: string
@@ -54,8 +65,31 @@ function createAgentController(
 	const resetConversation = () => {
 		conversationMessages = []
 		pendingApprovalResponses = []
+		subagentStates = new Map()
 		// Note: We intentionally don't reset currentAgentInstance here
 		// The agent can be reused across conversations
+	}
+
+	const upsertSubagentState = (entry: {
+		id: string
+		status: string
+		type?: string
+		depth?: number
+		parentId?: string
+		lastError?: string
+	}) => {
+		const previous = subagentStates.get(entry.id)
+		const next: SubagentState = {
+			id: entry.id,
+			type: entry.type ?? previous?.type,
+			status: entry.status,
+			depth: entry.depth ?? previous?.depth,
+			parentId: entry.parentId ?? previous?.parentId,
+			lastError: entry.lastError ?? previous?.lastError,
+			updatedAt: Date.now(),
+		}
+		subagentStates.set(entry.id, next)
+		actions.debugLog("Subagent state updated", next)
 	}
 
 	const getMessages = (): TUIMessage[] =>
@@ -463,6 +497,74 @@ function createAgentController(
 							`Tool result${chunk.preliminary ? " (streaming)" : ""}: ${chunk.toolCallId}`,
 							chunk.output,
 						)
+						const toolName = toolCalls.get(chunk.toolCallId)?.toolName
+						if (
+							toolName &&
+							[
+								"spawnAgent",
+								"sendInput",
+								"waitForSubagents",
+								"interruptSubagent",
+								"resumeSubagent",
+								"closeSubagent",
+							].includes(toolName) &&
+							chunk.output &&
+							typeof chunk.output === "object"
+						) {
+							const output = chunk.output as {
+								status?: string
+								message?: string
+								error?: string
+								agent?: {
+									id?: string
+									status?: string
+									type?: string
+									depth?: number
+									parentId?: string
+									lastError?: string
+								}
+								agents?: Array<{
+									id?: string
+									status?: string
+									type?: string
+									depth?: number
+									parentId?: string
+									lastError?: string
+								}>
+							}
+							if (output.status === "error") {
+								actions.debugLog(
+									`Subagent lifecycle tool failed: ${toolName}`,
+									{
+										message: output.message,
+										error: output.error,
+									},
+								)
+							}
+							if (output.agent?.id && output.agent.status) {
+								upsertSubagentState({
+									id: output.agent.id,
+									status: output.agent.status,
+									type: output.agent.type,
+									depth: output.agent.depth,
+									parentId: output.agent.parentId,
+									lastError: output.agent.lastError,
+								})
+							}
+							if (Array.isArray(output.agents)) {
+								for (const entry of output.agents) {
+									if (!entry?.id || !entry.status) continue
+									upsertSubagentState({
+										id: entry.id,
+										status: entry.status,
+										type: entry.type,
+										depth: entry.depth,
+										parentId: entry.parentId,
+										lastError: entry.lastError,
+									})
+								}
+							}
+						}
 						break
 					}
 
@@ -556,7 +658,26 @@ function createAgentController(
 
 					const agent = await agentModule.createAgent({
 						model,
+						modelId,
 						cwd: atoms.cwdAtom.get(),
+						getSubagentParentMessages: () => conversationMessages,
+						onSubagentStatus: (event: {
+							agentId: string
+							status: string
+							type: string
+							depth: number
+							parentId?: string
+							error?: string
+						}) => {
+							upsertSubagentState({
+								id: event.agentId,
+								status: event.status,
+								type: event.type,
+								depth: event.depth,
+								parentId: event.parentId,
+								lastError: event.error,
+							})
+						},
 					})
 					currentAgentInstance = agent
 					// Sync from existing UI messages if available (e.g., loaded from storage)

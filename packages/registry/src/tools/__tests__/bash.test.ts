@@ -1,4 +1,7 @@
 import { assert, describe, expect, it } from "vitest"
+import { promises as fs } from "fs"
+import * as os from "os"
+import * as path from "path"
 import { PermissionDeniedError } from "@/agents/lib/permissions"
 import { bashTool, createBashTool } from "../bash"
 import { executeTool } from "./lib/test-utils"
@@ -232,6 +235,23 @@ describe("bashTool", () => {
 		expect(finalResult?.output).toContain(process.cwd())
 	})
 
+	it("runs in provided working directory", async () => {
+		const dir = await fs.mkdtemp(path.join(os.tmpdir(), "bash-workdir-"))
+		await fs.writeFile(path.join(dir, "x.txt"), "x", "utf-8")
+		const results = await executeTool(bashTool, {
+			command: "pwd",
+			workdir: dir,
+			description: "Print working directory from custom location",
+		})
+		const finalResult = results[results.length - 1] as {
+			status: string
+			output: string
+		}
+		expect(finalResult?.status).toBe("success")
+		expect(finalResult?.output).toContain(dir)
+		await fs.rm(dir, { recursive: true, force: true })
+	})
+
 	it("handles piped commands", async () => {
 		const results = await executeTool(bashTool, {
 			command: "echo 'hello world' | tr 'a-z' 'A-Z'",
@@ -331,5 +351,30 @@ describe("bashTool", () => {
 		expect(() =>
 			needsApproval({ command: "rm -rf /", description: "" }, opts),
 		).toThrow(PermissionDeniedError)
+	})
+
+	it("auto-approves known-safe commands when enabled", () => {
+		const bash = createBashTool({ "*": "ask" }, { safeAutoApprove: true })
+		const { needsApproval } = bash
+		assert(typeof needsApproval === "function")
+		const opts = { toolCallId: "test", messages: [] }
+		expect(needsApproval({ command: "ls", description: "" }, opts)).toBe(false)
+		expect(
+			needsApproval({ command: "rg --search-zip test", description: "" }, opts),
+		).toBe(true)
+	})
+
+	it("checks permissions per parsed command segment", () => {
+		const bash = createBashTool({
+			"ls*": "allow",
+			"git status*": "allow",
+			"*": "ask",
+		})
+		const { needsApproval } = bash
+		assert(typeof needsApproval === "function")
+		const opts = { toolCallId: "test", messages: [] }
+		expect(
+			needsApproval({ command: "ls && git status", description: "" }, opts),
+		).toBe(false)
 	})
 })

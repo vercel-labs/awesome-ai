@@ -9,12 +9,14 @@ import {
  * Configuration for context summarization.
  */
 export interface SummarizeConfig {
-	/** Token threshold that triggered summarization */
-	threshold: number
+	/** Token threshold for proactive compaction checks */
+	thresholdTokens: number
 	/** Recent messages to preserve untouched */
 	keepRecent: number
 	/** Tool output tokens to protect from pruning */
 	protectTokens: number
+	/** Minimum tokens to prune before mutating outputs */
+	minimumPruneTokens: number
 	/** Optional smaller model for summarization (cost savings) */
 	summaryModel?: LanguageModel
 }
@@ -36,10 +38,12 @@ function estimateTokens(text: string): number {
  */
 export function pruneToolOutputs(
 	messages: ModelMessage[],
-	protectTokens: number,
-): { messages: ModelMessage[]; prunedCount: number } {
+	config: { protectTokens: number; minimumPruneTokens: number },
+): { messages: ModelMessage[]; prunedCount: number; prunedTokens: number } {
+	const { protectTokens, minimumPruneTokens } = config
 	let protectedTokens = 0
 	let prunedCount = 0
+	let prunedTokens = 0
 
 	// Track which tool results to prune (by message index and part index)
 	const toPrune: Set<string> = new Set()
@@ -83,13 +87,19 @@ export function pruneToolOutputs(
 				)
 				toPrune.add(`${resultMsgIdx}:${resultPartIdx}`)
 				prunedCount++
+				prunedTokens += tokens
 			}
 		}
 	}
 
 	// If nothing to prune, return original
 	if (toPrune.size === 0) {
-		return { messages, prunedCount: 0 }
+		return { messages, prunedCount: 0, prunedTokens: 0 }
+	}
+
+	// Skip mutation when prune impact is too small.
+	if (prunedTokens < minimumPruneTokens) {
+		return { messages, prunedCount: 0, prunedTokens: 0 }
 	}
 
 	// Clone and prune
@@ -111,44 +121,50 @@ export function pruneToolOutputs(
 		return { ...msg, content: newContent }
 	})
 
-	return { messages: pruned, prunedCount }
+	return { messages: pruned, prunedCount, prunedTokens }
 }
 
-const SUMMARIZATION_PROMPT = `You are a helpful AI assistant tasked with summarizing conversations.
+const HIDDEN_COMPACTION_PROMPT = `You are the internal compaction agent for a coding runtime.
+You are never user-facing.
 
-When asked to summarize, provide a detailed but concise summary of the conversation.
-Focus on information that would be helpful for continuing the conversation, including:
-- What was done
-- What is currently being worked on
-- Which files are being modified
-- What needs to be done next
+Return markdown with exactly these sections in this order:
+## Goal
+## Progress
+## Key Decisions
+## Relevant Files
+## Next Actions
 
-Your summary should be comprehensive enough to provide context but concise enough to be quickly understood.`
+Rules:
+- Be concrete and preserve technical facts.
+- Include concrete file paths when known.
+- Keep each section concise and actionable.
+- Do not include any extra sections.`
 
-/**
- * Generate a structured summary of old messages.
- */
-async function generateSummary(
+async function runHiddenCompactionFlow(
 	messages: ModelMessage[],
 	model: LanguageModel,
+	prunedCount: number,
 ): Promise<ModelMessage> {
 	const { text } = await generateText({
 		model,
-		system: SUMMARIZATION_PROMPT,
+		system: HIDDEN_COMPACTION_PROMPT,
 		messages: [
 			...messages,
 			{
 				role: "user",
 				content:
-					"Provide a detailed but concise summary of our conversation above. " +
-					"Focus on information that would be helpful for continuing the conversation, " +
-					"including what we did, what we're doing, which files we're working on, and what we're going to do next.",
+					`Compact the previous context for continued coding work. ` +
+					`Tool output entries pruned: ${prunedCount}. ` +
+					`Preserve intent, constraints, and pending work.`,
 			},
 		],
 		maxOutputTokens: 2000,
 	})
 
-	return { role: "assistant", content: text }
+	return {
+		role: "assistant",
+		content: text.trim(),
+	}
 }
 
 /**
@@ -157,9 +173,20 @@ async function generateSummary(
 function createFallbackSummary(messageCount: number): ModelMessage {
 	return {
 		role: "assistant",
-		content:
-			`Previous conversation (${messageCount} messages) was summarized. ` +
-			`Recent messages contain the current state. Continue from where we left off.`,
+		content: `## Goal
+Continue the active coding task with preserved constraints and intent.
+
+## Progress
+Previous conversation (${messageCount} messages) was compacted.
+
+## Key Decisions
+Historical detailed tool outputs may be pruned; rely on preserved recent context and this compact summary.
+
+## Relevant Files
+Use recent conversation context to identify active files before editing.
+
+## Next Actions
+Resume implementation from latest pending task and verify with targeted tests.`,
 	}
 }
 
@@ -176,7 +203,7 @@ export async function summarizeMessages(
 	model: LanguageModel,
 	config: SummarizeConfig,
 ): Promise<ModelMessage[] | null> {
-	const { keepRecent, protectTokens, summaryModel } = config
+	const { keepRecent, protectTokens, minimumPruneTokens, summaryModel } = config
 
 	// Split messages: system + old messages vs recent messages.
 	// Keep at least 1 "old" message when possible so summarization can still run
@@ -199,14 +226,20 @@ export async function summarizeMessages(
 	if (oldMessages.length === 0) return null
 
 	// Prune old tool outputs
-	const { messages: prunedOld } = pruneToolOutputs(oldMessages, protectTokens)
+	const { messages: prunedOld, prunedCount } = pruneToolOutputs(oldMessages, {
+		protectTokens,
+		minimumPruneTokens,
+	})
 
-	// Generate summary
+	// Generate summary through internal compaction flow.
 	let summaryMsg: ModelMessage
 	try {
-		summaryMsg = await generateSummary(prunedOld, summaryModel ?? model)
-	} catch (error) {
-		console.warn("Summarization failed, using fallback:", error)
+		summaryMsg = await runHiddenCompactionFlow(
+			prunedOld,
+			summaryModel ?? model,
+			prunedCount,
+		)
+	} catch {
 		summaryMsg = createFallbackSummary(oldMessages.length)
 	}
 

@@ -2,6 +2,7 @@ import { tool } from "ai"
 import { promises as fs } from "fs"
 import * as path from "path"
 import { z } from "zod"
+import { markRead } from "@/tools/lib/file-time"
 import { toolOutput } from "@/tools/lib/tool-output"
 
 const DEFAULT_READ_LIMIT = 2000
@@ -154,7 +155,7 @@ const description = `Reads a file from the local filesystem. You can access any 
 Assume this tool is able to read all files on the machine. If the User provides a path to a file assume that path is valid. It is okay to read a file that does not exist; an error will be returned.
 
 Usage:
-- The filePath parameter must be an absolute path, not a relative path
+- The filePath parameter can be absolute or relative to the current working directory
 - By default, it reads up to 2000 lines starting from the beginning of the file
 - You can optionally specify a line offset and limit (especially handy for long files), but it's recommended to read the whole file by not providing these parameters
 - Any lines longer than 2000 characters will be truncated
@@ -164,10 +165,13 @@ Usage:
 - Sensitive files like .env are blocked for security (but .env.example, .env.sample are allowed).
 - Binary files cannot be read and will return an error.`
 
-export const readTool = tool({
-	description,
-	inputSchema: z.object({
-		filePath: z.string().describe("The path to the file to read"),
+export function createReadTool(scope = "global") {
+	return tool({
+		description,
+		inputSchema: z.object({
+		filePath: z
+			.string()
+			.describe("The path to the file to read (absolute or relative)"),
 		offset: z
 			.number()
 			.default(0)
@@ -177,7 +181,7 @@ export const readTool = tool({
 			.default(DEFAULT_READ_LIMIT)
 			.describe("The number of lines to read (defaults to 2000)"),
 	}),
-	outputSchema: toolOutput({
+		outputSchema: toolOutput({
 		pending: {
 			filePath: z.string(),
 			content: z.undefined(),
@@ -193,7 +197,7 @@ export const readTool = tool({
 			filePath: z.string(),
 		},
 	}),
-	toModelOutput: ({ output }) => {
+		toModelOutput: ({ output }) => {
 		if (output.status === "error") {
 			return {
 				type: "error-text",
@@ -216,8 +220,8 @@ export const readTool = tool({
 			return { type: "text", value: result }
 		}
 		throw new Error("Invalid output status in toModelOutput")
-	},
-	async *execute({ filePath, offset, limit: rawLimit }) {
+		},
+		async *execute({ filePath, offset, limit: rawLimit }) {
 		const limit = Math.min(rawLimit, MAX_READ_LIMIT)
 		let filepath = filePath
 		if (!path.isAbsolute(filepath)) {
@@ -292,6 +296,7 @@ export const readTool = tool({
 
 			// Read and process the file
 			const content = await fs.readFile(filepath, "utf-8")
+			await markRead(scope, filepath)
 			const lines = content.split("\n")
 			const totalLines = lines.length
 
@@ -335,5 +340,8 @@ export const readTool = tool({
 				error: error instanceof Error ? error.message : String(error),
 			}
 		}
-	},
-})
+		},
+	})
+}
+
+export const readTool = createReadTool()

@@ -131,6 +131,26 @@ Example: "The error handling is in src/services/api.ts:142"
 5. Verify the solution if possible
 6. Present the results concisely
 
+## Subagent Lifecycle
+- Use subagents for bounded side tasks that can run in parallel with your current work.
+- Use \`spawnAgent\` to create subagents (\`coding-agent\`, \`planning-agent\`, \`research-agent\`).
+- Child subagents may run with role-scoped tool access, not full parent-equivalent access.
+- Respect task permissions: spawning can be auto-allowed, require approval, or be denied by policy.
+- Use \`sendInput\` for follow-up instructions instead of spawning duplicates.
+- Use \`waitForSubagents\` only when blocked on results.
+- Use \`interruptSubagent\` to stop in-flight/queued subagent work without destroying the session.
+- Use \`resumeSubagent\` before sending input to a shutdown agent.
+- Use \`closeSubagent\` when work is finished to release runtime capacity.
+- Prefer \`fork_context: true\` only when the child must inherit parent context exactly.
+- Treat wait timeout as observational: timeout reports lack of completion within the window, but does not mutate the subagent's underlying runtime state.
+- If spawn is denied by policy, do not retry blindly; either pick an allowed agent type or continue with direct tools.
+
+## Context Compaction
+- When prior context is compacted, treat the compact summary as canonical runtime context.
+- Do not re-run broad rediscovery just because detailed historical tool outputs were pruned.
+- Re-read files only when needed to continue safely from the compacted state.
+- Keep file paths, key decisions, and next actions explicit in your own outputs so future compaction remains lossless.
+
 ## Reading Files
 - Only read files when necessary
 - Don't re-read files you've already seen unless they've changed

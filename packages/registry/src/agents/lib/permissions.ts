@@ -5,8 +5,17 @@
  * - "ask": Require user approval before proceeding
  */
 export type Permission = "allow" | "deny" | "ask"
+export type PermissionPatterns = Record<string, Permission>
+export type SupportedSubagentType =
+	| "coding-agent"
+	| "planning-agent"
+	| "research-agent"
 
-export const FILE_READ_COMMANDS: Record<string, Permission> = {
+export interface AgentGovernanceConfig {
+	taskPermissions?: PermissionPatterns
+}
+
+export const FILE_READ_COMMANDS: PermissionPatterns = {
 	"ls*": "allow",
 	"pwd*": "allow",
 	"cat*": "allow",
@@ -20,7 +29,7 @@ export const FILE_READ_COMMANDS: Record<string, Permission> = {
 	"du*": "allow",
 }
 
-export const SEARCH_COMMANDS: Record<string, Permission> = {
+export const SEARCH_COMMANDS: PermissionPatterns = {
 	"grep*": "allow",
 	"rg*": "allow",
 	"find*": "allow",
@@ -29,14 +38,14 @@ export const SEARCH_COMMANDS: Record<string, Permission> = {
 	"whereis*": "allow",
 }
 
-export const TEXT_PROCESSING_COMMANDS: Record<string, Permission> = {
+export const TEXT_PROCESSING_COMMANDS: PermissionPatterns = {
 	"sort*": "allow",
 	"uniq*": "allow",
 	"cut*": "allow",
 	"diff*": "allow",
 }
 
-export const GIT_READ_COMMANDS: Record<string, Permission> = {
+export const GIT_READ_COMMANDS: PermissionPatterns = {
 	"git status*": "allow",
 	"git diff*": "allow",
 	"git log*": "allow",
@@ -49,7 +58,7 @@ export const GIT_READ_COMMANDS: Record<string, Permission> = {
 }
 
 /** Dangerous commands that should always be denied */
-export const DANGEROUS_COMMANDS: Record<string, Permission> = {
+export const DANGEROUS_COMMANDS: PermissionPatterns = {
 	"rm -rf /*": "deny",
 	"rm -rf /": "deny",
 	"sudo rm*": "deny",
@@ -57,7 +66,7 @@ export const DANGEROUS_COMMANDS: Record<string, Permission> = {
 }
 
 /** Full bash access with dangerous command guards. Requires user approval for unknown commands. */
-export const FULL_BASH_PERMISSIONS: Record<string, Permission> = {
+export const FULL_BASH_PERMISSIONS: PermissionPatterns = {
 	...FILE_READ_COMMANDS,
 	...SEARCH_COMMANDS,
 	...TEXT_PROCESSING_COMMANDS,
@@ -67,12 +76,39 @@ export const FULL_BASH_PERMISSIONS: Record<string, Permission> = {
 }
 
 /** Read-only bash access. Denies any command not explicitly allowed. */
-export const READONLY_BASH_PERMISSIONS: Record<string, Permission> = {
+export const READONLY_BASH_PERMISSIONS: PermissionPatterns = {
 	...FILE_READ_COMMANDS,
 	...SEARCH_COMMANDS,
 	...TEXT_PROCESSING_COMMANDS,
 	...GIT_READ_COMMANDS,
 	"*": "deny",
+}
+
+/**
+ * Default subagent task permissions.
+ * Known in-product agent types are auto-allowed; unknown task types require approval.
+ */
+export const DEFAULT_TASK_PERMISSIONS: PermissionPatterns = {
+	"coding-agent": "allow",
+	"planning-agent": "allow",
+	"research-agent": "allow",
+	"*": "ask",
+}
+
+/**
+ * Merge permission maps where override patterns replace base patterns.
+ */
+export function mergePermissionPatterns(
+	base: PermissionPatterns,
+	override?: PermissionPatterns,
+): PermissionPatterns {
+	if (!override) {
+		return { ...base }
+	}
+	return {
+		...base,
+		...override,
+	}
 }
 
 /**
@@ -114,7 +150,7 @@ export function matchWildcard(value: string, pattern: string): boolean {
  */
 export function checkPermission(
 	value: string,
-	patterns: Record<string, Permission>,
+	patterns: PermissionPatterns,
 ): Permission {
 	// Sort patterns from most specific to least specific
 	const sortedPatterns = Object.keys(patterns).sort((a, b) => {

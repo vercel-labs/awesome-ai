@@ -3,6 +3,7 @@ import { createTwoFilesPatch } from "diff"
 import { promises as fs } from "fs"
 import * as path from "path"
 import { z } from "zod"
+import { assertFreshRead } from "@/tools/lib/file-time"
 import {
 	checkPermission,
 	type Permission,
@@ -576,7 +577,9 @@ Matching strategies (tried in order):
 8. Context-aware match (uses surrounding lines)`
 
 const inputSchema = z.object({
-	filePath: z.string().describe("The absolute path to the file to modify"),
+	filePath: z
+		.string()
+		.describe("The path to the file to modify (absolute or relative)"),
 	oldString: z.string().describe("The text to replace"),
 	newString: z
 		.string()
@@ -623,9 +626,11 @@ const outputSchema = toolOutput({
  */
 export function createEditTool(
 	permissions: Permission | Record<string, Permission> = "ask",
+	opts: { scope?: string } = {},
 ) {
 	const permissionPatterns =
 		typeof permissions === "string" ? { "*": permissions } : permissions
+	const scope = opts.scope ?? "global"
 
 	return tool({
 		description,
@@ -687,6 +692,8 @@ export function createEditTool(
 
 				const contentRaw = await fs.readFile(filepath, "utf-8")
 				const content = normalizeLineEndings(contentRaw)
+
+				await assertFreshRead(scope, filepath)
 
 				// Handle empty oldString as creating/overwriting file
 				if (oldString === "") {

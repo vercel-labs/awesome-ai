@@ -13,7 +13,9 @@
 	"dependencies": {
 		"ai": "catalog:",
 		"diff": "^8.0.2",
+		"tree-sitter-bash": "^0.25.1",
 		"unzipper": "^0.12.3",
+		"web-tree-sitter": "^0.26.6",
 		"zod": "catalog:"
 	},
 	"devDependencies": {

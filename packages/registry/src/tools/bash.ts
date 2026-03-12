@@ -1,6 +1,10 @@
 import { tool } from "ai"
 import { spawn } from "child_process"
+import { promises as fs } from "fs"
+import { createRequire } from "module"
+import * as path from "path"
 import { z } from "zod"
+import type { Parser as TsParser } from "web-tree-sitter"
 import {
 	checkPermission,
 	type Permission,
@@ -13,6 +17,7 @@ const DEFAULT_TIMEOUT = 1 * 60 * 1000 // 1 minute
 const MAX_TIMEOUT = 10 * 60 * 1000 // 10 minutes
 const SIGKILL_DELAY_MS = 200 // Wait before sending SIGKILL
 const STREAM_THROTTLE_MS = 100 // Minimum time between streaming updates
+const parserRequire = createRequire(import.meta.url)
 
 /**
  * Detect the appropriate shell to use based on platform and environment
@@ -102,6 +107,231 @@ async function killProcessTree(
 
 const shell = detectShell()
 
+interface ParsedCommand {
+	text: string
+	args: string[]
+}
+
+function stripQuotes(text: string): string {
+	if (text.length < 2) return text
+	const first = text[0]
+	const last = text[text.length - 1]
+	if ((first === '"' || first === "'") && last === first) {
+		return text.slice(1, -1)
+	}
+	return text
+}
+
+let parser: TsParser | undefined
+
+async function initParser(): Promise<void> {
+	if (parser) return
+	const tree = await import("web-tree-sitter")
+	const wasmPath = parserRequire.resolve("web-tree-sitter/tree-sitter.wasm")
+	await tree.Parser.init({
+		locateFile() {
+			return wasmPath
+		},
+	})
+	const langPath = parserRequire.resolve("tree-sitter-bash/tree-sitter-bash.wasm")
+	const lang = await (tree as { Language: { load(path: string): Promise<unknown> } }).Language.load(langPath)
+	const next = new tree.Parser()
+	next.setLanguage(lang as never)
+	parser = next
+}
+
+function parseByTreeSitter(input: string): ParsedCommand[] {
+	if (!parser) return []
+	const tree = parser.parse(input)
+	if (!tree) return []
+	const out: ParsedCommand[] = []
+	for (const node of tree.rootNode.descendantsOfType("command")) {
+		if (!node) continue
+		const text =
+			node.parent?.type === "redirected_statement" ? node.parent.text : node.text
+		const args: string[] = []
+		for (let i = 0; i < node.childCount; i++) {
+			const child = node.child(i)
+			if (!child) continue
+			if (
+				child.type !== "command_name" &&
+				child.type !== "word" &&
+				child.type !== "string" &&
+				child.type !== "raw_string" &&
+				child.type !== "concatenation"
+			) {
+				continue
+			}
+			args.push(stripQuotes(child.text))
+		}
+		if (args.length > 0) {
+			out.push({ text, args })
+		}
+	}
+	return out
+}
+
+function parseFallback(input: string): ParsedCommand[] {
+	const parts = input
+		.split(/&&|\|\||;|\|/g)
+		.map((x) => x.trim())
+		.filter(Boolean)
+	const out: ParsedCommand[] = []
+	for (const part of parts) {
+		const args = part
+			.split(/\s+/)
+			.map((x) => stripQuotes(x))
+			.filter(Boolean)
+		if (args.length === 0) continue
+		out.push({ text: part, args })
+	}
+	return out
+}
+
+function parseCommands(input: string): ParsedCommand[] {
+	const parsed = parseByTreeSitter(input)
+	if (parsed.length > 0) return parsed
+	return parseFallback(input)
+}
+
+void initParser().catch(() => {})
+
+function isSafeFind(args: string[]): boolean {
+	const deny = new Set([
+		"-exec",
+		"-execdir",
+		"-ok",
+		"-okdir",
+		"-delete",
+		"-fls",
+		"-fprint",
+		"-fprint0",
+		"-fprintf",
+	])
+	return !args.some((arg) => deny.has(arg))
+}
+
+function isSafeRg(args: string[]): boolean {
+	return !args.some((arg) => {
+		return (
+			arg === "--search-zip" ||
+			arg === "-z" ||
+			arg === "--pre" ||
+			arg.startsWith("--pre=") ||
+			arg === "--hostname-bin" ||
+			arg.startsWith("--hostname-bin=")
+		)
+	})
+}
+
+function isSafeGit(args: string[]): boolean {
+	if (args.length === 0) return false
+	if (args.some((arg) => arg === "-c" || arg.startsWith("-c") || arg === "--config-env" || arg.startsWith("--config-env="))) {
+		return false
+	}
+	let sub = ""
+	let idx = -1
+	for (let i = 0; i < args.length; i++) {
+		const arg = args[i]!
+		if (arg.startsWith("-")) continue
+		sub = arg
+		idx = i
+		break
+	}
+	if (!["status", "log", "diff", "show", "branch"].includes(sub)) return false
+	const rest = args.slice(idx + 1)
+	if (
+		rest.some(
+			(arg) =>
+				arg === "--output" ||
+				arg.startsWith("--output=") ||
+				arg === "--exec" ||
+				arg.startsWith("--exec=") ||
+				arg === "--ext-diff" ||
+				arg === "--textconv" ||
+				arg === "--paginate",
+		)
+	) {
+		return false
+	}
+	if (sub !== "branch") return true
+	if (rest.length === 0) return true
+	return rest.every((arg) => {
+		return (
+			arg === "--list" ||
+			arg === "-l" ||
+			arg === "--show-current" ||
+			arg === "-a" ||
+			arg === "--all" ||
+			arg === "-r" ||
+			arg === "--remotes" ||
+			arg === "-v" ||
+			arg === "-vv" ||
+			arg === "--verbose" ||
+			arg.startsWith("--format=")
+		)
+	})
+}
+
+function isKnownSafeCommand(command: string): boolean {
+	const allow = new Set([
+		"cat",
+		"cd",
+		"cut",
+		"echo",
+		"expr",
+		"false",
+		"grep",
+		"head",
+		"id",
+		"ls",
+		"nl",
+		"paste",
+		"pwd",
+		"rev",
+		"seq",
+		"stat",
+		"tail",
+		"tr",
+		"true",
+		"uname",
+		"uniq",
+		"wc",
+		"which",
+		"whoami",
+	])
+
+	for (const part of parseCommands(command)) {
+		if (
+			part.text.includes(">") ||
+			part.text.includes("<") ||
+			part.text.includes("$(") ||
+			part.text.includes("`")
+		) {
+			return false
+		}
+		const args = part.args
+		const cmd = args[0]
+		if (!cmd) return false
+		if (allow.has(cmd)) continue
+		if (cmd === "find") {
+			if (!isSafeFind(args.slice(1))) return false
+			continue
+		}
+		if (cmd === "rg") {
+			if (!isSafeRg(args.slice(1))) return false
+			continue
+		}
+		if (cmd === "git") {
+			if (!isSafeGit(args.slice(1))) return false
+			continue
+		}
+		return false
+	}
+
+	return true
+}
+
 const description = `Executes shell commands with real-time output streaming.
 
 Usage:
@@ -115,6 +345,12 @@ Usage:
 const inputSchema = z.object({
 	command: z.string().describe("The command to execute"),
 	timeout: z.number().optional().describe("Optional timeout in milliseconds"),
+	workdir: z
+		.string()
+		.optional()
+		.describe(
+			"The working directory to run the command in. Defaults to current working directory.",
+		),
 	description: z
 		.string()
 		.describe(
@@ -162,20 +398,29 @@ const outputSchema = toolOutput({
  */
 export function createBashTool(
 	permissions: Record<string, Permission> = { "*": "ask" },
+	opts: { safeAutoApprove?: boolean } = {},
 ) {
 	return tool({
 		description,
 		inputSchema,
 		outputSchema,
 		needsApproval: ({ command }) => {
-			const permission = checkPermission(command, permissions)
-
-			if (permission === "deny") {
-				throw new PermissionDeniedError("bash", command)
+			const parsed = parseCommands(command)
+			const parts = parsed.length > 0 ? parsed : [{ text: command, args: [] }]
+			let ask = false
+			for (const part of parts) {
+				const permission = checkPermission(part.text, permissions)
+				if (permission === "deny") {
+					throw new PermissionDeniedError("bash", part.text)
+				}
+				if (permission === "ask") {
+					ask = true
+				}
 			}
+			if (!ask) return false
+			if (opts.safeAutoApprove && isKnownSafeCommand(command)) return false
 
-			// Return true if approval needed (ask), false if auto-allowed
-			return permission === "ask"
+			return ask
 		},
 		toModelOutput: ({ output }) => {
 			if (output.status === "error") {
@@ -190,7 +435,8 @@ export function createBashTool(
 			// For streaming/pending, don't send to model yet
 			throw new Error("Invalid output status in toModelOutput")
 		},
-		async *execute({ command, timeout, description: desc }) {
+		async *execute({ command, timeout, description: desc, workdir }) {
+			await initParser().catch(() => {})
 			// Validate and constrain timeout
 			if (timeout !== undefined && timeout < 0) {
 				throw new Error(
@@ -198,6 +444,16 @@ export function createBashTool(
 				)
 			}
 			const effectiveTimeout = Math.min(timeout ?? DEFAULT_TIMEOUT, MAX_TIMEOUT)
+
+			const cwd = workdir ? path.resolve(process.cwd(), workdir) : process.cwd()
+			try {
+				const stat = await fs.stat(cwd)
+				if (!stat.isDirectory()) {
+					throw new Error(`Working directory is not a directory: ${cwd}`)
+				}
+			} catch {
+				throw new Error(`Working directory does not exist: ${cwd}`)
+			}
 
 			yield {
 				status: "pending",
@@ -210,7 +466,7 @@ export function createBashTool(
 			// Use an async iterator pattern with events
 			const proc = spawn(command, {
 				shell,
-				cwd: process.cwd(),
+				cwd,
 				env: process.env,
 				stdio: ["ignore", "pipe", "pipe"],
 				// Detach on Unix to create process group for clean killing

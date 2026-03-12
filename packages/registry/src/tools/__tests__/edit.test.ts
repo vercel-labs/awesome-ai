@@ -3,6 +3,7 @@ import * as os from "os"
 import * as path from "path"
 import { afterEach, assert, beforeEach, describe, expect, it } from "vitest"
 import { PermissionDeniedError } from "@/agents/lib/permissions"
+import { clearReads, markRead } from "../lib/file-time"
 import {
 	BlockAnchorReplacer,
 	ContextAwareReplacer,
@@ -289,6 +290,7 @@ describe("editTool", () => {
 	beforeEach(async () => {
 		tempDir = await fs.mkdtemp(path.join(os.tmpdir(), "edit-test-"))
 		tempFile = path.join(tempDir, "test.txt")
+		clearReads()
 	})
 
 	afterEach(async () => {
@@ -297,6 +299,7 @@ describe("editTool", () => {
 
 	it("replaces text in a file", async () => {
 		await fs.writeFile(tempFile, "Hello, world!", "utf-8")
+		await markRead("global", tempFile)
 
 		const results = await executeTool(editTool, {
 			filePath: tempFile,
@@ -344,6 +347,7 @@ describe("editTool", () => {
 
 	it("overwrites file when oldString is empty", async () => {
 		await fs.writeFile(tempFile, "original content", "utf-8")
+		await markRead("global", tempFile)
 
 		const results = await executeTool(editTool, {
 			filePath: tempFile,
@@ -360,6 +364,7 @@ describe("editTool", () => {
 
 	it("replaces all occurrences with replaceAll=true", async () => {
 		await fs.writeFile(tempFile, "foo bar foo baz foo", "utf-8")
+		await markRead("global", tempFile)
 
 		const results = await executeTool(editTool, {
 			filePath: tempFile,
@@ -377,6 +382,7 @@ describe("editTool", () => {
 
 	it("returns error when oldString not found", async () => {
 		await fs.writeFile(tempFile, "Hello, world!", "utf-8")
+		await markRead("global", tempFile)
 
 		const results = await executeTool(editTool, {
 			filePath: tempFile,
@@ -392,8 +398,41 @@ describe("editTool", () => {
 		expect(finalResult?.error).toContain("not found")
 	})
 
+	it("returns error when editing without prior read", async () => {
+		await fs.writeFile(tempFile, "Hello, world!", "utf-8")
+		const results = await executeTool(editTool, {
+			filePath: tempFile,
+			oldString: "world",
+			newString: "vitest",
+		})
+		const finalResult = results[results.length - 1] as {
+			status: string
+			error?: string
+		}
+		expect(finalResult.status).toBe("error")
+		expect(finalResult.error).toContain("must be read before editing")
+	})
+
+	it("isolates freshness tracking by scope", async () => {
+		await fs.writeFile(tempFile, "Hello, world!", "utf-8")
+		await markRead("scope-a", tempFile)
+		const scoped = createEditTool("ask", { scope: "scope-b" })
+		const results = await executeTool(scoped, {
+			filePath: tempFile,
+			oldString: "world",
+			newString: "vitest",
+		})
+		const finalResult = results[results.length - 1] as {
+			status: string
+			error?: string
+		}
+		expect(finalResult.status).toBe("error")
+		expect(finalResult.error).toContain("must be read before editing")
+	})
+
 	it("returns error for multiple matches without replaceAll", async () => {
 		await fs.writeFile(tempFile, "foo bar foo", "utf-8")
+		await markRead("global", tempFile)
 
 		const results = await executeTool(editTool, {
 			filePath: tempFile,
@@ -411,6 +450,7 @@ describe("editTool", () => {
 
 	it("normalizes CRLF line endings", async () => {
 		await fs.writeFile(tempFile, "line1\r\nline2\r\nline3", "utf-8")
+		await markRead("global", tempFile)
 
 		const results = await executeTool(editTool, {
 			filePath: tempFile,
@@ -428,6 +468,7 @@ describe("editTool", () => {
 	it("uses fuzzy matching strategies", async () => {
 		// Test that line-trimmed matching works through the tool
 		await fs.writeFile(tempFile, "  hello world  ", "utf-8")
+		await markRead("global", tempFile)
 
 		const results = await executeTool(editTool, {
 			filePath: tempFile,
@@ -444,6 +485,7 @@ describe("editTool", () => {
 
 	it("yields pending status before completion", async () => {
 		await fs.writeFile(tempFile, "content", "utf-8")
+		await markRead("global", tempFile)
 
 		const results = await executeTool(editTool, {
 			filePath: tempFile,
@@ -458,6 +500,7 @@ describe("editTool", () => {
 
 	it("includes diff in success result", async () => {
 		await fs.writeFile(tempFile, "old text", "utf-8")
+		await markRead("global", tempFile)
 
 		const results = await executeTool(editTool, {
 			filePath: tempFile,

@@ -3,7 +3,11 @@ import { promises as fs } from "fs"
 import * as path from "path"
 import { z } from "zod"
 import * as ripgrep from "@/tools/lib/ripgrep"
-import { toolOutput } from "@/tools/lib/tool-output"
+import {
+	continuationHint,
+	toolOutput,
+	truncation,
+} from "@/tools/lib/tool-output"
 
 const LIMIT = 100
 
@@ -76,6 +80,8 @@ export const globTool = tool({
 			searchPath: z.string(),
 			result: z.string(),
 			fileCount: z.number(),
+			...truncation,
+			...continuationHint,
 		},
 		error: {
 			pattern: z.string(),
@@ -137,6 +143,11 @@ export const globTool = tool({
 				searchPath: cwd,
 				result,
 				fileCount: files.length,
+				truncated: truncated || undefined,
+				truncationReason: truncated ? "file_limit" : undefined,
+				continuationHint: truncated
+					? "Use a more specific glob or path to continue."
+					: undefined,
 			}
 		} catch (error) {
 			yield {

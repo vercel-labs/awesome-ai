@@ -282,4 +282,38 @@ describe("writeTool", () => {
 			needsApproval({ filePath: "/.env.local", content: "SECRET=value" }, opts),
 		).toThrow(PermissionDeniedError)
 	})
+
+	it("prefers nested deny path over broader allow path", () => {
+		const write = createWriteTool({
+			"*/src/secret/*": "deny",
+			"*/src/*": "allow",
+			"*": "ask",
+		})
+		const { needsApproval } = write
+		assert(typeof needsApproval === "function")
+		const opts = { toolCallId: "test", messages: [] }
+		expect(
+			needsApproval({ filePath: "/repo/src/main.ts", content: "ok" }, opts),
+		).toBe(false)
+		expect(() =>
+			needsApproval({ filePath: "/repo/src/secret/keys.ts", content: "no" }, opts),
+		).toThrow(PermissionDeniedError)
+	})
+
+	it("prefers exact file permission over wildcard", () => {
+		const write = createWriteTool({
+			"/repo/src/main.ts": "allow",
+			"*.ts": "ask",
+			"*": "ask",
+		})
+		const { needsApproval } = write
+		assert(typeof needsApproval === "function")
+		const opts = { toolCallId: "test", messages: [] }
+		expect(
+			needsApproval({ filePath: "/repo/src/main.ts", content: "ok" }, opts),
+		).toBe(false)
+		expect(
+			needsApproval({ filePath: "/repo/src/other.ts", content: "ok" }, opts),
+		).toBe(true)
+	})
 })

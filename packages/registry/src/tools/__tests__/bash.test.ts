@@ -282,6 +282,21 @@ describe("bashTool", () => {
 		expect(finalResult?.output).toContain("Exit code: 5")
 	})
 
+	it("reports truncation metadata for large output", async () => {
+		const results = await executeTool(bashTool, {
+			command: "seq 1 20000",
+			description: "Produce long output",
+		})
+		const finalResult = results[results.length - 1] as {
+			status: string
+			truncated?: boolean
+			truncationReason?: string
+		}
+		expect(finalResult.status).toBe("success")
+		expect(finalResult.truncated).toBe(true)
+		expect(finalResult.truncationReason).toBe("output_limit")
+	}, 10000)
+
 	it("yields streaming output for long-running commands", async () => {
 		// Command that produces output with delays to trigger streaming
 		const results = await executeTool(bashTool, {
@@ -376,5 +391,91 @@ describe("bashTool", () => {
 		expect(
 			needsApproval({ command: "ls && git status", description: "" }, opts),
 		).toBe(false)
+	})
+
+	it("requires approval for path-like arguments outside cwd", () => {
+		const bash = createBashTool({ "cat*": "allow", "*": "ask" })
+		const { needsApproval } = bash
+		assert(typeof needsApproval === "function")
+		const opts = { toolCallId: "test", messages: [] }
+		expect(
+			needsApproval({ command: "cat ../../etc/hosts", description: "" }, opts),
+		).toBe(true)
+	})
+
+	it("does not auto-approve nested shell forms", () => {
+		const bash = createBashTool({ "*": "ask" }, { safeAutoApprove: true })
+		const { needsApproval } = bash
+		assert(typeof needsApproval === "function")
+		const opts = { toolCallId: "test", messages: [] }
+		expect(
+			needsApproval({ command: "echo $(pwd)", description: "" }, opts),
+		).toBe(true)
+		expect(
+			needsApproval({ command: "echo (hello)", description: "" }, opts),
+		).toBe(true)
+	})
+
+	it("allows safe git global options during auto-approval", () => {
+		const bash = createBashTool({ "*": "ask" }, { safeAutoApprove: true })
+		const { needsApproval } = bash
+		assert(typeof needsApproval === "function")
+		const opts = { toolCallId: "test", messages: [] }
+		expect(
+			needsApproval(
+				{ command: "git -C . branch --show-current", description: "" },
+				opts,
+			),
+		).toBe(false)
+	})
+
+	it("prefers specific allow over broader ask patterns", () => {
+		const bash = createBashTool({
+			"git status*": "allow",
+			"git *": "ask",
+			"*": "ask",
+		})
+		const { needsApproval } = bash
+		assert(typeof needsApproval === "function")
+		const opts = { toolCallId: "test", messages: [] }
+		expect(
+			needsApproval(
+				{ command: "git status --short", description: "" },
+				opts,
+			),
+		).toBe(false)
+	})
+
+	it("treats specific arg variants as distinct from base command", () => {
+		const bash = createBashTool({
+			"git status --short": "allow",
+			"*": "ask",
+		})
+		const { needsApproval } = bash
+		assert(typeof needsApproval === "function")
+		const opts = { toolCallId: "test", messages: [] }
+		expect(
+			needsApproval(
+				{ command: "git status --short", description: "" },
+				opts,
+			),
+		).toBe(false)
+		expect(needsApproval({ command: "git status", description: "" }, opts)).toBe(
+			true,
+		)
+	})
+
+	it("applies deny when a specific variant is denied", () => {
+		const bash = createBashTool({
+			"git status*": "deny",
+			"git *": "allow",
+			"*": "ask",
+		})
+		const { needsApproval } = bash
+		assert(typeof needsApproval === "function")
+		const opts = { toolCallId: "test", messages: [] }
+		expect(() =>
+			needsApproval({ command: "git status --short", description: "" }, opts),
+		).toThrow(PermissionDeniedError)
 	})
 })

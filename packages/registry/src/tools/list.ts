@@ -3,7 +3,11 @@ import { promises as fs } from "fs"
 import * as path from "path"
 import { z } from "zod"
 import * as ripgrep from "@/tools/lib/ripgrep"
-import { toolOutput } from "@/tools/lib/tool-output"
+import {
+	continuationHint,
+	toolOutput,
+	truncation,
+} from "@/tools/lib/tool-output"
 
 const IGNORE_PATTERNS = [
 	"node_modules",
@@ -141,6 +145,8 @@ export const listTool = tool({
 			dirPath: z.string(),
 			result: z.string(),
 			fileCount: z.number(),
+			...truncation,
+			...continuationHint,
 		},
 		error: {
 			dirPath: z.string(),
@@ -195,6 +201,11 @@ export const listTool = tool({
 				dirPath: resolvedPath,
 				result,
 				fileCount: files.length,
+				truncated: truncated || undefined,
+				truncationReason: truncated ? "file_limit" : undefined,
+				continuationHint: truncated
+					? "Use a narrower path or ignore patterns to continue."
+					: undefined,
 			}
 		} catch (error) {
 			yield {

@@ -571,4 +571,66 @@ describe("editTool", () => {
 			),
 		).toThrow(PermissionDeniedError)
 	})
+
+	it("prefers nested deny path over broader allow path", () => {
+		const edit = createEditTool({
+			"*/src/secret/*": "deny",
+			"*/src/*": "allow",
+			"*": "ask",
+		})
+		const { needsApproval } = edit
+		assert(typeof needsApproval === "function")
+		const opts = { toolCallId: "test", messages: [] }
+		expect(
+			needsApproval(
+				{
+					filePath: "/repo/src/main.ts",
+					oldString: "a",
+					newString: "b",
+				},
+				opts,
+			),
+		).toBe(false)
+		expect(() =>
+			needsApproval(
+				{
+					filePath: "/repo/src/secret/keys.ts",
+					oldString: "a",
+					newString: "b",
+				},
+				opts,
+			),
+		).toThrow(PermissionDeniedError)
+	})
+
+	it("prefers exact file permission over wildcard", () => {
+		const edit = createEditTool({
+			"/repo/src/main.ts": "allow",
+			"*.ts": "ask",
+			"*": "ask",
+		})
+		const { needsApproval } = edit
+		assert(typeof needsApproval === "function")
+		const opts = { toolCallId: "test", messages: [] }
+		expect(
+			needsApproval(
+				{
+					filePath: "/repo/src/main.ts",
+					oldString: "a",
+					newString: "b",
+				},
+				opts,
+			),
+		).toBe(false)
+		expect(
+			needsApproval(
+				{
+					filePath: "/repo/src/other.ts",
+					oldString: "a",
+					newString: "b",
+				},
+				opts,
+			),
+		).toBe(true)
+	})
 })

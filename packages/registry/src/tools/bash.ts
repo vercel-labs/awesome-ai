@@ -10,7 +10,7 @@ import {
 	type Permission,
 	PermissionDeniedError,
 } from "@/agents/lib/permissions"
-import { toolOutput } from "@/tools/lib/tool-output"
+import { toolOutput, truncation } from "@/tools/lib/tool-output"
 
 const MAX_OUTPUT_LENGTH = 30_000
 const DEFAULT_TIMEOUT = 1 * 60 * 1000 // 1 minute
@@ -110,6 +110,61 @@ const shell = detectShell()
 interface ParsedCommand {
 	text: string
 	args: string[]
+}
+
+function parseToken(text: string): string {
+	if (text === "-") return text
+	if (text.startsWith("-")) {
+		const idx = text.indexOf("=")
+		if (idx > 0) return text.slice(0, idx)
+		return text
+	}
+	return text
+}
+
+function isPathLike(text: string): boolean {
+	if (text.length === 0) return false
+	if (text === "." || text === ".." || text.startsWith("./") || text.startsWith("../")) return true
+	if (path.isAbsolute(text)) return true
+	if (text.startsWith("~")) return true
+	if (text.includes(path.sep)) return true
+	return false
+}
+
+function isPathCommand(cmd: string): boolean {
+	return (
+		cmd === "cd" ||
+		cmd === "cat" ||
+		cmd === "ls" ||
+		cmd === "head" ||
+		cmd === "tail" ||
+		cmd === "stat" ||
+		cmd === "find" ||
+		cmd === "rg" ||
+		cmd === "grep" ||
+		cmd === "wc" ||
+		cmd === "touch" ||
+		cmd === "mkdir" ||
+		cmd === "cp" ||
+		cmd === "mv" ||
+		cmd === "rm"
+	)
+}
+
+function hasExternalPath(part: ParsedCommand, cwd: string): boolean {
+	const cmd = part.args[0]
+	if (!cmd || !isPathCommand(cmd)) return false
+	for (const raw of part.args.slice(1)) {
+		const token = parseToken(raw)
+		if (token.startsWith("-")) continue
+		if (!isPathLike(token)) continue
+		const target = token.startsWith("~")
+			? path.join(process.env.HOME || "", token.slice(1))
+			: token
+		const full = path.resolve(cwd, target)
+		if (!full.startsWith(cwd)) return true
+	}
+	return false
 }
 
 function stripQuotes(text: string): string {
@@ -231,13 +286,45 @@ function isSafeGit(args: string[]): boolean {
 	}
 	let sub = ""
 	let idx = -1
-	for (let i = 0; i < args.length; i++) {
+	for (let i = 0; i < args.length; ) {
 		const arg = args[i]!
-		if (arg.startsWith("-")) continue
+		if (arg === "--") {
+			const next = args[i + 1]
+			if (!next) return false
+			sub = next
+			idx = i + 1
+			break
+		}
+		if (
+			arg === "-C" ||
+			arg === "--git-dir" ||
+			arg === "--work-tree" ||
+			arg === "--namespace" ||
+			arg === "--super-prefix" ||
+			arg === "-c"
+		) {
+			i += 2
+			continue
+		}
+		if (
+			arg.startsWith("--git-dir=") ||
+			arg.startsWith("--work-tree=") ||
+			arg.startsWith("--namespace=") ||
+			arg.startsWith("--super-prefix=") ||
+			arg.startsWith("-c")
+		) {
+			i += 1
+			continue
+		}
+		if (arg.startsWith("-")) {
+			i += 1
+			continue
+		}
 		sub = arg
 		idx = i
 		break
 	}
+	if (!sub) return false
 	if (!["status", "log", "diff", "show", "branch"].includes(sub)) return false
 	const rest = args.slice(idx + 1)
 	if (
@@ -273,6 +360,46 @@ function isSafeGit(args: string[]): boolean {
 	})
 }
 
+function hasUnsafeShellForm(command: string): boolean {
+	if (
+		command.includes(">") ||
+		command.includes("<") ||
+		command.includes("$(") ||
+		command.includes("`")
+	) {
+		return true
+	}
+	if (command.includes("(") || command.includes(")")) {
+		return true
+	}
+	return false
+}
+
+function getPermission(
+	part: ParsedCommand,
+	permissions: Record<string, Permission>,
+): Permission {
+	if (part.args.length === 0) {
+		return checkPermission(part.text, permissions)
+	}
+	const cmd = part.args[0]!
+	const line = part.args.join(" ")
+	const first = part.args[1]
+	const variants = [part.text, line, cmd]
+	if (first && !first.startsWith("-")) {
+		variants.push(`${cmd} ${first}*`)
+		variants.push(`${cmd} ${first}`)
+	}
+	let allow = false
+	for (const variant of variants) {
+		const mode = checkPermission(variant, permissions)
+		if (mode === "deny") return "deny"
+		if (mode === "allow") allow = true
+	}
+	if (allow) return "allow"
+	return "ask"
+}
+
 function isKnownSafeCommand(command: string): boolean {
 	const allow = new Set([
 		"cat",
@@ -302,12 +429,7 @@ function isKnownSafeCommand(command: string): boolean {
 	])
 
 	for (const part of parseCommands(command)) {
-		if (
-			part.text.includes(">") ||
-			part.text.includes("<") ||
-			part.text.includes("$(") ||
-			part.text.includes("`")
-		) {
+		if (hasUnsafeShellForm(part.text)) {
 			return false
 		}
 		const args = part.args
@@ -375,6 +497,7 @@ const outputSchema = toolOutput({
 		output: z.string(),
 		exitCode: z.number(),
 		timedOut: z.boolean().optional(),
+			...truncation,
 	},
 	error: {
 		command: z.string(),
@@ -408,12 +531,16 @@ export function createBashTool(
 			const parsed = parseCommands(command)
 			const parts = parsed.length > 0 ? parsed : [{ text: command, args: [] }]
 			let ask = false
+			const cwd = process.cwd()
 			for (const part of parts) {
-				const permission = checkPermission(part.text, permissions)
+				const permission = getPermission(part, permissions)
 				if (permission === "deny") {
 					throw new PermissionDeniedError("bash", part.text)
 				}
 				if (permission === "ask") {
+					ask = true
+				}
+				if (hasExternalPath(part, cwd)) {
 					ask = true
 				}
 			}
@@ -571,9 +698,11 @@ export function createBashTool(
 				const exitCode = await exitPromise
 
 				// Truncate output if too long
+				let truncated = false
 				if (output.length > MAX_OUTPUT_LENGTH) {
 					output = output.slice(0, MAX_OUTPUT_LENGTH)
 					output += "\n\n(Output was truncated due to length limit)"
+					truncated = true
 				}
 
 				// Add timeout notice
@@ -589,6 +718,8 @@ export function createBashTool(
 					output: `Command: ${command}\nDescription: ${desc}\nExit code: ${exitCode ?? -1}\n\n${output}`,
 					exitCode: exitCode ?? -1,
 					timedOut: timedOut || undefined,
+					truncated: truncated || undefined,
+					truncationReason: truncated ? "output_limit" : undefined,
 				}
 			} catch (error) {
 				yield {

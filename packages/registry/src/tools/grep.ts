@@ -3,7 +3,11 @@ import { promises as fs } from "fs"
 import * as path from "path"
 import { z } from "zod"
 import * as ripgrep from "@/tools/lib/ripgrep"
-import { toolOutput } from "@/tools/lib/tool-output"
+import {
+	continuationHint,
+	toolOutput,
+	truncation,
+} from "@/tools/lib/tool-output"
 
 const LIMIT = 100
 
@@ -130,6 +134,8 @@ export const grepTool = tool({
 			searchPath: z.string(),
 			result: z.string(),
 			matchCount: z.number(),
+			...truncation,
+			...continuationHint,
 		},
 		error: {
 			pattern: z.string(),
@@ -171,6 +177,7 @@ export const grepTool = tool({
 		try {
 			const matches = await searchFiles(cwd, pattern, include)
 			const result = formatMatches(matches)
+			const truncated = matches.length >= LIMIT
 
 			yield {
 				status: "success",
@@ -179,6 +186,11 @@ export const grepTool = tool({
 				searchPath: cwd,
 				result,
 				matchCount: matches.length,
+				truncated: truncated || undefined,
+				truncationReason: truncated ? "match_limit" : undefined,
+				continuationHint: truncated
+					? "Narrow pattern/path to continue scanning remaining matches."
+					: undefined,
 			}
 		} catch (error) {
 			yield {

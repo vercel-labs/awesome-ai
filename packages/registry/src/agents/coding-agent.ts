@@ -23,6 +23,7 @@ import {
 	createContextSummarizer,
 	stopOnTextResponse,
 } from "@/agents/lib/step-utils"
+import { resolveToolMode, type ToolMode } from "@/agents/lib/tool-mode"
 import { createAgent as createPlanningAgent } from "@/agents/planning-agent"
 import { createAgent as createResearchAgent } from "@/agents/research-agent"
 import { prompt } from "@/prompts/coding-agent"
@@ -41,6 +42,7 @@ import {
 } from "@/tools/subagent-lifecycle"
 import { createTodoTools, type TodoStorage } from "@/tools/todo"
 import { createWriteTool } from "@/tools/write"
+import { cleanupReads, clearReads } from "@/tools/lib/file-time"
 
 const CODING_AGENT_COMPACTION: ContextCompactionOptions = {
 	thresholdTokens: 180_000,
@@ -52,50 +54,6 @@ const CODING_AGENT_COMPACTION: ContextCompactionOptions = {
 
 interface CodingToolScope {
 	allow: string[]
-}
-
-type ToolMode = "patch" | "edit"
-
-interface ModeRule {
-	include: string
-	exclude?: string[]
-}
-
-const TOOL_MODE_RULES: Record<ToolMode, ModeRule[]> = {
-	patch: [{ include: "gpt-", exclude: ["oss", "gpt-4"] }],
-	edit: [],
-}
-
-function resolveModelId(model: LanguageModel, modelId?: string): string {
-	if (modelId) return modelId
-	const raw = model as Record<string, unknown>
-	const direct = raw["modelId"]
-	if (typeof direct === "string") return direct
-	const nested = raw["model"]
-	if (
-		nested &&
-		typeof nested === "object" &&
-		typeof (nested as Record<string, unknown>)["id"] === "string"
-	) {
-		return (nested as Record<string, unknown>)["id"] as string
-	}
-	return ""
-}
-
-function resolveToolMode(
-	model: LanguageModel,
-	modelId?: string,
-	override?: ToolMode,
-): ToolMode {
-	if (override) return override
-	const id = resolveModelId(model, modelId)
-	if (!id) return "edit"
-	for (const rule of TOOL_MODE_RULES.patch) {
-		if (!id.includes(rule.include)) continue
-		if (rule.exclude?.some((x) => id.includes(x))) continue
-		return "patch"
-	}
-	return "edit"
 }
 
 interface SubagentGovernanceSettings extends AgentGovernanceConfig {
@@ -178,6 +136,7 @@ async function createCodingAgent({
 	onSubagentStatus,
 	getSubagentParentMessages,
 }: AgentSettings) {
+	cleanupReads()
 	const env = await getEnvironmentContext({ cwd, ...environment })
 	const instructions = applyEnvironment(prompt, env)
 	const { todoRead, todoWrite } = createTodoTools(todoStorage)
@@ -190,6 +149,19 @@ async function createCodingAgent({
 	const childToolScope =
 		subagentGovernance?.childToolScopes?.["coding-agent"] ??
 		DEFAULT_CODING_CHILD_TOOL_SCOPE
+	const handleStatus = (event: RuntimeEvent) => {
+		const done =
+			event.status === "completed" ||
+			event.status === "errored" ||
+			event.status === "shutdown" ||
+			event.status === "interrupted" ||
+			event.status === "timeout" ||
+			event.status === "not_found"
+		if (done) {
+			clearReads(event.agentId)
+		}
+		onSubagentStatus?.(event)
+	}
 	let runtime: SubagentRuntime
 	if (subagentRuntime) {
 		runtime = subagentRuntime
@@ -198,7 +170,7 @@ async function createCodingAgent({
 			model,
 			maxDepth: maxSubagentDepth,
 			maxThreads: maxSubagentThreads,
-			onStatus: onSubagentStatus,
+			onStatus: handleStatus,
 			cacheStorage,
 			resolveAgent: async ({
 				type,
@@ -223,7 +195,7 @@ async function createCodingAgent({
 						cacheStorage,
 						subagentGovernance,
 						toolScope: childToolScope,
-						onSubagentStatus,
+						onSubagentStatus: handleStatus,
 					})
 					return asRuntimeAgent(childAgent)
 				}

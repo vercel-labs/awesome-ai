@@ -274,4 +274,24 @@ describe("grepTool", () => {
 		expect(finalResult?.status).toBe("success")
 		expect(finalResult?.result).toContain(tempDir)
 	})
+
+	it("reports truncation metadata when match cap is hit", async () => {
+		for (let i = 0; i < 120; i++) {
+			await fs.writeFile(path.join(tempDir, `f-${i}.txt`), `hit ${i}`)
+		}
+		const results = await executeTool(grepTool, {
+			pattern: "hit",
+			path: tempDir,
+		})
+		const finalResult = results[results.length - 1] as {
+			status: string
+			truncated?: boolean
+			truncationReason?: string
+			continuationHint?: string
+		}
+		expect(finalResult.status).toBe("success")
+		expect(finalResult.truncated).toBe(true)
+		expect(finalResult.truncationReason).toBe("match_limit")
+		expect(finalResult.continuationHint).toContain("Narrow pattern/path")
+	})
 })

@@ -3,7 +3,11 @@ import { promises as fs } from "fs"
 import * as path from "path"
 import { z } from "zod"
 import { markRead } from "@/tools/lib/file-time"
-import { toolOutput } from "@/tools/lib/tool-output"
+import {
+	continuationOffset,
+	toolOutput,
+	truncation,
+} from "@/tools/lib/tool-output"
 
 const DEFAULT_READ_LIMIT = 2000
 const MAX_READ_LIMIT = 1500
@@ -192,6 +196,8 @@ export function createReadTool(scope = "global") {
 			linesRead: z.number(),
 			totalLines: z.number(),
 			warning: z.string().optional(),
+			...truncation,
+			...continuationOffset,
 		},
 		error: {
 			filePath: z.string(),
@@ -331,6 +337,9 @@ export function createReadTool(scope = "global") {
 				linesRead: formattedLines.length,
 				totalLines,
 				warning,
+				truncated: hasMoreLines || undefined,
+				truncationReason: hasMoreLines ? "line_limit" : undefined,
+				continuationOffset: hasMoreLines ? lastReadLine : undefined,
 			}
 		} catch (error) {
 			yield {

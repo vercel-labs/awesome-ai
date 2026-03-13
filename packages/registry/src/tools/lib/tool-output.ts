@@ -1,5 +1,18 @@
 import { z } from "zod"
 
+export const truncation = {
+	truncated: z.boolean().optional(),
+	truncationReason: z.string().optional(),
+}
+
+export const continuationHint = {
+	continuationHint: z.string().optional(),
+}
+
+export const continuationOffset = {
+	continuationOffset: z.number().optional(),
+}
+
 /**
  * Creates a union schema for tool output with pending, success, error, and optional streaming states.
  * This ensures consistent output structure across all tools.

@@ -147,10 +147,16 @@ describe("readTool", () => {
 			const finalResult = results[results.length - 1] as {
 				status: string
 				content: string
+				truncated?: boolean
+				truncationReason?: string
+				continuationOffset?: number
 			}
 			expect(finalResult?.content).toContain(
 				"(File has more lines. Use 'offset' parameter to read beyond line 5)",
 			)
+			expect(finalResult?.truncated).toBe(true)
+			expect(finalResult?.truncationReason).toBe("line_limit")
+			expect(finalResult?.continuationOffset).toBe(5)
 		})
 
 		it("combines offset and limit", async () => {

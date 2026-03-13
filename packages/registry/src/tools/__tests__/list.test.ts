@@ -230,4 +230,21 @@ describe("listTool", () => {
 		expect(appleIndex).toBeLessThan(mangoIndex)
 		expect(mangoIndex).toBeLessThan(zebraIndex)
 	})
+
+	it("reports truncation metadata when file cap is hit", async () => {
+		for (let i = 0; i < 120; i++) {
+			await fs.writeFile(path.join(tempDir, `file-${i}.txt`), `${i}`)
+		}
+		const results = await executeTool(listTool, { path: tempDir })
+		const finalResult = results[results.length - 1] as {
+			status: string
+			truncated?: boolean
+			truncationReason?: string
+			continuationHint?: string
+		}
+		expect(finalResult.status).toBe("success")
+		expect(finalResult.truncated).toBe(true)
+		expect(finalResult.truncationReason).toBe("file_limit")
+		expect(finalResult.continuationHint).toContain("narrower path")
+	})
 })

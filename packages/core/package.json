@@ -1,0 +1,29 @@
+{
+	"name": "@awesome-ai/core",
+	"version": "0.0.0",
+	"private": true,
+	"type": "module",
+	"exports": {
+		".": "./src/index.ts"
+	},
+	"scripts": {
+		"build": "tsc",
+		"dev": "tsc --watch",
+		"test": "vitest run",
+		"test:watch": "vitest"
+	},
+	"dependencies": {
+		"ai": "catalog:",
+		"diff": "^8.0.2",
+		"tree-sitter-bash": "^0.25.1",
+		"unzipper": "^0.12.3",
+		"web-tree-sitter": "^0.26.6",
+		"zod": "catalog:"
+	},
+	"devDependencies": {
+		"@types/node": "^22",
+		"@types/unzipper": "^0.10.10",
+		"typescript": "catalog:",
+		"vitest": "catalog:"
+	}
+}

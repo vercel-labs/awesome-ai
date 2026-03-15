@@ -3,12 +3,12 @@ import { createTwoFilesPatch } from "diff"
 import { promises as fs } from "fs"
 import * as path from "path"
 import { z } from "zod"
-import { assertFreshRead } from "@/tools/lib/file-time"
 import {
 	checkPermission,
 	type Permission,
 	PermissionDeniedError,
 } from "@/agents/lib/permissions"
+import { assertFreshRead } from "@/tools/lib/file-time"
 import { toolOutput } from "@/tools/lib/tool-output"
 import { trimDiff } from "@/tools/lib/trim-diff"
 

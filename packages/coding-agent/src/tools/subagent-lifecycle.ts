@@ -1,18 +1,16 @@
-import { type LanguageModel, type ModelMessage, tool } from "ai"
-import { z } from "zod"
 import {
 	type CacheStorage,
+	checkPermission,
 	createSubagentRuntimeKeyspace,
+	DEFAULT_TASK_PERMISSIONS,
 	MemoryCacheStorage,
+	type PermissionPatterns,
 	type SubagentLineageSnapshot,
 	type SubagentMetricsSnapshot,
 	type SubagentStatusSnapshot,
-} from "@/agents/lib/cache-storage"
-import {
-	checkPermission,
-	DEFAULT_TASK_PERMISSIONS,
-	type PermissionPatterns,
-} from "@/agents/lib/permissions"
+} from "@awesome-ai/core"
+import { type LanguageModel, type ModelMessage, tool } from "ai"
+import { z } from "zod"
 
 export const SubagentStatus = z.enum([
 	"pending_init",

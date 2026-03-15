@@ -48,12 +48,17 @@ function header(
 	return undefined
 }
 
-function parseAdd(lines: string[], idx: number): { content: string; next: number } {
+function parseAdd(
+	lines: string[],
+	idx: number,
+): { content: string; next: number } {
 	let out = ""
 	let i = idx
 	while (i < lines.length && !lines[i]!.startsWith("***")) {
 		if (!lines[i]!.startsWith("+")) {
-			throw new Error(`Invalid add-file line (must start with '+'): ${lines[i]}`)
+			throw new Error(
+				`Invalid add-file line (must start with '+'): ${lines[i]}`,
+			)
 		}
 		out += `${lines[i]!.slice(1)}\n`
 		i++
@@ -62,7 +67,10 @@ function parseAdd(lines: string[], idx: number): { content: string; next: number
 	return { content: out, next: i }
 }
 
-function parseChunks(lines: string[], idx: number): { chunks: UpdateChunk[]; next: number } {
+function parseChunks(
+	lines: string[],
+	idx: number,
+): { chunks: UpdateChunk[]; next: number } {
 	const chunks: UpdateChunk[] = []
 	let i = idx
 	while (i < lines.length && !lines[i]!.startsWith("***")) {
@@ -74,7 +82,11 @@ function parseChunks(lines: string[], idx: number): { chunks: UpdateChunk[]; nex
 		const oldLines: string[] = []
 		const newLines: string[] = []
 		let eof = false
-		while (i < lines.length && !lines[i]!.startsWith("@@") && !lines[i]!.startsWith("***")) {
+		while (
+			i < lines.length &&
+			!lines[i]!.startsWith("@@") &&
+			!lines[i]!.startsWith("***")
+		) {
 			const line = lines[i]!
 			if (line === "*** End of File") {
 				eof = true
@@ -100,7 +112,12 @@ function parseChunks(lines: string[], idx: number): { chunks: UpdateChunk[]; nex
 			}
 			throw new Error(`Invalid update-file line prefix: ${line}`)
 		}
-		chunks.push({ oldLines, newLines, context: ctx || undefined, eof: eof || undefined })
+		chunks.push({
+			oldLines,
+			newLines,
+			context: ctx || undefined,
+			eof: eof || undefined,
+		})
 	}
 	if (chunks.length === 0) {
 		throw new Error("Update file block contains no chunks")
@@ -210,7 +227,10 @@ function seek(
 	return -1
 }
 
-export function deriveNewContentsFromChunks(filepath: string, chunks: UpdateChunk[]): string {
+export function deriveNewContentsFromChunks(
+	filepath: string,
+	chunks: UpdateChunk[],
+): string {
 	const raw = readFileSync(filepath, "utf-8")
 	let lines = raw.split("\n")
 	if (lines.at(-1) === "") lines = lines.slice(0, -1)
@@ -221,13 +241,18 @@ export function deriveNewContentsFromChunks(filepath: string, chunks: UpdateChun
 		if (chunk.context) {
 			const pos = seek(lines, [chunk.context], idx)
 			if (pos === -1) {
-				throw new Error(`Failed to find context '${chunk.context}' in ${filepath}`)
+				throw new Error(
+					`Failed to find context '${chunk.context}' in ${filepath}`,
+				)
 			}
 			idx = pos + 1
 		}
 
 		if (chunk.oldLines.length === 0) {
-			const ins = lines.length > 0 && lines[lines.length - 1] === "" ? lines.length - 1 : lines.length
+			const ins =
+				lines.length > 0 && lines[lines.length - 1] === ""
+					? lines.length - 1
+					: lines.length
 			rep.push([ins, 0, chunk.newLines])
 			continue
 		}

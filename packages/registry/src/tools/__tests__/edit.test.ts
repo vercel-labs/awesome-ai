@@ -3,7 +3,6 @@ import * as os from "os"
 import * as path from "path"
 import { afterEach, assert, beforeEach, describe, expect, it } from "vitest"
 import { PermissionDeniedError } from "@/agents/lib/permissions"
-import { clearReads, markRead } from "../lib/file-time"
 import {
 	BlockAnchorReplacer,
 	ContextAwareReplacer,
@@ -18,6 +17,7 @@ import {
 	TrimmedBoundaryReplacer,
 	WhitespaceNormalizedReplacer,
 } from "../edit"
+import { clearReads, markRead } from "../lib/file-time"
 import { executeTool } from "./lib/test-utils"
 
 // Helper to collect all values from a generator

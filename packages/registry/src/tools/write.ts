@@ -3,12 +3,12 @@ import { createTwoFilesPatch } from "diff"
 import { promises as fs } from "fs"
 import * as path from "path"
 import { z } from "zod"
-import { assertFreshRead } from "@/tools/lib/file-time"
 import {
 	checkPermission,
 	type Permission,
 	PermissionDeniedError,
 } from "@/agents/lib/permissions"
+import { assertFreshRead } from "@/tools/lib/file-time"
 import { toolOutput } from "@/tools/lib/tool-output"
 import { trimDiff } from "@/tools/lib/trim-diff"
 
@@ -33,9 +33,7 @@ Usage:
 const inputSchema = z.object({
 	filePath: z
 		.string()
-		.describe(
-			"The path to the file to write (absolute or relative)",
-		),
+		.describe("The path to the file to write (absolute or relative)"),
 	content: z.string().describe("The content to write to the file"),
 })
 

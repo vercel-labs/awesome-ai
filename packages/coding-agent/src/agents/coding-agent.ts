@@ -4,45 +4,44 @@
  * @category write
  * @context coding
  */
-import { type LanguageModel, type ModelMessage, ToolLoopAgent } from "ai"
-import type { CacheStorage } from "@/agents/lib/cache-storage"
-import {
-	applyEnvironment,
-	type EnvironmentOptions,
-	getEnvironmentContext,
-} from "@/agents/lib/environment"
+
 import {
 	type AgentGovernanceConfig,
+	applyEnvironment,
+	type CacheStorage,
+	type ContextCompactionOptions,
+	cleanupReads,
+	clearReads,
+	createBashTool,
+	createContextSummarizer,
+	createEditTool,
+	createReadTool,
+	createTodoTools,
+	createWriteTool,
 	DEFAULT_TASK_PERMISSIONS,
+	type EnvironmentOptions,
 	FULL_BASH_PERMISSIONS,
+	getEnvironmentContext,
+	globTool,
+	grepTool,
+	listTool,
 	mergePermissionPatterns,
 	type SupportedSubagentType,
-} from "@/agents/lib/permissions"
-import {
-	type ContextCompactionOptions,
-	createContextSummarizer,
 	stopOnTextResponse,
-} from "@/agents/lib/step-utils"
-import { resolveToolMode, type ToolMode } from "@/agents/lib/tool-mode"
-import { createAgent as createPlanningAgent } from "@/agents/planning-agent"
-import { createAgent as createResearchAgent } from "@/agents/research-agent"
-import { prompt } from "@/prompts/coding-agent"
-import { createBashTool } from "@/tools/bash"
-import { createApplyPatchTool } from "@/tools/apply-patch"
-import { createEditTool } from "@/tools/edit"
-import { globTool } from "@/tools/glob"
-import { grepTool } from "@/tools/grep"
-import { listTool } from "@/tools/list"
-import { createReadTool } from "@/tools/read"
+	type TodoStorage,
+} from "@awesome-ai/core"
+import { type LanguageModel, type ModelMessage, ToolLoopAgent } from "ai"
+import { prompt } from "../prompts/coding-agent"
+import { createApplyPatchTool } from "../tools/apply-patch"
 import {
 	createSubagentLifecycleTools,
 	type RuntimeAgent,
 	type RuntimeEvent,
 	SubagentRuntime,
-} from "@/tools/subagent-lifecycle"
-import { createTodoTools, type TodoStorage } from "@/tools/todo"
-import { createWriteTool } from "@/tools/write"
-import { cleanupReads, clearReads } from "@/tools/lib/file-time"
+} from "../tools/subagent-lifecycle"
+import { resolveToolMode, type ToolMode } from "./lib/tool-mode"
+import { createAgent as createPlanningAgent } from "./planning-agent"
+import { createAgent as createResearchAgent } from "./research-agent"
 
 const CODING_AGENT_COMPACTION: ContextCompactionOptions = {
 	thresholdTokens: 180_000,

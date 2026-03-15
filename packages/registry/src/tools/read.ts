@@ -173,182 +173,182 @@ export function createReadTool(scope = "global") {
 	return tool({
 		description,
 		inputSchema: z.object({
-		filePath: z
-			.string()
-			.describe("The path to the file to read (absolute or relative)"),
-		offset: z
-			.number()
-			.default(0)
-			.describe("The line number to start reading from (0-based)"),
-		limit: z
-			.number()
-			.default(DEFAULT_READ_LIMIT)
-			.describe("The number of lines to read (defaults to 2000)"),
-	}),
+			filePath: z
+				.string()
+				.describe("The path to the file to read (absolute or relative)"),
+			offset: z
+				.number()
+				.default(0)
+				.describe("The line number to start reading from (0-based)"),
+			limit: z
+				.number()
+				.default(DEFAULT_READ_LIMIT)
+				.describe("The number of lines to read (defaults to 2000)"),
+		}),
 		outputSchema: toolOutput({
-		pending: {
-			filePath: z.string(),
-			content: z.undefined(),
-		},
-		success: {
-			filePath: z.string(),
-			content: z.string(),
-			linesRead: z.number(),
-			totalLines: z.number(),
-			warning: z.string().optional(),
-			...truncation,
-			...continuationOffset,
-		},
-		error: {
-			filePath: z.string(),
-		},
-	}),
+			pending: {
+				filePath: z.string(),
+				content: z.undefined(),
+			},
+			success: {
+				filePath: z.string(),
+				content: z.string(),
+				linesRead: z.number(),
+				totalLines: z.number(),
+				warning: z.string().optional(),
+				...truncation,
+				...continuationOffset,
+			},
+			error: {
+				filePath: z.string(),
+			},
+		}),
 		toModelOutput: ({ output }) => {
-		if (output.status === "error") {
-			return {
-				type: "error-text",
-				value: `Error reading ${output.filePath}: ${output.error}`,
+			if (output.status === "error") {
+				return {
+					type: "error-text",
+					value: `Error reading ${output.filePath}: ${output.error}`,
+				}
 			}
-		}
-		if (output.status === "success") {
-			let result = output.content
+			if (output.status === "success") {
+				let result = output.content
 
-			// Add warning if present
-			if (output.warning) {
-				result = `⚠️ ${output.warning}\n\n${result}`
-			}
-
-			// Truncate very large outputs to avoid blowing the context window
-			if (result.length > MAX_MODEL_OUTPUT_CHARS) {
-				result = `${result.slice(0, MAX_MODEL_OUTPUT_CHARS)}\n\n... (output truncated at ${MAX_MODEL_OUTPUT_CHARS} chars - file has ${output.totalLines} total lines. Use offset/limit to read specific sections.)`
-			}
-
-			return { type: "text", value: result }
-		}
-		throw new Error("Invalid output status in toModelOutput")
-		},
-		async *execute({ filePath, offset, limit: rawLimit }) {
-		const limit = Math.min(rawLimit, MAX_READ_LIMIT)
-		let filepath = filePath
-		if (!path.isAbsolute(filepath)) {
-			filepath = path.join(process.cwd(), filepath)
-		}
-
-		yield {
-			status: "pending",
-			message: `Reading file: ${filepath}`,
-			filePath: filepath,
-			content: undefined,
-		}
-
-		try {
-			// Check for sensitive files
-			if (isSensitiveFile(filepath)) {
-				throw new Error(
-					`Cannot read sensitive file: ${filepath}\nFor security, .env files are blocked. Use .env.example or .env.sample instead.`,
-				)
-			}
-
-			// Check if reading outside working directory
-			const cwd = process.cwd()
-			let warning: string | undefined
-			if (!isPathWithin(cwd, filepath)) {
-				warning = `Reading file outside working directory: ${filepath}`
-			}
-
-			// Check if file exists
-			try {
-				await fs.access(filepath)
-			} catch {
-				const dir = path.dirname(filepath)
-				const base = path.basename(filepath)
-
-				try {
-					const dirEntries = await fs.readdir(dir)
-					const suggestions = dirEntries
-						.filter(
-							(entry) =>
-								entry.toLowerCase().includes(base.toLowerCase()) ||
-								base.toLowerCase().includes(entry.toLowerCase()),
-						)
-						.map((entry) => path.join(dir, entry))
-						.slice(0, 3)
-
-					if (suggestions.length > 0) {
-						throw new Error(
-							`File not found: ${filepath}\n\nDid you mean one of these?\n${suggestions.join("\n")}`,
-						)
-					}
-				} catch (e) {
-					// Directory doesn't exist or can't be read - rethrow if it's our suggestion error
-					if (e instanceof Error && e.message.includes("Did you mean")) {
-						throw e
-					}
+				// Add warning if present
+				if (output.warning) {
+					result = `⚠️ ${output.warning}\n\n${result}`
 				}
 
-				throw new Error(`File not found: ${filepath}`)
+				// Truncate very large outputs to avoid blowing the context window
+				if (result.length > MAX_MODEL_OUTPUT_CHARS) {
+					result = `${result.slice(0, MAX_MODEL_OUTPUT_CHARS)}\n\n... (output truncated at ${MAX_MODEL_OUTPUT_CHARS} chars - file has ${output.totalLines} total lines. Use offset/limit to read specific sections.)`
+				}
+
+				return { type: "text", value: result }
 			}
-
-			// Check if it's a directory
-			const stats = await fs.stat(filepath)
-			if (stats.isDirectory()) {
-				throw new Error(`Path is a directory, not a file: ${filepath}`)
+			throw new Error("Invalid output status in toModelOutput")
+		},
+		async *execute({ filePath, offset, limit: rawLimit }) {
+			const limit = Math.min(rawLimit, MAX_READ_LIMIT)
+			let filepath = filePath
+			if (!path.isAbsolute(filepath)) {
+				filepath = path.join(process.cwd(), filepath)
 			}
-
-			// Check if file is binary
-			if (await isBinaryFile(filepath)) {
-				throw new Error(`Cannot read binary file: ${filepath}`)
-			}
-
-			// Read and process the file
-			const content = await fs.readFile(filepath, "utf-8")
-			await markRead(scope, filepath)
-			const lines = content.split("\n")
-			const totalLines = lines.length
-
-			const raw = lines.slice(offset, offset + limit).map((line) => {
-				return line.length > MAX_LINE_LENGTH
-					? `${line.substring(0, MAX_LINE_LENGTH)}...`
-					: line
-			})
-
-			const formattedLines = raw.map((line, index) => {
-				return `${(index + offset + 1).toString().padStart(5, "0")}| ${line}`
-			})
-
-			let output = "<file>\n"
-			output += formattedLines.join("\n")
-
-			const lastReadLine = offset + formattedLines.length
-			const hasMoreLines = totalLines > lastReadLine
-
-			if (hasMoreLines) {
-				output += `\n\n(File has more lines. Use 'offset' parameter to read beyond line ${lastReadLine})`
-			} else {
-				output += `\n\n(End of file - total ${totalLines} lines)`
-			}
-			output += "\n</file>"
 
 			yield {
-				status: "success",
-				message: `Successfully read ${formattedLines.length} lines from ${filepath}`,
+				status: "pending",
+				message: `Reading file: ${filepath}`,
 				filePath: filepath,
-				content: output,
-				linesRead: formattedLines.length,
-				totalLines,
-				warning,
-				truncated: hasMoreLines || undefined,
-				truncationReason: hasMoreLines ? "line_limit" : undefined,
-				continuationOffset: hasMoreLines ? lastReadLine : undefined,
+				content: undefined,
 			}
-		} catch (error) {
-			yield {
-				status: "error",
-				message: `Failed to read ${filepath}`,
-				filePath: filepath,
-				error: error instanceof Error ? error.message : String(error),
+
+			try {
+				// Check for sensitive files
+				if (isSensitiveFile(filepath)) {
+					throw new Error(
+						`Cannot read sensitive file: ${filepath}\nFor security, .env files are blocked. Use .env.example or .env.sample instead.`,
+					)
+				}
+
+				// Check if reading outside working directory
+				const cwd = process.cwd()
+				let warning: string | undefined
+				if (!isPathWithin(cwd, filepath)) {
+					warning = `Reading file outside working directory: ${filepath}`
+				}
+
+				// Check if file exists
+				try {
+					await fs.access(filepath)
+				} catch {
+					const dir = path.dirname(filepath)
+					const base = path.basename(filepath)
+
+					try {
+						const dirEntries = await fs.readdir(dir)
+						const suggestions = dirEntries
+							.filter(
+								(entry) =>
+									entry.toLowerCase().includes(base.toLowerCase()) ||
+									base.toLowerCase().includes(entry.toLowerCase()),
+							)
+							.map((entry) => path.join(dir, entry))
+							.slice(0, 3)
+
+						if (suggestions.length > 0) {
+							throw new Error(
+								`File not found: ${filepath}\n\nDid you mean one of these?\n${suggestions.join("\n")}`,
+							)
+						}
+					} catch (e) {
+						// Directory doesn't exist or can't be read - rethrow if it's our suggestion error
+						if (e instanceof Error && e.message.includes("Did you mean")) {
+							throw e
+						}
+					}
+
+					throw new Error(`File not found: ${filepath}`)
+				}
+
+				// Check if it's a directory
+				const stats = await fs.stat(filepath)
+				if (stats.isDirectory()) {
+					throw new Error(`Path is a directory, not a file: ${filepath}`)
+				}
+
+				// Check if file is binary
+				if (await isBinaryFile(filepath)) {
+					throw new Error(`Cannot read binary file: ${filepath}`)
+				}
+
+				// Read and process the file
+				const content = await fs.readFile(filepath, "utf-8")
+				await markRead(scope, filepath)
+				const lines = content.split("\n")
+				const totalLines = lines.length
+
+				const raw = lines.slice(offset, offset + limit).map((line) => {
+					return line.length > MAX_LINE_LENGTH
+						? `${line.substring(0, MAX_LINE_LENGTH)}...`
+						: line
+				})
+
+				const formattedLines = raw.map((line, index) => {
+					return `${(index + offset + 1).toString().padStart(5, "0")}| ${line}`
+				})
+
+				let output = "<file>\n"
+				output += formattedLines.join("\n")
+
+				const lastReadLine = offset + formattedLines.length
+				const hasMoreLines = totalLines > lastReadLine
+
+				if (hasMoreLines) {
+					output += `\n\n(File has more lines. Use 'offset' parameter to read beyond line ${lastReadLine})`
+				} else {
+					output += `\n\n(End of file - total ${totalLines} lines)`
+				}
+				output += "\n</file>"
+
+				yield {
+					status: "success",
+					message: `Successfully read ${formattedLines.length} lines from ${filepath}`,
+					filePath: filepath,
+					content: output,
+					linesRead: formattedLines.length,
+					totalLines,
+					warning,
+					truncated: hasMoreLines || undefined,
+					truncationReason: hasMoreLines ? "line_limit" : undefined,
+					continuationOffset: hasMoreLines ? lastReadLine : undefined,
+				}
+			} catch (error) {
+				yield {
+					status: "error",
+					message: `Failed to read ${filepath}`,
+					filePath: filepath,
+					error: error instanceof Error ? error.message : String(error),
+				}
 			}
-		}
 		},
 	})
 }

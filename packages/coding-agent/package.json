@@ -1,0 +1,26 @@
+{
+	"name": "@awesome-ai/coding-agent",
+	"version": "0.0.0",
+	"private": true,
+	"type": "module",
+	"exports": {
+		".": "./src/index.ts"
+	},
+	"scripts": {
+		"build": "tsc",
+		"dev": "tsc --watch",
+		"test": "vitest run",
+		"test:watch": "vitest"
+	},
+	"dependencies": {
+		"@awesome-ai/core": "workspace:*",
+		"ai": "catalog:",
+		"diff": "^8.0.2",
+		"zod": "catalog:"
+	},
+	"devDependencies": {
+		"@types/node": "^22",
+		"typescript": "catalog:",
+		"vitest": "catalog:"
+	}
+}

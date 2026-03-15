@@ -1,27 +1,25 @@
 /**
- * Read-only agent that analyzes code architecture, creates implementation plans, and reviews code for potential issues.
- * @category planning
+ * Read-only agent that explores, analyzes, and explains codebases without modifying any files.
+ * @category research
  * @category read-only
  * @context coding
  */
-import { type LanguageModel, ToolLoopAgent } from "ai"
+
 import {
 	applyEnvironment,
+	createContextSummarizer,
+	createTodoTools,
 	type EnvironmentOptions,
 	getEnvironmentContext,
-} from "@/agents/lib/environment"
-import { READONLY_BASH_PERMISSIONS } from "@/agents/lib/permissions"
-import {
-	createContextSummarizer,
+	globTool,
+	grepTool,
+	listTool,
+	readTool,
 	stopOnTextResponse,
-} from "@/agents/lib/step-utils"
-import { prompt } from "@/prompts/planning-agent"
-import { createBashTool } from "@/tools/bash"
-import { globTool } from "@/tools/glob"
-import { grepTool } from "@/tools/grep"
-import { listTool } from "@/tools/list"
-import { readTool } from "@/tools/read"
-import { createTodoTools, type TodoStorage } from "@/tools/todo"
+	type TodoStorage,
+} from "@awesome-ai/core"
+import { type LanguageModel, ToolLoopAgent } from "ai"
+import { prompt } from "../prompts/research-agent"
 
 export interface AgentSettings {
 	model: LanguageModel
@@ -45,7 +43,6 @@ export async function createAgent({
 		instructions,
 		tools: {
 			read: readTool,
-			bash: createBashTool(READONLY_BASH_PERMISSIONS),
 			list: listTool,
 			grep: grepTool,
 			glob: globTool,

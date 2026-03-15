@@ -32,24 +32,6 @@
 			"context": ["coding"]
 		},
 		{
-			"name": "planning-agent",
-			"type": "registry:agent",
-			"title": "Planning Agent",
-			"description": "Read-only agent that analyzes code architecture, creates implementation plans, and reviews code for potential issues.",
-			"dependencies": ["ai"],
-			"registryDependencies": [
-				"prompts:planning-agent",
-				"tools:bash",
-				"tools:glob",
-				"tools:grep",
-				"tools:list",
-				"tools:read",
-				"tools:todo"
-			],
-			"categories": ["planning", "read-only"],
-			"context": ["coding"]
-		},
-		{
 			"name": "migration-agent",
 			"type": "registry:agent",
 			"title": "Migration Agent",
@@ -70,23 +52,6 @@
 			"context": ["coding"]
 		},
 		{
-			"name": "research-agent",
-			"type": "registry:agent",
-			"title": "Research Agent",
-			"description": "Read-only agent that explores, analyzes, and explains codebases without modifying any files.",
-			"dependencies": ["ai"],
-			"registryDependencies": [
-				"prompts:research-agent",
-				"tools:glob",
-				"tools:grep",
-				"tools:list",
-				"tools:read",
-				"tools:todo"
-			],
-			"categories": ["research", "read-only"],
-			"context": ["coding"]
-		},
-		{
 			"name": "migration-planning-agent",
 			"type": "registry:agent",
 			"title": "Migration Planning Agent",
@@ -102,26 +67,6 @@
 				"tools:todo"
 			],
 			"categories": ["migration", "planning", "read-only"],
-			"context": ["coding"]
-		},
-		{
-			"name": "coding-agent",
-			"type": "registry:agent",
-			"title": "Coding Agent",
-			"description": "General-purpose coding agent that helps with software engineering tasks including writing, editing, debugging, and reviewing code.",
-			"dependencies": ["ai"],
-			"registryDependencies": [
-				"prompts:coding-agent",
-				"tools:bash",
-				"tools:edit",
-				"tools:glob",
-				"tools:grep",
-				"tools:list",
-				"tools:read",
-				"tools:todo",
-				"tools:write"
-			],
-			"categories": ["coding", "write"],
 			"context": ["coding"]
 		}
 	]

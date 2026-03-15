@@ -1,7 +1,7 @@
-import { assert, describe, expect, it } from "vitest"
 import { promises as fs } from "fs"
 import * as os from "os"
 import * as path from "path"
+import { assert, describe, expect, it } from "vitest"
 import { PermissionDeniedError } from "@/agents/lib/permissions"
 import { bashTool, createBashTool } from "../bash"
 import { executeTool } from "./lib/test-utils"
@@ -439,10 +439,7 @@ describe("bashTool", () => {
 		assert(typeof needsApproval === "function")
 		const opts = { toolCallId: "test", messages: [] }
 		expect(
-			needsApproval(
-				{ command: "git status --short", description: "" },
-				opts,
-			),
+			needsApproval({ command: "git status --short", description: "" }, opts),
 		).toBe(false)
 	})
 
@@ -455,14 +452,11 @@ describe("bashTool", () => {
 		assert(typeof needsApproval === "function")
 		const opts = { toolCallId: "test", messages: [] }
 		expect(
-			needsApproval(
-				{ command: "git status --short", description: "" },
-				opts,
-			),
+			needsApproval({ command: "git status --short", description: "" }, opts),
 		).toBe(false)
-		expect(needsApproval({ command: "git status", description: "" }, opts)).toBe(
-			true,
-		)
+		expect(
+			needsApproval({ command: "git status", description: "" }, opts),
+		).toBe(true)
 	})
 
 	it("applies deny when a specific variant is denied", () => {

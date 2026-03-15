@@ -3,8 +3,8 @@ import { spawn } from "child_process"
 import { promises as fs } from "fs"
 import { createRequire } from "module"
 import * as path from "path"
-import { z } from "zod"
 import type { Parser as TsParser } from "web-tree-sitter"
+import { z } from "zod"
 import {
 	checkPermission,
 	type Permission,
@@ -124,7 +124,13 @@ function parseToken(text: string): string {
 
 function isPathLike(text: string): boolean {
 	if (text.length === 0) return false
-	if (text === "." || text === ".." || text.startsWith("./") || text.startsWith("../")) return true
+	if (
+		text === "." ||
+		text === ".." ||
+		text.startsWith("./") ||
+		text.startsWith("../")
+	)
+		return true
 	if (path.isAbsolute(text)) return true
 	if (text.startsWith("~")) return true
 	if (text.includes(path.sep)) return true
@@ -188,8 +194,12 @@ async function initParser(): Promise<void> {
 			return wasmPath
 		},
 	})
-	const langPath = parserRequire.resolve("tree-sitter-bash/tree-sitter-bash.wasm")
-	const lang = await (tree as { Language: { load(path: string): Promise<unknown> } }).Language.load(langPath)
+	const langPath = parserRequire.resolve(
+		"tree-sitter-bash/tree-sitter-bash.wasm",
+	)
+	const lang = await (
+		tree as { Language: { load(path: string): Promise<unknown> } }
+	).Language.load(langPath)
 	const next = new tree.Parser()
 	next.setLanguage(lang as never)
 	parser = next
@@ -203,7 +213,9 @@ function parseByTreeSitter(input: string): ParsedCommand[] {
 	for (const node of tree.rootNode.descendantsOfType("command")) {
 		if (!node) continue
 		const text =
-			node.parent?.type === "redirected_statement" ? node.parent.text : node.text
+			node.parent?.type === "redirected_statement"
+				? node.parent.text
+				: node.text
 		const args: string[] = []
 		for (let i = 0; i < node.childCount; i++) {
 			const child = node.child(i)
@@ -281,7 +293,15 @@ function isSafeRg(args: string[]): boolean {
 
 function isSafeGit(args: string[]): boolean {
 	if (args.length === 0) return false
-	if (args.some((arg) => arg === "-c" || arg.startsWith("-c") || arg === "--config-env" || arg.startsWith("--config-env="))) {
+	if (
+		args.some(
+			(arg) =>
+				arg === "-c" ||
+				arg.startsWith("-c") ||
+				arg === "--config-env" ||
+				arg.startsWith("--config-env="),
+		)
+	) {
 		return false
 	}
 	let sub = ""
@@ -497,7 +517,7 @@ const outputSchema = toolOutput({
 		output: z.string(),
 		exitCode: z.number(),
 		timedOut: z.boolean().optional(),
-			...truncation,
+		...truncation,
 	},
 	error: {
 		command: z.string(),

@@ -1,6 +1,6 @@
+import { MemoryCacheStorage } from "@awesome-ai/core"
 import type { LanguageModel, ModelMessage } from "ai"
 import { describe, expect, it } from "vitest"
-import { MemoryCacheStorage } from "@/agents/lib/cache-storage"
 import {
 	createSubagentLifecycleTools,
 	type RuntimeAgent,

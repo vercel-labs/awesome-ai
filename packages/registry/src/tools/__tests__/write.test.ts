@@ -296,7 +296,10 @@ describe("writeTool", () => {
 			needsApproval({ filePath: "/repo/src/main.ts", content: "ok" }, opts),
 		).toBe(false)
 		expect(() =>
-			needsApproval({ filePath: "/repo/src/secret/keys.ts", content: "no" }, opts),
+			needsApproval(
+				{ filePath: "/repo/src/secret/keys.ts", content: "no" },
+				opts,
+			),
 		).toThrow(PermissionDeniedError)
 	})
 

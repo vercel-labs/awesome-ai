@@ -1,6 +1,6 @@
 import type { Tool } from "ai"
 import { describe, expect, it } from "vitest"
-import { createAgent } from "@/agents/coding-agent"
+import { createAgent } from "../coding-agent"
 
 async function executeTool<T extends Tool>(
 	tool: T,

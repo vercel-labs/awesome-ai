@@ -1,16 +1,16 @@
+import {
+	checkPermission,
+	type Permission,
+	PermissionDeniedError,
+	toolOutput,
+	trimDiff,
+} from "@awesome-ai/core"
 import { tool } from "ai"
 import { createTwoFilesPatch, diffLines } from "diff"
 import { promises as fs } from "fs"
 import * as path from "path"
 import { z } from "zod"
-import {
-	checkPermission,
-	type Permission,
-	PermissionDeniedError,
-} from "@/agents/lib/permissions"
-import { deriveNewContentsFromChunks, parsePatch } from "@/tools/lib/patch"
-import { toolOutput } from "@/tools/lib/tool-output"
-import { trimDiff } from "@/tools/lib/trim-diff"
+import { deriveNewContentsFromChunks, parsePatch } from "./lib/patch"
 
 const description = `Applies codex-style unified patches to files.
 
@@ -44,7 +44,8 @@ const outputSchema = toolOutput({
 export function createApplyPatchTool(
 	permissions: Permission | Record<string, Permission> = "ask",
 ) {
-	const patterns = typeof permissions === "string" ? { "*": permissions } : permissions
+	const patterns =
+		typeof permissions === "string" ? { "*": permissions } : permissions
 
 	return tool({
 		description,

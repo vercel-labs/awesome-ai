@@ -3,7 +3,7 @@ import { convex } from "@convex-dev/better-auth/plugins"
 import { betterAuth, type BetterAuthOptions } from "better-auth"
 import { components } from "./_generated/api"
 import { DataModel } from "./_generated/dataModel"
-import { internalAction } from "./_generated/server"
+import { internalAction, query } from "./_generated/server"
 import authConfig from "./auth.config"
 
 const site = process.env.SITE_URL!
@@ -34,6 +34,21 @@ export const createAuth = (ctx: GenericCtx<DataModel>) => {
 }
 
 export const { getAuthUser } = authComponent.clientApi()
+
+export const getAuth = query({
+	args: {},
+	handler: async (ctx) => {
+		const user = await authComponent.safeGetAuthUser(ctx)
+		if (!user) {
+			return { isAuthenticated: false, user: null }
+		}
+
+		return {
+			isAuthenticated: true,
+			user,
+		}
+	},
+})
 
 export const getLatestJwks = internalAction({
 	args: {},

@@ -1,8 +1,6 @@
 import type { Metadata } from "next"
 import { JetBrains_Mono } from "next/font/google"
 import type React from "react"
-import { getToken } from "@/lib/auth-server"
-import { ConvexClientProvider } from "@/lib/convex"
 import "./globals.css"
 
 const jetbrainsMono = JetBrains_Mono({ subsets: ["latin"] })
@@ -17,11 +15,10 @@ export default async function RootLayout({
 }: Readonly<{
 	children: React.ReactNode
 }>) {
-	const token = await getToken()
 	return (
 		<html lang="en">
 			<body className={`${jetbrainsMono.className} antialiased`}>
-				<ConvexClientProvider initialToken={token}>{children}</ConvexClientProvider>
+				{children}
 			</body>
 		</html>
 	)

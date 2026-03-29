@@ -1,0 +1,21 @@
+{
+  "$schema": "./node_modules/oxfmt/configuration_schema.json",
+  "ignoredPatterns": ["packages/backend/convex/**/_generated/**"],
+  "semi": false,
+  "sortImports": {
+    "internalPattern": ["@packages/", "@/"],
+    "newlinesBetween": false,
+    "groups": [
+      "builtin",
+      "external",
+      ["internal", "subpath"],
+      ["parent", "sibling", "index"],
+      "style",
+      "unknown"
+    ]
+  },
+  "sortTailwindcss": {
+    "functions": ["cn", "clsx", "cva", "twMerge"],
+    "stylesheet": "./apps/web/src/styles/config.css"
+  }
+}

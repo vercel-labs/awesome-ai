@@ -1,0 +1,26 @@
+{
+  "name": "@awesome-ai/agents",
+  "homepage": "https://awesome-ai.com",
+  "items": [
+    {
+      "name": "coding-agent",
+      "type": "registry:agent",
+      "title": "Coding Agent",
+      "description": "General-purpose coding agent that helps with software engineering tasks including writing, editing, debugging, and reviewing code.",
+      "dependencies": ["ai"],
+      "registryDependencies": [
+        "prompts:coding-agent",
+        "tools:bash",
+        "tools:edit",
+        "tools:glob",
+        "tools:grep",
+        "tools:list",
+        "tools:read",
+        "tools:todo",
+        "tools:write"
+      ],
+      "categories": ["coding", "write"],
+      "context": ["coding"]
+    }
+  ]
+}

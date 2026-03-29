@@ -28,7 +28,7 @@ export async function getConfig(cwd: string): Promise<Config | null> {
 export async function resolveConfigPaths(cwd: string, config: RawConfig): Promise<Config> {
 	// User registries come first so the first one is used as default for unnamespaced deps
 	config.registries = {
-		...(config.registries || {}),
+		...config.registries,
 		...BUILTIN_REGISTRIES,
 	}
 
@@ -115,15 +115,15 @@ export function createConfig(partial?: DeepPartial<Config>): Config {
 			...partial,
 			resolvedPaths: {
 				...defaultConfig.resolvedPaths,
-				...(partial.resolvedPaths || {}),
+				...partial.resolvedPaths,
 			},
 			aliases: {
 				...defaultConfig.aliases,
-				...(partial.aliases || {}),
+				...partial.aliases,
 			},
 			registries: {
 				...defaultConfig.registries,
-				...(partial.registries || {}),
+				...partial.registries,
 			},
 		}
 	}

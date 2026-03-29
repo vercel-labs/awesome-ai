@@ -14,14 +14,14 @@ export function configWithDefaults(config?: Partial<Config> | Config): Config {
 
 	const merged = {
 		...defaultConfig,
-		...(config || {}),
+		...config,
 		aliases: {
 			...defaultConfig.aliases,
-			...(config?.aliases || {}),
+			...config?.aliases,
 		},
 		registries: {
 			// User registries come first so the first one is used as default for unnamespaced deps
-			...(config?.registries || {}),
+			...config?.registries,
 			...BUILTIN_REGISTRIES,
 		},
 	}

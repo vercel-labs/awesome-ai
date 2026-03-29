@@ -174,7 +174,10 @@ describe("context management", () => {
 			const fallback = result?.[1]
 			expect(fallback?.role).toBe("assistant")
 			expect(typeof fallback?.content).toBe("string")
-			expect((fallback?.content as string).includes("## Goal")).toBe(true)
+			if (typeof fallback?.content !== "string") {
+				throw new TypeError("Expected fallback summary content to be a string")
+			}
+			expect(fallback.content.includes("## Goal")).toBe(true)
 		})
 	})
 })

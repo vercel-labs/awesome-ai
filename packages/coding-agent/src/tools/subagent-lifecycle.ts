@@ -86,28 +86,6 @@ const FINAL_STATUSES = new Set<SubagentStatus>([
 
 const ACTIVE_STATUSES = new Set<SubagentStatus>(["pending_init", "running"])
 
-interface WaitResultAgent {
-	waitStatus: "final" | "timeout"
-	id: string
-	type?: string
-	status: SubagentStatus
-	depth?: number
-	parentId?: string
-	forkContext?: boolean
-	createdAt?: number
-	updatedAt?: number
-	lastResponse?: string
-	lastError?: string
-	queueLength?: number
-}
-
-interface WaitResult {
-	timeoutMs: number
-	waitedMs: number
-	timedOut: boolean
-	agents: WaitResultAgent[]
-}
-
 export interface RuntimeMetrics {
 	spawnSuccess: number
 	spawnFailure: number

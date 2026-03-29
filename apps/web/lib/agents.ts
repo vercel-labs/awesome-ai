@@ -55,9 +55,7 @@ interface RegistryItem {
 function toAgent(item: RegistryIndex["items"][number]): Agent {
 	const deps = item.registryDependencies ?? []
 
-	const tools = deps
-		.filter((d) => d.startsWith("tools:"))
-		.map((d) => d.replace("tools:", ""))
+	const tools = deps.filter((d) => d.startsWith("tools:")).map((d) => d.replace("tools:", ""))
 
 	const promptDep = deps.find((d) => d.startsWith("prompts:"))
 	const promptName = promptDep ? promptDep.replace("prompts:", "") : null
@@ -78,9 +76,7 @@ function toAgent(item: RegistryIndex["items"][number]): Agent {
 // --- Data fetching functions ---
 
 export async function getAllAgents(): Promise<Agent[]> {
-	const registry = await fetchRegistryFile<RegistryIndex>(
-		"agents/registry.json",
-	)
+	const registry = await fetchRegistryFile<RegistryIndex>("agents/registry.json")
 	return registry.items.map(toAgent)
 }
 
@@ -107,13 +103,9 @@ function extractPromptText(tsSource: string): string {
 	return tsSource
 }
 
-export async function getPromptContent(
-	promptName: string,
-): Promise<string | null> {
+export async function getPromptContent(promptName: string): Promise<string | null> {
 	try {
-		const item = await fetchRegistryFile<RegistryItem>(
-			`prompts/${promptName}.json`,
-		)
+		const item = await fetchRegistryFile<RegistryItem>(`prompts/${promptName}.json`)
 		const promptFile = item.files.find((f) => f.type === "registry:prompt")
 		if (!promptFile) return null
 		return extractPromptText(promptFile.content)

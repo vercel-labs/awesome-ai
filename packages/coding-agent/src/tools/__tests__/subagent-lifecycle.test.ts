@@ -35,8 +35,7 @@ function createMockAgent(options?: { delayMs?: number }): RuntimeAgent {
 				.slice()
 				.reverse()
 				.find((msg) => msg.role === "user")
-			const input =
-				typeof lastUser?.content === "string" ? lastUser.content : "ok"
+			const input = typeof lastUser?.content === "string" ? lastUser.content : "ok"
 			return {
 				response: Promise.resolve({
 					messages: [

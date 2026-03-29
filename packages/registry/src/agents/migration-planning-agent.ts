@@ -12,10 +12,7 @@ import {
 	getEnvironmentContext,
 } from "@/agents/lib/environment"
 import { READONLY_BASH_PERMISSIONS } from "@/agents/lib/permissions"
-import {
-	createContextSummarizer,
-	stopOnTextResponse,
-} from "@/agents/lib/step-utils"
+import { createContextSummarizer, stopOnTextResponse } from "@/agents/lib/step-utils"
 import { prompt } from "@/prompts/migration-planning-agent"
 import { createBashTool } from "@/tools/bash"
 import { globTool } from "@/tools/glob"
@@ -31,12 +28,7 @@ export interface AgentSettings {
 	todoStorage?: TodoStorage
 }
 
-export async function createAgent({
-	model,
-	cwd,
-	environment,
-	todoStorage,
-}: AgentSettings) {
+export async function createAgent({ model, cwd, environment, todoStorage }: AgentSettings) {
 	const env = await getEnvironmentContext({ cwd, ...environment })
 	const instructions = applyEnvironment(prompt, env)
 	const { todoRead, todoWrite } = createTodoTools(todoStorage)

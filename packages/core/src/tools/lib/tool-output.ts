@@ -22,17 +22,7 @@ export function toolOutput<
 	S extends Record<string, z.ZodTypeAny>,
 	E extends Record<string, z.ZodTypeAny>,
 	T extends Record<string, z.ZodTypeAny> | undefined = undefined,
->({
-	pending,
-	success,
-	error,
-	streaming,
-}: {
-	pending: P
-	success: S
-	error: E
-	streaming?: T
-}) {
+>({ pending, success, error, streaming }: { pending: P; success: S; error: E; streaming?: T }) {
 	return z.union([
 		z.object({
 			status: z.literal("pending"),

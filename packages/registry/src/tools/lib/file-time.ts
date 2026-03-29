@@ -37,22 +37,15 @@ export async function markRead(scope: string, filepath: string): Promise<void> {
 	bucket(scope).set(filepath, stat.mtimeMs)
 }
 
-export async function assertFreshRead(
-	scope: string,
-	filepath: string,
-): Promise<void> {
+export async function assertFreshRead(scope: string, filepath: string): Promise<void> {
 	const prev = bucket(scope).get(filepath)
 	if (prev === undefined) {
-		throw new Error(
-			`File ${filepath} must be read before editing. Use the Read tool first.`,
-		)
+		throw new Error(`File ${filepath} must be read before editing. Use the Read tool first.`)
 	}
 
 	const stat = await fs.stat(filepath)
 	if (stat.mtimeMs !== prev) {
-		throw new Error(
-			`File ${filepath} changed after it was read. Read it again before editing.`,
-		)
+		throw new Error(`File ${filepath} changed after it was read. Read it again before editing.`)
 	}
 }
 

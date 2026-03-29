@@ -1,13 +1,13 @@
 {
-	"name": "test-prompt",
-	"type": "registry:prompt",
-	"title": "Test Prompt",
-	"description": "A test prompt for CLI testing",
-	"files": [
-		{
-			"path": "prompts/test-prompt.ts",
-			"type": "registry:prompt",
-			"content": "export const testPrompt = `You are a test assistant.\n\nYour job is to help with testing.`\n"
-		}
-	]
+  "name": "test-prompt",
+  "type": "registry:prompt",
+  "title": "Test Prompt",
+  "description": "A test prompt for CLI testing",
+  "files": [
+    {
+      "path": "prompts/test-prompt.ts",
+      "type": "registry:prompt",
+      "content": "export const testPrompt = `You are a test assistant.\n\nYour job is to help with testing.`\n"
+    }
+  ]
 }

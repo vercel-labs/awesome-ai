@@ -18,20 +18,12 @@ export function Header() {
 							<Link href="/">agents</Link>
 						</Button>
 						<Button variant="ghost" size="sm" asChild>
-							<a
-								href="https://github.com"
-								target="_blank"
-								rel="noopener noreferrer"
-							>
+							<a href="https://github.com" target="_blank" rel="noopener noreferrer">
 								github
 							</a>
 						</Button>
 						<Button variant="ghost" size="sm" asChild>
-							<a
-								href="https://vercel.com/docs"
-								target="_blank"
-								rel="noopener noreferrer"
-							>
+							<a href="https://vercel.com/docs" target="_blank" rel="noopener noreferrer">
 								docs
 							</a>
 						</Button>

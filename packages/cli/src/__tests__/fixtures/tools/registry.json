@@ -1,21 +1,21 @@
 {
-	"name": "@awesome-ai/tools",
-	"homepage": "https://awesome-ai.com",
-	"items": [
-		{
-			"name": "test-tool",
-			"type": "registry:tool",
-			"title": "Test Tool",
-			"description": "A test tool for CLI testing",
-			"dependencies": ["zod"],
-			"categories": ["testing"]
-		},
-		{
-			"name": "tool-with-lib",
-			"type": "registry:tool",
-			"title": "Tool with Lib",
-			"description": "A tool that imports from lib",
-			"categories": ["testing"]
-		}
-	]
+  "name": "@awesome-ai/tools",
+  "homepage": "https://awesome-ai.com",
+  "items": [
+    {
+      "name": "test-tool",
+      "type": "registry:tool",
+      "title": "Test Tool",
+      "description": "A test tool for CLI testing",
+      "dependencies": ["zod"],
+      "categories": ["testing"]
+    },
+    {
+      "name": "tool-with-lib",
+      "type": "registry:tool",
+      "title": "Tool with Lib",
+      "description": "A tool that imports from lib",
+      "categories": ["testing"]
+    }
+  ]
 }

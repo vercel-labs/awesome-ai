@@ -12,14 +12,9 @@ function isToolPart(part: { type: string }): boolean {
 	return part.type.startsWith("tool-") || part.type === "dynamic-tool"
 }
 
-function hasContent(msg: {
-	parts: Array<{ type: string; text?: string }>
-}): boolean {
+function hasContent(msg: { parts: Array<{ type: string; text?: string }> }): boolean {
 	return msg.parts.some(
-		(p) =>
-			(p.type === "text" && p.text) ||
-			(p.type === "reasoning" && p.text) ||
-			isToolPart(p),
+		(p) => (p.type === "text" && p.text) || (p.type === "reasoning" && p.text) || isToolPart(p),
 	)
 }
 
@@ -27,9 +22,7 @@ function Message({ messageAtom }: { messageAtom: MessageAtom }) {
 	const [msg] = useAtom(messageAtom)
 	const text = getMessageText(msg)
 	const streaming = msg.metadata?.streaming
-	const timestamp = msg.metadata?.timestamp
-		? formatTimestamp(msg.metadata.timestamp)
-		: ""
+	const timestamp = msg.metadata?.timestamp ? formatTimestamp(msg.metadata.timestamp) : ""
 	const showThinking = streaming && !hasContent(msg)
 
 	return (
@@ -59,10 +52,7 @@ function Message({ messageAtom }: { messageAtom: MessageAtom }) {
 							const textPart = part as { type: "text"; text: string }
 							if (!textPart.text) return null
 							return (
-								<box
-									key={`text-${idx}`}
-									style={{ flexDirection: "column", width: "100%" }}
-								>
+								<box key={`text-${idx}`} style={{ flexDirection: "column", width: "100%" }}>
 									<Markdown streaming={streaming}>{textPart.text}</Markdown>
 								</box>
 							)
@@ -70,12 +60,7 @@ function Message({ messageAtom }: { messageAtom: MessageAtom }) {
 						if (part.type === "reasoning") {
 							const reasoningPart = part as { type: "reasoning"; text: string }
 							if (!reasoningPart.text) return null
-							return (
-								<ThinkingSection
-									key={`reasoning-${idx}`}
-									thinking={reasoningPart.text}
-								/>
-							)
+							return <ThinkingSection key={`reasoning-${idx}`} thinking={reasoningPart.text} />
 						}
 						if (isToolPart(part)) {
 							const toolPart = part as ToolData

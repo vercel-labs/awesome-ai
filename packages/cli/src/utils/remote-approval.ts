@@ -2,11 +2,7 @@ import prompts from "prompts"
 import type { RegistryItemCategory } from "../registry/schema"
 import { highlighter } from "./highlighter"
 import { logger } from "./logger"
-import {
-	installCacheDependencies,
-	prepareSync,
-	type SyncPlan,
-} from "./remote-cache"
+import { installCacheDependencies, prepareSync, type SyncPlan } from "./remote-cache"
 import { spinner } from "./spinner"
 
 interface SyncOptions {
@@ -18,10 +14,7 @@ interface SyncOptions {
  * Display the sync plan and ask for user approval
  * Returns true if approved, false if rejected
  */
-async function showRemoteApproval(
-	syncPlan: SyncPlan,
-	options: SyncOptions = {},
-): Promise<boolean> {
+async function showRemoteApproval(syncPlan: SyncPlan, options: SyncOptions = {}): Promise<boolean> {
 	if (options.yes) return true
 
 	if (!syncPlan.needsSync) {
@@ -39,37 +32,26 @@ async function showRemoteApproval(
 	logger.break()
 
 	if (toDownload.length > 0) {
-		logger.info(
-			highlighter.success(`New items to download (${toDownload.length}):`),
-		)
+		logger.info(highlighter.success(`New items to download (${toDownload.length}):`))
 		for (const item of toDownload) {
 			const typeLabel = item.type.slice(0, -1) // "agents" -> "agent"
-			logger.info(
-				`  ${highlighter.success("+")} ${item.name} ${highlighter.dim(`(${typeLabel})`)}`,
-			)
+			logger.info(`  ${highlighter.success("+")} ${item.name} ${highlighter.dim(`(${typeLabel})`)}`)
 		}
 		logger.break()
 	}
 
 	if (toUpdate.length > 0) {
-		logger.info(
-			highlighter.warn(`Items with updates available (${toUpdate.length}):`),
-		)
+		logger.info(highlighter.warn(`Items with updates available (${toUpdate.length}):`))
 		for (const item of toUpdate) {
 			const typeLabel = item.type.slice(0, -1)
-			logger.info(
-				`  ${highlighter.warn("~")} ${item.name} ${highlighter.dim(`(${typeLabel})`)}`,
-			)
+			logger.info(`  ${highlighter.warn("~")} ${item.name} ${highlighter.dim(`(${typeLabel})`)}`)
 		}
 		logger.break()
 	}
 
-	const totalDeps =
-		syncPlan.dependencies.length + syncPlan.devDependencies.length
+	const totalDeps = syncPlan.dependencies.length + syncPlan.devDependencies.length
 	if (totalDeps > 0) {
-		logger.info(
-			`Dependencies to install: ${highlighter.info(String(totalDeps))}`,
-		)
+		logger.info(`Dependencies to install: ${highlighter.info(String(totalDeps))}`)
 		if (syncPlan.dependencies.length <= 10) {
 			logger.info(`  ${highlighter.dim(syncPlan.dependencies.join(", "))}`)
 		}

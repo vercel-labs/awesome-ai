@@ -74,10 +74,9 @@ describe("view command", () => {
 		})
 
 		it("shows tool details with --type tools", async () => {
-			const result = await runCLI(
-				["view", "@test/test-tool", "--type", "tools"],
-				{ cwd: project.path },
-			)
+			const result = await runCLI(["view", "@test/test-tool", "--type", "tools"], {
+				cwd: project.path,
+			})
 
 			expect(result.exitCode).toBe(0)
 			const output = JSON.parse(result.stdout)
@@ -89,10 +88,9 @@ describe("view command", () => {
 		})
 
 		it("shows agent details with --type agents", async () => {
-			const result = await runCLI(
-				["view", "@test/test-agent", "--type", "agents"],
-				{ cwd: project.path },
-			)
+			const result = await runCLI(["view", "@test/test-agent", "--type", "agents"], {
+				cwd: project.path,
+			})
 
 			expect(result.exitCode).toBe(0)
 			const output = JSON.parse(result.stdout)
@@ -103,10 +101,9 @@ describe("view command", () => {
 		})
 
 		it("shows prompt details with --type prompts", async () => {
-			const result = await runCLI(
-				["view", "@test/test-prompt", "--type", "prompts"],
-				{ cwd: project.path },
-			)
+			const result = await runCLI(["view", "@test/test-prompt", "--type", "prompts"], {
+				cwd: project.path,
+			})
 
 			expect(result.exitCode).toBe(0)
 			const output = JSON.parse(result.stdout)
@@ -129,20 +126,18 @@ describe("view command", () => {
 		})
 
 		it("handles missing items with error", async () => {
-			const result = await runCLI(
-				["view", "@test/nonexistent-item", "--type", "tools"],
-				{ cwd: project.path },
-			)
+			const result = await runCLI(["view", "@test/nonexistent-item", "--type", "tools"], {
+				cwd: project.path,
+			})
 
 			// Should fail since item doesn't exist
 			expect(result.exitCode).toBe(1)
 		})
 
 		it("includes file content in response", async () => {
-			const result = await runCLI(
-				["view", "@test/test-tool", "--type", "tools"],
-				{ cwd: project.path },
-			)
+			const result = await runCLI(["view", "@test/test-tool", "--type", "tools"], {
+				cwd: project.path,
+			})
 
 			expect(result.exitCode).toBe(0)
 			const output = JSON.parse(result.stdout)
@@ -152,10 +147,9 @@ describe("view command", () => {
 		})
 
 		it("includes dependencies in response", async () => {
-			const result = await runCLI(
-				["view", "@test/test-tool", "--type", "tools"],
-				{ cwd: project.path },
-			)
+			const result = await runCLI(["view", "@test/test-tool", "--type", "tools"], {
+				cwd: project.path,
+			})
 
 			expect(result.exitCode).toBe(0)
 			const output = JSON.parse(result.stdout)
@@ -164,10 +158,9 @@ describe("view command", () => {
 		})
 
 		it("includes registryDependencies for agents", async () => {
-			const result = await runCLI(
-				["view", "@test/test-agent", "--type", "agents"],
-				{ cwd: project.path },
-			)
+			const result = await runCLI(["view", "@test/test-agent", "--type", "agents"], {
+				cwd: project.path,
+			})
 
 			expect(result.exitCode).toBe(0)
 			const output = JSON.parse(result.stdout)
@@ -204,10 +197,9 @@ describe("view command", () => {
 
 		mockRegistry.clearReceivedHeaders()
 
-		const result = await runCLI(
-			["view", "@test/test-tool", "--type", "tools"],
-			{ cwd: project.path },
-		)
+		const result = await runCLI(["view", "@test/test-tool", "--type", "tools"], {
+			cwd: project.path,
+		})
 
 		expect(result.exitCode).toBe(0)
 
@@ -216,9 +208,7 @@ describe("view command", () => {
 		expect(headers.length).toBeGreaterThan(0)
 
 		// Find a request with our custom headers
-		const requestWithHeaders = headers.find(
-			(h) => h.authorization === "Bearer test-token-123",
-		)
+		const requestWithHeaders = headers.find((h) => h.authorization === "Bearer test-token-123")
 		expect(requestWithHeaders).toBeDefined()
 		expect(requestWithHeaders?.["x-custom-header"]).toBe("custom-value")
 	})

@@ -28,6 +28,7 @@ pnpm changeset
 ```
 
 This will prompt you to:
+
 1. Select which packages changed (`awesome-ai`, `awesome-ai-tui`)
 2. Choose the version bump type (patch, minor, major)
 3. Write a summary of the changes
@@ -41,6 +42,7 @@ The repo uses **prerelease mode** for beta versions. Versions increment like `0.
 ### Automatic Beta Releases
 
 When PRs with changesets are merged to `main`:
+
 1. The changesets action creates a "Version Packages" PR
 2. Merging that PR publishes beta versions to npm
 

@@ -1,13 +1,13 @@
 {
-	"name": "nested/test-nested",
-	"type": "registry:tool",
-	"title": "Test Nested Tool",
-	"description": "A test tool in a nested directory",
-	"files": [
-		{
-			"path": "tools/nested/test-nested.ts",
-			"type": "registry:tool",
-			"content": "import { tool } from \"ai\"\nimport { z } from \"zod\"\n\nexport const testNestedTool = tool({\n\tdescription: \"A test tool in a nested directory\",\n\tinputSchema: z.object({\n\t\tvalue: z.string(),\n\t}),\n\tasync *execute({ value }) {\n\t\tyield { result: value }\n\t},\n})\n"
-		}
-	]
+  "name": "nested/test-nested",
+  "type": "registry:tool",
+  "title": "Test Nested Tool",
+  "description": "A test tool in a nested directory",
+  "files": [
+    {
+      "path": "tools/nested/test-nested.ts",
+      "type": "registry:tool",
+      "content": "import { tool } from \"ai\"\nimport { z } from \"zod\"\n\nexport const testNestedTool = tool({\n\tdescription: \"A test tool in a nested directory\",\n\tinputSchema: z.object({\n\t\tvalue: z.string(),\n\t}),\n\tasync *execute({ value }) {\n\t\tyield { result: value }\n\t},\n})\n"
+    }
+  ]
 }

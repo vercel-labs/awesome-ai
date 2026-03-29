@@ -1,15 +1,15 @@
 {
-	"name": "test-agent",
-	"type": "registry:agent",
-	"title": "Test Agent",
-	"description": "A test agent for CLI testing",
-	"registryDependencies": ["tools:test-tool", "prompts:test-prompt"],
-	"dependencies": ["ai", "zod"],
-	"files": [
-		{
-			"path": "agents/test-agent.ts",
-			"type": "registry:agent",
-			"content": "import { tool } from \"ai\"\nimport { z } from \"zod\"\nimport { testTool } from \"@/tools/test-tool\"\nimport { testPrompt } from \"@/prompts/test-prompt\"\n\nexport const testAgent = {\n\tname: \"test-agent\",\n\ttools: [testTool],\n\tprompt: testPrompt,\n}\n"
-		}
-	]
+  "name": "test-agent",
+  "type": "registry:agent",
+  "title": "Test Agent",
+  "description": "A test agent for CLI testing",
+  "registryDependencies": ["tools:test-tool", "prompts:test-prompt"],
+  "dependencies": ["ai", "zod"],
+  "files": [
+    {
+      "path": "agents/test-agent.ts",
+      "type": "registry:agent",
+      "content": "import { tool } from \"ai\"\nimport { z } from \"zod\"\nimport { testTool } from \"@/tools/test-tool\"\nimport { testPrompt } from \"@/prompts/test-prompt\"\n\nexport const testAgent = {\n\tname: \"test-agent\",\n\ttools: [testTool],\n\tprompt: testPrompt,\n}\n"
+    }
+  ]
 }

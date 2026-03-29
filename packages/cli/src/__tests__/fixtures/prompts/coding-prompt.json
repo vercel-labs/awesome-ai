@@ -1,13 +1,13 @@
 {
-	"name": "coding-prompt",
-	"type": "registry:prompt",
-	"title": "Coding Prompt",
-	"description": "A prompt for coding tasks",
-	"files": [
-		{
-			"path": "prompts/coding-prompt.ts",
-			"type": "registry:prompt",
-			"content": "export const codingPrompt = `You are a coding assistant.\n\nHelp the user write clean, maintainable code.`\n"
-		}
-	]
+  "name": "coding-prompt",
+  "type": "registry:prompt",
+  "title": "Coding Prompt",
+  "description": "A prompt for coding tasks",
+  "files": [
+    {
+      "path": "prompts/coding-prompt.ts",
+      "type": "registry:prompt",
+      "content": "export const codingPrompt = `You are a coding assistant.\n\nHelp the user write clean, maintainable code.`\n"
+    }
+  ]
 }

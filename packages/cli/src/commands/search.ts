@@ -1,5 +1,5 @@
-import { Command } from "commander"
 import path from "path"
+import { Command } from "commander"
 import { z } from "zod"
 import { getRegistry } from "../registry/api"
 import { clearRegistryContext } from "../registry/context"
@@ -23,10 +23,7 @@ export const search = new Command()
 		process.cwd(),
 	)
 	.option("-q, --query <query>", "query string")
-	.option(
-		"-t, --type <type>",
-		"the type of item to search (agents, tools, prompts)",
-	)
+	.option("-t, --type <type>", "the type of item to search (agents, tools, prompts)")
 	.option(
 		"-r, --registry <registry>",
 		"the registry to search from (default: @awesome-ai)",
@@ -53,13 +50,9 @@ export const search = new Command()
 			}
 
 			const type = options.type || "agents"
-			const registry = await getRegistry(
-				options.registry || "@awesome-ai",
-				type,
-				{
-					config,
-				},
-			)
+			const registry = await getRegistry(options.registry || "@awesome-ai", type, {
+				config,
+			})
 
 			let items = registry.items
 			if (options.query) {

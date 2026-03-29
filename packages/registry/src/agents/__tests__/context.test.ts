@@ -110,9 +110,9 @@ describe("context management", () => {
 			const toolMsg = result.messages.find((m) => m.role === "tool")
 			expect(toolMsg).toBeDefined()
 			if (toolMsg && Array.isArray(toolMsg.content)) {
-				const toolResult = toolMsg.content.find(
-					(p) => p.type === "tool-result",
-				) as { output: { type: string; value: string } } | undefined
+				const toolResult = toolMsg.content.find((p) => p.type === "tool-result") as
+					| { output: { type: string; value: string } }
+					| undefined
 				expect(toolResult?.output.value).toBe("[Output cleared - see summary]")
 			}
 		})
@@ -154,10 +154,7 @@ describe("context management", () => {
 			expect(result?.[0]?.role).toBe("system")
 			expect(result?.[1]?.role).toBe("assistant")
 			expect(typeof result?.[1]?.content).toBe("string")
-			expect(result?.slice(-2).map((m) => m.content)).toEqual([
-				"recent-1",
-				"recent-2",
-			])
+			expect(result?.slice(-2).map((m) => m.content)).toEqual(["recent-1", "recent-2"])
 		})
 
 		it("uses fallback summary when hidden compaction flow fails", async () => {

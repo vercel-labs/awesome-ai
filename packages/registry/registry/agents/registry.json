@@ -1,73 +1,73 @@
 {
-	"name": "@awesome-ai/agents",
-	"homepage": "https://awesome-ai.com",
-	"items": [
-		{
-			"name": "figma-agent",
-			"type": "registry:agent",
-			"title": "Figma Agent",
-			"description": "Converts Figma designs into pixel-perfect code using Next.js, Tailwind CSS, and TypeScript.",
-			"dependencies": ["ai"],
-			"registryDependencies": [
-				"prompts:figma-agent",
-				"tools:edit",
-				"tools:figma/fetch",
-				"tools:figma/migration-state",
-				"tools:glob",
-				"tools:grep",
-				"tools:list",
-				"tools:read",
-				"tools:write"
-			],
-			"categories": ["design", "write"],
-			"config": [
-				{
-					"name": "figmaToken",
-					"type": "string",
-					"required": false,
-					"description": "Figma API access token for fetching designs",
-					"env": "FIGMA_ACCESS_TOKEN"
-				}
-			],
-			"context": ["coding"]
-		},
-		{
-			"name": "migration-agent",
-			"type": "registry:agent",
-			"title": "Migration Agent",
-			"description": "Executes code migrations by implementing changes from a migration plan in a phased, verified approach.",
-			"dependencies": ["ai"],
-			"registryDependencies": [
-				"prompts:migration-agent",
-				"tools:bash",
-				"tools:edit",
-				"tools:glob",
-				"tools:grep",
-				"tools:list",
-				"tools:read",
-				"tools:todo",
-				"tools:write"
-			],
-			"categories": ["migration", "write"],
-			"context": ["coding"]
-		},
-		{
-			"name": "migration-planning-agent",
-			"type": "registry:agent",
-			"title": "Migration Planning Agent",
-			"description": "Analyzes codebases and creates detailed migration plans with phased strategies, breaking change detection, and rollback points.",
-			"dependencies": ["ai"],
-			"registryDependencies": [
-				"prompts:migration-planning-agent",
-				"tools:bash",
-				"tools:glob",
-				"tools:grep",
-				"tools:list",
-				"tools:read",
-				"tools:todo"
-			],
-			"categories": ["migration", "planning", "read-only"],
-			"context": ["coding"]
-		}
-	]
+  "name": "@awesome-ai/agents",
+  "homepage": "https://awesome-ai.com",
+  "items": [
+    {
+      "name": "figma-agent",
+      "type": "registry:agent",
+      "title": "Figma Agent",
+      "description": "Converts Figma designs into pixel-perfect code using Next.js, Tailwind CSS, and TypeScript.",
+      "dependencies": ["ai"],
+      "registryDependencies": [
+        "prompts:figma-agent",
+        "tools:edit",
+        "tools:figma/fetch",
+        "tools:figma/migration-state",
+        "tools:glob",
+        "tools:grep",
+        "tools:list",
+        "tools:read",
+        "tools:write"
+      ],
+      "categories": ["design", "write"],
+      "config": [
+        {
+          "name": "figmaToken",
+          "type": "string",
+          "required": false,
+          "description": "Figma API access token for fetching designs",
+          "env": "FIGMA_ACCESS_TOKEN"
+        }
+      ],
+      "context": ["coding"]
+    },
+    {
+      "name": "migration-agent",
+      "type": "registry:agent",
+      "title": "Migration Agent",
+      "description": "Executes code migrations by implementing changes from a migration plan in a phased, verified approach.",
+      "dependencies": ["ai"],
+      "registryDependencies": [
+        "prompts:migration-agent",
+        "tools:bash",
+        "tools:edit",
+        "tools:glob",
+        "tools:grep",
+        "tools:list",
+        "tools:read",
+        "tools:todo",
+        "tools:write"
+      ],
+      "categories": ["migration", "write"],
+      "context": ["coding"]
+    },
+    {
+      "name": "migration-planning-agent",
+      "type": "registry:agent",
+      "title": "Migration Planning Agent",
+      "description": "Analyzes codebases and creates detailed migration plans with phased strategies, breaking change detection, and rollback points.",
+      "dependencies": ["ai"],
+      "registryDependencies": [
+        "prompts:migration-planning-agent",
+        "tools:bash",
+        "tools:glob",
+        "tools:grep",
+        "tools:list",
+        "tools:read",
+        "tools:todo"
+      ],
+      "categories": ["migration", "planning", "read-only"],
+      "context": ["coding"]
+    }
+  ]
 }

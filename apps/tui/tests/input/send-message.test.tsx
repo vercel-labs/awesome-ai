@@ -22,9 +22,7 @@ mock.module("../../src/utils/settings", () => ({
 
 describe("Input send message", () => {
 	test("loads initial agent before sending message", async () => {
-		const agentPath = fileURLToPath(
-			new URL("../fixtures/mock-agent.ts", import.meta.url),
-		)
+		const agentPath = fileURLToPath(new URL("../fixtures/mock-agent.ts", import.meta.url))
 		const agentImportPath = pathToFileURL(agentPath).href
 
 		const store = createAppStore({
@@ -57,10 +55,7 @@ describe("Input send message", () => {
 		const hasNoAgentMessage = messages.some(
 			(msg) =>
 				msg.role === "system" &&
-				msg.parts.some(
-					(part) =>
-						part.type === "text" && part.text.includes("No agent loaded"),
-				),
+				msg.parts.some((part) => part.type === "text" && part.text.includes("No agent loaded")),
 		)
 
 		expect(hasNoAgentMessage).toBe(false)

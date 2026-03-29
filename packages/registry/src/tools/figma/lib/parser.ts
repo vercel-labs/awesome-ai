@@ -73,10 +73,7 @@ export function extractFigmaStructure(
 		return JSON.parse(JSON.stringify(node))
 	}
 
-	function collectSections(
-		node: FigmaNode,
-		parentSectionId?: string,
-	): string[] {
+	function collectSections(node: FigmaNode, parentSectionId?: string): string[] {
 		const sectionIds: string[] = []
 
 		if (!node.children) return sectionIds
@@ -123,10 +120,7 @@ export function extractFigmaStructure(
 			if (node.children) {
 				for (const variant of node.children) {
 					if (variant.type === "COMPONENT" && !shouldSkipNode(variant)) {
-						componentDefinitions.set(
-							variant.id,
-							filterInvisibleNodes(cloneNode(variant)),
-						)
+						componentDefinitions.set(variant.id, filterInvisibleNodes(cloneNode(variant)))
 					}
 				}
 			}
@@ -156,11 +150,7 @@ export function extractFigmaStructure(
 		}
 	}
 
-	function collectFrames(
-		node: FigmaNode,
-		pageId: string,
-		sectionId?: string,
-	): FrameInfo[] {
+	function collectFrames(node: FigmaNode, pageId: string, sectionId?: string): FrameInfo[] {
 		const frames: FrameInfo[] = []
 
 		if (!node.children) return frames
@@ -236,10 +226,7 @@ export function extractFigmaStructure(
 	}
 }
 
-export function getComponent(
-	data: ExtractedData,
-	nameOrId: string,
-): ComponentData | null {
+export function getComponent(data: ExtractedData, nameOrId: string): ComponentData | null {
 	if (data.components[nameOrId]) {
 		return data.components[nameOrId]
 	}
@@ -270,10 +257,7 @@ export function listFrames(data: ExtractedData): FrameInfo[] {
 	return Object.values(data.frames)
 }
 
-export function getFrame(
-	data: ExtractedData,
-	nameOrId: string,
-): FrameInfo | null {
+export function getFrame(data: ExtractedData, nameOrId: string): FrameInfo | null {
 	if (data.frames[nameOrId]) {
 		return data.frames[nameOrId]
 	}

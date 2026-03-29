@@ -300,8 +300,7 @@ describe("bashTool", () => {
 	it("yields streaming output for long-running commands", async () => {
 		// Command that produces output with delays to trigger streaming
 		const results = await executeTool(bashTool, {
-			command:
-				"echo 'first' && sleep 0.2 && echo 'second' && sleep 0.2 && echo 'third'",
+			command: "echo 'first' && sleep 0.2 && echo 'second' && sleep 0.2 && echo 'third'",
 			description: "Streaming output test",
 		})
 
@@ -312,9 +311,7 @@ describe("bashTool", () => {
 		expect(statuses[statuses.length - 1]).toBe("success")
 
 		// Check for streaming results (may or may not appear depending on timing)
-		const streamingResults = results.filter(
-			(r) => (r as { status: string }).status === "streaming",
-		)
+		const streamingResults = results.filter((r) => (r as { status: string }).status === "streaming")
 
 		// If we got streaming results, verify they have partial output
 		if (streamingResults.length > 0) {
@@ -334,9 +331,7 @@ describe("bashTool", () => {
 		assert(typeof needsApproval === "function")
 
 		const opts = { toolCallId: "test", messages: [] }
-		expect(
-			needsApproval({ command: "echo hello", description: "" }, opts),
-		).toBe(true)
+		expect(needsApproval({ command: "echo hello", description: "" }, opts)).toBe(true)
 		expect(needsApproval({ command: "ls", description: "" }, opts)).toBe(true)
 	})
 
@@ -353,19 +348,15 @@ describe("bashTool", () => {
 		const opts = { toolCallId: "test", messages: [] }
 
 		// Allowed command
-		expect(
-			needsApproval({ command: "echo hello", description: "" }, opts),
-		).toBe(false)
+		expect(needsApproval({ command: "echo hello", description: "" }, opts)).toBe(false)
 
 		// Ask command
-		expect(needsApproval({ command: "cat file", description: "" }, opts)).toBe(
-			true,
-		)
+		expect(needsApproval({ command: "cat file", description: "" }, opts)).toBe(true)
 
 		// Denied command
-		expect(() =>
-			needsApproval({ command: "rm -rf /", description: "" }, opts),
-		).toThrow(PermissionDeniedError)
+		expect(() => needsApproval({ command: "rm -rf /", description: "" }, opts)).toThrow(
+			PermissionDeniedError,
+		)
 	})
 
 	it("auto-approves known-safe commands when enabled", () => {
@@ -374,9 +365,7 @@ describe("bashTool", () => {
 		assert(typeof needsApproval === "function")
 		const opts = { toolCallId: "test", messages: [] }
 		expect(needsApproval({ command: "ls", description: "" }, opts)).toBe(false)
-		expect(
-			needsApproval({ command: "rg --search-zip test", description: "" }, opts),
-		).toBe(true)
+		expect(needsApproval({ command: "rg --search-zip test", description: "" }, opts)).toBe(true)
 	})
 
 	it("checks permissions per parsed command segment", () => {
@@ -388,9 +377,7 @@ describe("bashTool", () => {
 		const { needsApproval } = bash
 		assert(typeof needsApproval === "function")
 		const opts = { toolCallId: "test", messages: [] }
-		expect(
-			needsApproval({ command: "ls && git status", description: "" }, opts),
-		).toBe(false)
+		expect(needsApproval({ command: "ls && git status", description: "" }, opts)).toBe(false)
 	})
 
 	it("requires approval for path-like arguments outside cwd", () => {
@@ -398,9 +385,7 @@ describe("bashTool", () => {
 		const { needsApproval } = bash
 		assert(typeof needsApproval === "function")
 		const opts = { toolCallId: "test", messages: [] }
-		expect(
-			needsApproval({ command: "cat ../../etc/hosts", description: "" }, opts),
-		).toBe(true)
+		expect(needsApproval({ command: "cat ../../etc/hosts", description: "" }, opts)).toBe(true)
 	})
 
 	it("does not auto-approve nested shell forms", () => {
@@ -408,12 +393,8 @@ describe("bashTool", () => {
 		const { needsApproval } = bash
 		assert(typeof needsApproval === "function")
 		const opts = { toolCallId: "test", messages: [] }
-		expect(
-			needsApproval({ command: "echo $(pwd)", description: "" }, opts),
-		).toBe(true)
-		expect(
-			needsApproval({ command: "echo (hello)", description: "" }, opts),
-		).toBe(true)
+		expect(needsApproval({ command: "echo $(pwd)", description: "" }, opts)).toBe(true)
+		expect(needsApproval({ command: "echo (hello)", description: "" }, opts)).toBe(true)
 	})
 
 	it("allows safe git global options during auto-approval", () => {
@@ -422,10 +403,7 @@ describe("bashTool", () => {
 		assert(typeof needsApproval === "function")
 		const opts = { toolCallId: "test", messages: [] }
 		expect(
-			needsApproval(
-				{ command: "git -C . branch --show-current", description: "" },
-				opts,
-			),
+			needsApproval({ command: "git -C . branch --show-current", description: "" }, opts),
 		).toBe(false)
 	})
 
@@ -438,9 +416,7 @@ describe("bashTool", () => {
 		const { needsApproval } = bash
 		assert(typeof needsApproval === "function")
 		const opts = { toolCallId: "test", messages: [] }
-		expect(
-			needsApproval({ command: "git status --short", description: "" }, opts),
-		).toBe(false)
+		expect(needsApproval({ command: "git status --short", description: "" }, opts)).toBe(false)
 	})
 
 	it("treats specific arg variants as distinct from base command", () => {
@@ -451,12 +427,8 @@ describe("bashTool", () => {
 		const { needsApproval } = bash
 		assert(typeof needsApproval === "function")
 		const opts = { toolCallId: "test", messages: [] }
-		expect(
-			needsApproval({ command: "git status --short", description: "" }, opts),
-		).toBe(false)
-		expect(
-			needsApproval({ command: "git status", description: "" }, opts),
-		).toBe(true)
+		expect(needsApproval({ command: "git status --short", description: "" }, opts)).toBe(false)
+		expect(needsApproval({ command: "git status", description: "" }, opts)).toBe(true)
 	})
 
 	it("applies deny when a specific variant is denied", () => {
@@ -468,8 +440,8 @@ describe("bashTool", () => {
 		const { needsApproval } = bash
 		assert(typeof needsApproval === "function")
 		const opts = { toolCallId: "test", messages: [] }
-		expect(() =>
-			needsApproval({ command: "git status --short", description: "" }, opts),
-		).toThrow(PermissionDeniedError)
+		expect(() => needsApproval({ command: "git status --short", description: "" }, opts)).toThrow(
+			PermissionDeniedError,
+		)
 	})
 })

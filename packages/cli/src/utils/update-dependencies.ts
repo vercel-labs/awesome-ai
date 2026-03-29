@@ -67,11 +67,7 @@ async function installWithPackageManager(
 	}
 }
 
-async function installWithNpm(
-	dependencies: string[],
-	devDependencies: string[],
-	cwd: string,
-) {
+async function installWithNpm(dependencies: string[], devDependencies: string[], cwd: string) {
 	if (dependencies.length) {
 		await execa("npm", ["install", ...dependencies], { cwd })
 	}
@@ -81,11 +77,7 @@ async function installWithNpm(
 	}
 }
 
-async function installWithDeno(
-	dependencies: string[],
-	devDependencies: string[],
-	cwd: string,
-) {
+async function installWithDeno(dependencies: string[], devDependencies: string[], cwd: string) {
 	if (dependencies?.length) {
 		await execa("deno", ["add", ...dependencies.map((dep) => `npm:${dep}`)], {
 			cwd,
@@ -93,12 +85,8 @@ async function installWithDeno(
 	}
 
 	if (devDependencies?.length) {
-		await execa(
-			"deno",
-			["add", "-D", ...devDependencies.map((dep) => `npm:${dep}`)],
-			{
-				cwd,
-			},
-		)
+		await execa("deno", ["add", "-D", ...devDependencies.map((dep) => `npm:${dep}`)], {
+			cwd,
+		})
 	}
 }

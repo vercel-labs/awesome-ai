@@ -1,22 +1,22 @@
 {
-	"name": "@awesome-ai/agents",
-	"homepage": "https://awesome-ai.com",
-	"items": [
-		{
-			"name": "test-agent",
-			"type": "registry:agent",
-			"title": "Test Agent",
-			"description": "A test agent for CLI testing",
-			"registryDependencies": ["test-tool", "test-prompt"],
-			"dependencies": ["ai", "zod"],
-			"categories": ["testing"]
-		},
-		{
-			"name": "simple-agent",
-			"type": "registry:agent",
-			"title": "Simple Agent",
-			"description": "A simple agent without dependencies",
-			"categories": ["testing"]
-		}
-	]
+  "name": "@awesome-ai/agents",
+  "homepage": "https://awesome-ai.com",
+  "items": [
+    {
+      "name": "test-agent",
+      "type": "registry:agent",
+      "title": "Test Agent",
+      "description": "A test agent for CLI testing",
+      "registryDependencies": ["test-tool", "test-prompt"],
+      "dependencies": ["ai", "zod"],
+      "categories": ["testing"]
+    },
+    {
+      "name": "simple-agent",
+      "type": "registry:agent",
+      "title": "Simple Agent",
+      "description": "A simple agent without dependencies",
+      "categories": ["testing"]
+    }
+  ]
 }

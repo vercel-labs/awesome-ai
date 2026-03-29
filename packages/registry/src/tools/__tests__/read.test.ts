@@ -412,10 +412,7 @@ describe("readTool", () => {
 		})
 
 		it("allows text files with unknown extensions", async () => {
-			await fs.writeFile(
-				path.join(tempDir, "file.customext"),
-				"plain text content",
-			)
+			await fs.writeFile(path.join(tempDir, "file.customext"), "plain text content")
 
 			const results = await executeTool(readTool, {
 				filePath: path.join(tempDir, "file.customext"),

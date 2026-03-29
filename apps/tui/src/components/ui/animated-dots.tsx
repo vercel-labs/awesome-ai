@@ -8,10 +8,7 @@ interface AnimatedDotsProps {
 	color?: string
 }
 
-export function AnimatedDots({
-	label,
-	color = colors.muted,
-}: AnimatedDotsProps) {
+export function AnimatedDots({ label, color = colors.muted }: AnimatedDotsProps) {
 	const [frame, setFrame] = useState(0)
 
 	useEffect(() => {

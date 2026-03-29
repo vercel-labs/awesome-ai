@@ -46,9 +46,7 @@ export interface SubagentRuntimeKeyspace {
 	lineage: (agentId: string) => string
 }
 
-export function createSubagentRuntimeKeyspace(
-	runtimeId: string,
-): SubagentRuntimeKeyspace {
+export function createSubagentRuntimeKeyspace(runtimeId: string): SubagentRuntimeKeyspace {
 	const prefix = `subagent:${runtimeId}`
 	return {
 		prefix,

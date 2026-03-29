@@ -77,12 +77,12 @@ awesome-ai init [options]
 
 **Options:**
 
-| Option | Description | Default |
-|--------|-------------|---------|
-| `-y, --yes` | Skip confirmation prompt | `true` |
-| `-d, --defaults` | Use default configuration | `false` |
-| `-c, --cwd <path>` | Working directory | Current directory |
-| `-s, --silent` | Mute output | `false` |
+| Option             | Description               | Default           |
+| ------------------ | ------------------------- | ----------------- |
+| `-y, --yes`        | Skip confirmation prompt  | `true`            |
+| `-d, --defaults`   | Use default configuration | `false`           |
+| `-c, --cwd <path>` | Working directory         | Current directory |
+| `-s, --silent`     | Mute output               | `false`           |
 
 **Examples:**
 
@@ -109,20 +109,20 @@ awesome-ai add <items...> [options]
 
 **Arguments:**
 
-| Argument | Description |
-|----------|-------------|
-| `items` | Names of items to add (space-separated) |
+| Argument | Description                             |
+| -------- | --------------------------------------- |
+| `items`  | Names of items to add (space-separated) |
 
 **Options:**
 
-| Option | Description | Default |
-|--------|-------------|---------|
-| `--tool` | Add a tool instead of an agent | `false` |
-| `--prompt` | Add a prompt instead of an agent | `false` |
-| `-y, --yes` | Skip confirmation prompt | `false` |
-| `-o, --overwrite` | Overwrite existing files | `false` |
-| `-c, --cwd <path>` | Working directory | Current directory |
-| `-s, --silent` | Mute output | `false` |
+| Option             | Description                      | Default           |
+| ------------------ | -------------------------------- | ----------------- |
+| `--tool`           | Add a tool instead of an agent   | `false`           |
+| `--prompt`         | Add a prompt instead of an agent | `false`           |
+| `-y, --yes`        | Skip confirmation prompt         | `false`           |
+| `-o, --overwrite`  | Overwrite existing files         | `false`           |
+| `-c, --cwd <path>` | Working directory                | Current directory |
+| `-s, --silent`     | Mute output                      | `false`           |
 
 > **Note:** By default, items are added as agents. Use `--tool` or `--prompt` to add other types.
 
@@ -163,11 +163,11 @@ awesome-ai list [options]
 
 **Options:**
 
-| Option | Description | Default |
-|--------|-------------|---------|
-| `-t, --type <type>` | Type to list: `agents`, `tools`, or `prompts` | `agents` |
-| `-r, --registry <registry>` | Registry to list from | `@awesome-ai` |
-| `-c, --cwd <path>` | Working directory | Current directory |
+| Option                      | Description                                   | Default           |
+| --------------------------- | --------------------------------------------- | ----------------- |
+| `-t, --type <type>`         | Type to list: `agents`, `tools`, or `prompts` | `agents`          |
+| `-r, --registry <registry>` | Registry to list from                         | `@awesome-ai`     |
+| `-c, --cwd <path>`          | Working directory                             | Current directory |
 
 **Examples:**
 
@@ -197,12 +197,12 @@ awesome-ai search [options]
 
 **Options:**
 
-| Option | Description | Default |
-|--------|-------------|---------|
-| `-q, --query <query>` | Search query string | - |
-| `-t, --type <type>` | Type to search: `agents`, `tools`, or `prompts` | `agents` |
-| `-r, --registry <registry>` | Registry to search from | `@awesome-ai` |
-| `-c, --cwd <path>` | Working directory | Current directory |
+| Option                      | Description                                     | Default           |
+| --------------------------- | ----------------------------------------------- | ----------------- |
+| `-q, --query <query>`       | Search query string                             | -                 |
+| `-t, --type <type>`         | Type to search: `agents`, `tools`, or `prompts` | `agents`          |
+| `-r, --registry <registry>` | Registry to search from                         | `@awesome-ai`     |
+| `-c, --cwd <path>`          | Working directory                               | Current directory |
 
 **Examples:**
 
@@ -229,16 +229,16 @@ awesome-ai view <items...> [options]
 
 **Arguments:**
 
-| Argument | Description |
-|----------|-------------|
-| `items` | Names of items to view (space-separated) |
+| Argument | Description                              |
+| -------- | ---------------------------------------- |
+| `items`  | Names of items to view (space-separated) |
 
 **Options:**
 
-| Option | Description | Default |
-|--------|-------------|---------|
-| `-t, --type <type>` | Type of item: `agents`, `tools`, or `prompts` | Required |
-| `-c, --cwd <path>` | Working directory | Current directory |
+| Option              | Description                                   | Default           |
+| ------------------- | --------------------------------------------- | ----------------- |
+| `-t, --type <type>` | Type of item: `agents`, `tools`, or `prompts` | Required          |
+| `-c, --cwd <path>`  | Working directory                             | Current directory |
 
 **Examples:**
 
@@ -265,16 +265,16 @@ awesome-ai diff <item> [options]
 
 **Arguments:**
 
-| Argument | Description |
-|----------|-------------|
-| `item` | Name of the item to diff |
+| Argument | Description              |
+| -------- | ------------------------ |
+| `item`   | Name of the item to diff |
 
 **Options:**
 
-| Option | Description | Default |
-|--------|-------------|---------|
-| `-t, --type <type>` | Type of item: `agents`, `tools`, or `prompts` | Required |
-| `-c, --cwd <path>` | Working directory | Current directory |
+| Option              | Description                                   | Default           |
+| ------------------- | --------------------------------------------- | ----------------- |
+| `-t, --type <type>` | Type of item: `agents`, `tools`, or `prompts` | Required          |
+| `-c, --cwd <path>`  | Working directory                             | Current directory |
 
 **Examples:**
 
@@ -301,18 +301,18 @@ awesome-ai run [agent] [options]
 
 **Arguments:**
 
-| Argument | Description |
-|----------|-------------|
-| `agent` | Name of the agent to run (optional for local, required for remote) |
+| Argument | Description                                                        |
+| -------- | ------------------------------------------------------------------ |
+| `agent`  | Name of the agent to run (optional for local, required for remote) |
 
 **Options:**
 
-| Option | Description | Default |
-|--------|-------------|---------|
-| `-c, --cwd <path>` | Working directory | Current directory |
-| `-r, --remote` | Use agents from the remote registry (downloads if missing) | `false` |
-| `--remote-only` | Use only remote agents (ignore local `agents.json`) | `false` |
-| `-y, --yes` | Skip confirmation prompt for remote sync | `false` |
+| Option             | Description                                                | Default           |
+| ------------------ | ---------------------------------------------------------- | ----------------- |
+| `-c, --cwd <path>` | Working directory                                          | Current directory |
+| `-r, --remote`     | Use agents from the remote registry (downloads if missing) | `false`           |
+| `--remote-only`    | Use only remote agents (ignore local `agents.json`)        | `false`           |
+| `-y, --yes`        | Skip confirmation prompt for remote sync                   | `false`           |
 
 > **Note:** Without `--remote` or `--remote-only`, requires an initialized project with `agents.json` configuration.
 
@@ -350,19 +350,19 @@ awesome-ai exec <prompt> [agent] [options]
 
 **Arguments:**
 
-| Argument | Description |
-|----------|-------------|
-| `prompt` | Name of the prompt to execute (required) |
-| `agent` | Name of the agent to use (optional for local, required for remote) |
+| Argument | Description                                                        |
+| -------- | ------------------------------------------------------------------ |
+| `prompt` | Name of the prompt to execute (required)                           |
+| `agent`  | Name of the agent to use (optional for local, required for remote) |
 
 **Options:**
 
-| Option | Description | Default |
-|--------|-------------|---------|
-| `-c, --cwd <path>` | Working directory | Current directory |
-| `-r, --remote` | Use agents/prompts from the remote registry (downloads if missing) | `false` |
-| `--remote-only` | Use only remote agents/prompts (ignore local `agents.json`) | `false` |
-| `-y, --yes` | Skip confirmation prompt for remote sync | `false` |
+| Option             | Description                                                        | Default           |
+| ------------------ | ------------------------------------------------------------------ | ----------------- |
+| `-c, --cwd <path>` | Working directory                                                  | Current directory |
+| `-r, --remote`     | Use agents/prompts from the remote registry (downloads if missing) | `false`           |
+| `--remote-only`    | Use only remote agents/prompts (ignore local `agents.json`)        | `false`           |
+| `-y, --yes`        | Skip confirmation prompt for remote sync                           | `false`           |
 
 > **Note:** Without `--remote` or `--remote-only`, requires an initialized project with `agents.json` configuration and the prompt file in your prompts directory.
 
@@ -407,22 +407,23 @@ awesome-ai migrate <prompt> [options]
 
 **Arguments:**
 
-| Argument | Description |
-|----------|-------------|
+| Argument | Description                                        |
+| -------- | -------------------------------------------------- |
 | `prompt` | Name of the migration prompt to execute (required) |
 
 **Options:**
 
-| Option | Description | Default |
-|--------|-------------|---------|
-| `-c, --cwd <path>` | Working directory | Current directory |
-| `-r, --remote` | Use agents/prompts from the remote registry (downloads if missing) | `false` |
-| `--remote-only` | Use only remote agents/prompts (ignore local `agents.json`) | `false` |
-| `-y, --yes` | Skip confirmation prompt for remote sync | `false` |
+| Option             | Description                                                        | Default           |
+| ------------------ | ------------------------------------------------------------------ | ----------------- |
+| `-c, --cwd <path>` | Working directory                                                  | Current directory |
+| `-r, --remote`     | Use agents/prompts from the remote registry (downloads if missing) | `false`           |
+| `--remote-only`    | Use only remote agents/prompts (ignore local `agents.json`)        | `false`           |
+| `-y, --yes`        | Skip confirmation prompt for remote sync                           | `false`           |
 
 **Required Agents:**
 
 This command requires both migration agents to be available:
+
 - `migration-planning-agent` - Creates the migration plan (read-only analysis)
 - `migration-agent` - Executes the migration plan (makes changes)
 
@@ -476,6 +477,7 @@ awesome-ai migrate pages-to-app-router --remote-only --cwd ./my-nextjs-app
 ```
 
 The `pages-to-app-router` prompt guides the agents through:
+
 - Analyzing your pages/ directory structure
 - Creating a phased migration plan with Server/Client component boundaries
 - Migrating data fetching patterns (getStaticProps → Server Components)
@@ -504,14 +506,14 @@ The CLI uses an `agents.json` file for configuration. This file is created when 
 
 ### Configuration Options
 
-| Option | Type | Description |
-|--------|------|-------------|
-| `$schema` | `string` | JSON schema URL for validation |
-| `tsx` | `boolean` | Whether the project uses TypeScript |
-| `aliases.agents` | `string` | Import alias for agents directory |
-| `aliases.tools` | `string` | Import alias for tools directory |
-| `aliases.prompts` | `string` | Import alias for prompts directory |
-| `registries` | `object` | Custom registry configurations |
+| Option            | Type      | Description                         |
+| ----------------- | --------- | ----------------------------------- |
+| `$schema`         | `string`  | JSON schema URL for validation      |
+| `tsx`             | `boolean` | Whether the project uses TypeScript |
+| `aliases.agents`  | `string`  | Import alias for agents directory   |
+| `aliases.tools`   | `string`  | Import alias for tools directory    |
+| `aliases.prompts` | `string`  | Import alias for prompts directory  |
+| `registries`      | `object`  | Custom registry configurations      |
 
 ### Custom Registries
 
@@ -541,6 +543,7 @@ You can add custom registries to your `agents.json`:
 ```
 
 **Registry URL Requirements:**
+
 - Registry names must start with `@` (e.g., `@my-registry`)
 - URLs must include `{type}` and `{name}` placeholders
 - Headers can reference environment variables using `${VAR_NAME}` syntax
@@ -582,37 +585,37 @@ For private registries, use environment variables in headers:
 
 ### Agents
 
-| Agent | Description |
-|-------|-------------|
-| `coding-agent` | Full-featured coding assistant with read, write, edit, bash, and search tools |
-| `research-agent` | Read-only agent for exploring and understanding codebases |
-| `planning-agent` | Agent for planning tasks with read-only bash access |
-| `migration-planning-agent` | Specialized agent for planning code migrations (read-only) |
-| `migration-agent` | Specialized agent for executing code migrations |
+| Agent                      | Description                                                                   |
+| -------------------------- | ----------------------------------------------------------------------------- |
+| `coding-agent`             | Full-featured coding assistant with read, write, edit, bash, and search tools |
+| `research-agent`           | Read-only agent for exploring and understanding codebases                     |
+| `planning-agent`           | Agent for planning tasks with read-only bash access                           |
+| `migration-planning-agent` | Specialized agent for planning code migrations (read-only)                    |
+| `migration-agent`          | Specialized agent for executing code migrations                               |
 
 ### Tools
 
-| Tool | Description |
-|------|-------------|
-| `read` | Read files with line numbers, binary detection, and partial reads |
-| `write` | Create or overwrite files with diff output |
-| `edit` | Search and replace with fuzzy matching and multiple strategies |
-| `bash` | Execute shell commands with streaming output and timeout |
-| `list` | List directory contents using ripgrep |
-| `grep` | Search file contents with regex patterns |
-| `glob` | Find files matching glob patterns |
-| `todo` | Task management for tracking work items |
+| Tool    | Description                                                       |
+| ------- | ----------------------------------------------------------------- |
+| `read`  | Read files with line numbers, binary detection, and partial reads |
+| `write` | Create or overwrite files with diff output                        |
+| `edit`  | Search and replace with fuzzy matching and multiple strategies    |
+| `bash`  | Execute shell commands with streaming output and timeout          |
+| `list`  | List directory contents using ripgrep                             |
+| `grep`  | Search file contents with regex patterns                          |
+| `glob`  | Find files matching glob patterns                                 |
+| `todo`  | Task management for tracking work items                           |
 
 ### Prompts
 
-| Prompt | Description |
-|--------|-------------|
-| `coding-agent` | System prompt for the coding agent |
-| `research-agent` | System prompt for the research agent |
-| `planning-agent` | System prompt for the planning agent |
-| `migration-planning-agent` | System prompt for the migration planning agent |
-| `migration-agent` | System prompt for the migration execution agent |
-| `pages-to-app-router` | Migration prompt for Next.js Pages Router to App Router migrations |
+| Prompt                     | Description                                                        |
+| -------------------------- | ------------------------------------------------------------------ |
+| `coding-agent`             | System prompt for the coding agent                                 |
+| `research-agent`           | System prompt for the research agent                               |
+| `planning-agent`           | System prompt for the planning agent                               |
+| `migration-planning-agent` | System prompt for the migration planning agent                     |
+| `migration-agent`          | System prompt for the migration execution agent                    |
+| `pages-to-app-router`      | Migration prompt for Next.js Pages Router to App Router migrations |
 
 ---
 

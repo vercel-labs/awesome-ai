@@ -1,8 +1,8 @@
 import { createHash } from "crypto"
-import { execa } from "execa"
 import { promises as fs } from "fs"
 import { homedir } from "os"
 import path from "path"
+import { execa } from "execa"
 import { configWithDefaults } from "../registry/config"
 import { resolveRegistryTree } from "../registry/resolver"
 import type { RegistryItemCategory } from "../registry/schema"
@@ -100,18 +100,13 @@ export async function prepareSync(
 			// Check if cached version exists and matches
 			const mainFile = tree.files.find(
 				(f) =>
-					f.path === `${item.type}/${item.name}.ts` ||
-					f.path === `${item.type}/${item.name}.tsx`,
+					f.path === `${item.type}/${item.name}.ts` || f.path === `${item.type}/${item.name}.tsx`,
 			)
 
 			if (!mainFile) return null
 
 			const ext = mainFile.path.endsWith(".tsx") ? ".tsx" : ".ts"
-			const cachedItemPath = path.join(
-				cachePath,
-				item.type,
-				`${item.name}${ext}`,
-			)
+			const cachedItemPath = path.join(cachePath, item.type, `${item.name}${ext}`)
 
 			const mainContent = await readFile(cachedItemPath)
 			if (mainContent === null) {
@@ -160,9 +155,7 @@ export async function prepareSync(
 
 		// Filter to only items that need syncing
 		const itemsToSyncSet = new Set(toSync.map((i) => `${i.type}:${i.name}`))
-		const toWrite = fetched.filter((f) =>
-			itemsToSyncSet.has(`${f.item.type}:${f.item.name}`),
-		)
+		const toWrite = fetched.filter((f) => itemsToSyncSet.has(`${f.item.type}:${f.item.name}`))
 
 		// Collect all file writes
 		const fileWrites: Array<{ filePath: string; content: string }> = []
@@ -214,14 +207,8 @@ async function updateCachePackageJson(deps: string[], devDeps: string[]) {
 		}
 	}
 
-	const existingDeps = (packageJson.dependencies || {}) as Record<
-		string,
-		string
-	>
-	const existingDevDeps = (packageJson.devDependencies || {}) as Record<
-		string,
-		string
-	>
+	const existingDeps = (packageJson.dependencies || {}) as Record<string, string>
+	const existingDevDeps = (packageJson.devDependencies || {}) as Record<string, string>
 
 	for (const dep of deps) {
 		const [name, version] = parseDependency(dep)
@@ -254,9 +241,7 @@ function parseDependency(dep: string): [string, string] {
 	return [dep, "latest"]
 }
 
-export async function installCacheDependencies(
-	options: { silent?: boolean } = {},
-) {
+export async function installCacheDependencies(options: { silent?: boolean } = {}) {
 	const cachePath = getLocalCachePath()
 	const packageJsonPath = path.join(cachePath, "package.json")
 

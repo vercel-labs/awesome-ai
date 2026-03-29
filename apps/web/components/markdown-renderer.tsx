@@ -22,18 +22,12 @@ export function MarkdownRenderer({ content }: MarkdownRendererProps) {
 						</h2>
 					),
 					h3: ({ children }) => (
-						<h3 className="text-base font-medium text-foreground mt-4 mb-2">
-							{children}
-						</h3>
+						<h3 className="text-base font-medium text-foreground mt-4 mb-2">{children}</h3>
 					),
 					p: ({ children }) => (
-						<p className="text-muted-foreground mb-3 leading-relaxed">
-							{children}
-						</p>
+						<p className="text-muted-foreground mb-3 leading-relaxed">{children}</p>
 					),
-					ul: ({ children }) => (
-						<ul className="list-none space-y-1 mb-4">{children}</ul>
-					),
+					ul: ({ children }) => <ul className="list-none space-y-1 mb-4">{children}</ul>,
 					ol: ({ children }) => (
 						<ol className="list-decimal list-inside space-y-1 mb-4 text-muted-foreground">
 							{children}
@@ -46,9 +40,7 @@ export function MarkdownRenderer({ content }: MarkdownRendererProps) {
 						</li>
 					),
 					strong: ({ children }) => (
-						<strong className="font-semibold text-foreground">
-							{children}
-						</strong>
+						<strong className="font-semibold text-foreground">{children}</strong>
 					),
 					code: ({ className, children }) => {
 						const isInline = !className
@@ -71,17 +63,11 @@ export function MarkdownRenderer({ content }: MarkdownRendererProps) {
 						</pre>
 					),
 					table: ({ children }) => (
-						<table className="w-full border-collapse mb-4 text-sm">
-							{children}
-						</table>
+						<table className="w-full border-collapse mb-4 text-sm">{children}</table>
 					),
-					thead: ({ children }) => (
-						<thead className="border-b border-border">{children}</thead>
-					),
+					thead: ({ children }) => <thead className="border-b border-border">{children}</thead>,
 					th: ({ children }) => (
-						<th className="text-left py-2 px-3 text-foreground font-medium">
-							{children}
-						</th>
+						<th className="text-left py-2 px-3 text-foreground font-medium">{children}</th>
 					),
 					td: ({ children }) => (
 						<td className="py-2 px-3 text-muted-foreground border-b border-border/50">

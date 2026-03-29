@@ -54,11 +54,7 @@ async function findGitDir(start: string): Promise<string | null> {
  */
 async function getGitRootCommit(cwd: string) {
 	try {
-		const result = await $`git rev-list --max-parents=0 HEAD`
-			.quiet()
-			.nothrow()
-			.cwd(cwd)
-			.text()
+		const result = await $`git rev-list --max-parents=0 HEAD`.quiet().nothrow().cwd(cwd).text()
 		return result.trim().split("\n")[0]
 	} catch {}
 }

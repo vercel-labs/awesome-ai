@@ -1,24 +1,23 @@
 {
-	"name": "agent-cli",
-	"private": true,
-	"scripts": {
-		"build": "turbo run build --filter=!ui",
-		"dev": "turbo run dev",
-		"lint": "oxlint",
-		"format": "oxfmt",
-		"test": "turbo run test",
-		"build:registry": "pnpm --filter=awesome-ai-registry build:registry",
-		"dev:tui": "pnpm --filter=awesome-ai-tui dev:tui",
-		"changeset": "changeset",
-		"version": "changeset version",
-		"release": "turbo run build && changeset publish"
-	},
-	"devDependencies": {
-		"@biomejs/biome": "latest",
-		"@changesets/cli": "^2.29.8",
-		"oxfmt": "^0.42.0",
-		"oxlint": "^1.57.0",
-		"turbo": "latest"
-	},
-	"packageManager": "pnpm@10.6.5"
+  "name": "agent-cli",
+  "private": true,
+  "scripts": {
+    "build": "turbo run build --filter=!ui",
+    "dev": "turbo run dev",
+    "lint": "oxlint",
+    "format": "oxfmt",
+    "test": "turbo run test",
+    "build:registry": "pnpm --filter=awesome-ai-registry build:registry",
+    "dev:tui": "pnpm --filter=awesome-ai-tui dev:tui",
+    "changeset": "changeset",
+    "version": "changeset version",
+    "release": "turbo run build && changeset publish"
+  },
+  "devDependencies": {
+    "@changesets/cli": "^2.29.8",
+    "oxfmt": "^0.42.0",
+    "oxlint": "^1.57.0",
+    "turbo": "latest"
+  },
+  "packageManager": "pnpm@10.6.5"
 }

@@ -22,10 +22,7 @@ describe("ToolPart", () => {
 			approval: { id: "approval-1" },
 		}
 
-		const result = await renderTui(
-			<ToolPart data={data} messageAtom={messageAtom} />,
-			{ store },
-		)
+		const result = await renderTui(<ToolPart data={data} messageAtom={messageAtom} />, { store })
 
 		const output = getBufferText(result)
 		expect(output).toContain("Waiting for approval")

@@ -40,11 +40,7 @@ export async function addItems(
 		silent: options.silent,
 	})?.start()
 
-	const tree = await resolveRegistryTree(
-		items,
-		type,
-		configWithDefaults(config),
-	)
+	const tree = await resolveRegistryTree(items, type, configWithDefaults(config))
 
 	if (!tree) {
 		registrySpinner?.fail()
@@ -53,17 +49,12 @@ export async function addItems(
 
 	registrySpinner?.succeed()
 
-	const { filesCreated, filesUpdated } = await updateFiles(
-		tree.files,
-		type,
-		config,
-		{
-			overwrite: options.overwrite,
-			silent: options.silent,
-			path: options.path,
-			yes: options.yes,
-		},
-	)
+	const { filesCreated, filesUpdated } = await updateFiles(tree.files, type, config, {
+		overwrite: options.overwrite,
+		silent: options.silent,
+		path: options.path,
+		yes: options.yes,
+	})
 
 	// Only install dependencies if files were actually created or updated
 	if (filesCreated.length || filesUpdated.length) {

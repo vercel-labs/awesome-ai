@@ -2,11 +2,7 @@ import type { Config } from "../schema"
 import { buildUrlAndHeadersForRegistryItem } from "./builder"
 import { configWithDefaults } from "./config"
 import { clearRegistryContext } from "./context"
-import {
-	RegistryInvalidNamespaceError,
-	RegistryNotFoundError,
-	RegistryParseError,
-} from "./errors"
+import { RegistryInvalidNamespaceError, RegistryNotFoundError, RegistryParseError } from "./errors"
 import { fetchRegistry } from "./fetcher"
 import { fetchRegistryItems, resolveRegistryTree } from "./resolver"
 import { type RegistryItemCategory, registrySchema } from "./schema"

@@ -54,9 +54,7 @@ describe("replace", () => {
 
 	it("throws when multiple matches found without replaceAll", () => {
 		const content = "foo bar foo"
-		expect(() => replace(content, "foo", "baz")).toThrow(
-			"Found multiple matches for oldString",
-		)
+		expect(() => replace(content, "foo", "baz")).toThrow("Found multiple matches for oldString")
 	})
 
 	it("replaces all occurrences with replaceAll=true", () => {
@@ -119,9 +117,7 @@ describe("BlockAnchorReplacer", () => {
 
 	it("matches block by first and last line anchors", () => {
 		const content = "start\nmiddle content\nend"
-		const results = collect(
-			BlockAnchorReplacer(content, "start\ndifferent middle\nend"),
-		)
+		const results = collect(BlockAnchorReplacer(content, "start\ndifferent middle\nend"))
 		expect(results.length).toBe(1)
 		expect(results[0]).toBe("start\nmiddle content\nend")
 	})
@@ -137,25 +133,19 @@ describe("BlockAnchorReplacer", () => {
 describe("WhitespaceNormalizedReplacer", () => {
 	it("matches with collapsed whitespace", () => {
 		const content = "hello    world"
-		const results = collect(
-			WhitespaceNormalizedReplacer(content, "hello world"),
-		)
+		const results = collect(WhitespaceNormalizedReplacer(content, "hello world"))
 		expect(results.length).toBeGreaterThan(0)
 	})
 
 	it("matches with tabs normalized to spaces", () => {
 		const content = "hello\t\tworld"
-		const results = collect(
-			WhitespaceNormalizedReplacer(content, "hello world"),
-		)
+		const results = collect(WhitespaceNormalizedReplacer(content, "hello world"))
 		expect(results.length).toBeGreaterThan(0)
 	})
 
 	it("handles multi-line whitespace normalization", () => {
 		const content = "line1   \n   line2"
-		const results = collect(
-			WhitespaceNormalizedReplacer(content, "line1\nline2"),
-		)
+		const results = collect(WhitespaceNormalizedReplacer(content, "line1\nline2"))
 		// Should find the normalized match
 		expect(results.length).toBeGreaterThanOrEqual(0) // May or may not match depending on implementation
 	})
@@ -164,26 +154,20 @@ describe("WhitespaceNormalizedReplacer", () => {
 describe("IndentationFlexibleReplacer", () => {
 	it("matches content with different indentation levels", () => {
 		const content = "    indented line"
-		const results = collect(
-			IndentationFlexibleReplacer(content, "indented line"),
-		)
+		const results = collect(IndentationFlexibleReplacer(content, "indented line"))
 		expect(results.length).toBe(1)
 		expect(results[0]).toBe("    indented line")
 	})
 
 	it("matches multi-line blocks with consistent different indentation", () => {
 		const content = "    line1\n    line2"
-		const results = collect(
-			IndentationFlexibleReplacer(content, "line1\nline2"),
-		)
+		const results = collect(IndentationFlexibleReplacer(content, "line1\nline2"))
 		expect(results.length).toBe(1)
 	})
 
 	it("handles mixed indentation in content", () => {
 		const content = "  line1\n    line2\n  line3"
-		const results = collect(
-			IndentationFlexibleReplacer(content, "line1\n  line2\nline3"),
-		)
+		const results = collect(IndentationFlexibleReplacer(content, "line1\n  line2\nline3"))
 		expect(results.length).toBe(1)
 	})
 })
@@ -203,9 +187,7 @@ describe("EscapeNormalizedReplacer", () => {
 
 	it("handles escaped quotes", () => {
 		const content = 'say "hello"'
-		const results = collect(
-			EscapeNormalizedReplacer(content, 'say \\"hello\\"'),
-		)
+		const results = collect(EscapeNormalizedReplacer(content, 'say \\"hello\\"'))
 		expect(results.length).toBeGreaterThan(0)
 	})
 })
@@ -226,9 +208,7 @@ describe("TrimmedBoundaryReplacer", () => {
 
 	it("matches block with trimmed boundaries", () => {
 		const content = "  line1  \n  line2  "
-		const results = collect(
-			TrimmedBoundaryReplacer(content, "\n  line1  \n  line2  \n"),
-		)
+		const results = collect(TrimmedBoundaryReplacer(content, "\n  line1  \n  line2  \n"))
 		expect(results.length).toBeGreaterThanOrEqual(0)
 	})
 })
@@ -242,17 +222,13 @@ describe("ContextAwareReplacer", () => {
 
 	it("matches by first and last line with similar middle", () => {
 		const content = "function foo() {\n  const x = 1;\n}"
-		const results = collect(
-			ContextAwareReplacer(content, "function foo() {\n  const x = 1;\n}"),
-		)
+		const results = collect(ContextAwareReplacer(content, "function foo() {\n  const x = 1;\n}"))
 		expect(results.length).toBe(1)
 	})
 
 	it("requires 50% similarity in middle lines", () => {
 		const content = "start\nAAAA\nBBBB\nend"
-		const results = collect(
-			ContextAwareReplacer(content, "start\nXXXX\nYYYY\nend"),
-		)
+		const results = collect(ContextAwareReplacer(content, "start\nXXXX\nYYYY\nend"))
 		// Should not match since middle lines are completely different
 		expect(results.length).toBe(0)
 	})
@@ -523,12 +499,9 @@ describe("editTool", () => {
 		assert(typeof needsApproval === "function")
 
 		const opts = { toolCallId: "test", messages: [] }
-		expect(
-			needsApproval(
-				{ filePath: "/any/file.ts", oldString: "a", newString: "b" },
-				opts,
-			),
-		).toBe(true)
+		expect(needsApproval({ filePath: "/any/file.ts", oldString: "a", newString: "b" }, opts)).toBe(
+			true,
+		)
 	})
 
 	it("respects custom permissions", () => {
@@ -544,20 +517,14 @@ describe("editTool", () => {
 		const opts = { toolCallId: "test", messages: [] }
 
 		// Allowed file
-		expect(
-			needsApproval(
-				{ filePath: "/src/file.ts", oldString: "a", newString: "b" },
-				opts,
-			),
-		).toBe(false)
+		expect(needsApproval({ filePath: "/src/file.ts", oldString: "a", newString: "b" }, opts)).toBe(
+			false,
+		)
 
 		// Ask file
-		expect(
-			needsApproval(
-				{ filePath: "/src/file.js", oldString: "a", newString: "b" },
-				opts,
-			),
-		).toBe(true)
+		expect(needsApproval({ filePath: "/src/file.js", oldString: "a", newString: "b" }, opts)).toBe(
+			true,
+		)
 
 		// Denied file
 		expect(() =>

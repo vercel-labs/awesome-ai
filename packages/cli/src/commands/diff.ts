@@ -1,7 +1,7 @@
-import { Command } from "commander"
-import { type Change, diffLines } from "diff"
 import { existsSync, promises as fs } from "fs"
 import path from "path"
+import { Command } from "commander"
+import { type Change, diffLines } from "diff"
 import { z } from "zod"
 import { getRegistryItems } from "../registry/api"
 import { clearRegistryContext } from "../registry/context"
@@ -52,11 +52,7 @@ export const diff = new Command()
 				process.exit(1)
 			}
 
-			const [registryItem] = await getRegistryItems(
-				[options.item],
-				options.type,
-				{ config },
-			)
+			const [registryItem] = await getRegistryItems([options.item], options.type, { config })
 
 			if (!registryItem) {
 				logger.error(`Item ${options.item} not found in registry.`)

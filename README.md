@@ -4,9 +4,9 @@ A CLI and terminal UI for adding AI agents, tools, and prompts to your projects 
 
 ## Packages
 
-| Package | Description |
-|---------|-------------|
-| [awesome-ai](./packages/cli) | CLI for managing agents, tools, and prompts |
+| Package                      | Description                                      |
+| ---------------------------- | ------------------------------------------------ |
+| [awesome-ai](./packages/cli) | CLI for managing agents, tools, and prompts      |
 | [awesome-ai-tui](./apps/tui) | Interactive terminal UI for chatting with agents |
 
 ## Prerequisites

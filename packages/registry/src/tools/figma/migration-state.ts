@@ -13,9 +13,7 @@ import type {
 
 const MIGRATION_FILE = ".figma-migration.json"
 
-async function readMigrationState(
-	projectDir?: string,
-): Promise<MigrationState | null> {
+async function readMigrationState(projectDir?: string): Promise<MigrationState | null> {
 	const cwd = projectDir || getProjectDir()
 	try {
 		const filepath = path.join(cwd, MIGRATION_FILE)
@@ -26,10 +24,7 @@ async function readMigrationState(
 	}
 }
 
-async function writeMigrationState(
-	state: MigrationState,
-	projectDir?: string,
-): Promise<void> {
+async function writeMigrationState(state: MigrationState, projectDir?: string): Promise<void> {
 	const cwd = projectDir || getProjectDir()
 	const filepath = path.join(cwd, MIGRATION_FILE)
 	state.updatedAt = new Date().toISOString()
@@ -40,16 +35,11 @@ function computeStats(state: MigrationState): MigrationStats {
 	const components = Object.values(state.components)
 	const pages = Object.values(state.pages)
 
-	const completedComponents = components.filter(
-		(c) => c.status === "done",
-	).length
-	const skippedComponents = components.filter(
-		(c) => c.status === "skipped",
-	).length
+	const completedComponents = components.filter((c) => c.status === "done").length
+	const skippedComponents = components.filter((c) => c.status === "skipped").length
 	const completedPages = pages.filter((p) => p.status === "done").length
 
-	const allComponentsDone =
-		completedComponents + skippedComponents === components.length
+	const allComponentsDone = completedComponents + skippedComponents === components.length
 	const allPagesDone = completedPages === pages.length
 
 	let phase: MigrationPhase = "components"
@@ -78,14 +68,11 @@ function updateDependencyReadiness(state: MigrationState): void {
 
 	for (const comp of Object.values(state.components)) {
 		comp.dependenciesReady =
-			comp.dependencies.length === 0 ||
-			comp.dependencies.every((dep) => doneOrSkipped.has(dep))
+			comp.dependencies.length === 0 || comp.dependencies.every((dep) => doneOrSkipped.has(dep))
 	}
 
 	for (const page of Object.values(state.pages)) {
-		page.componentsReady = page.componentsUsed.every((compId) =>
-			doneOrSkipped.has(compId),
-		)
+		page.componentsReady = page.componentsUsed.every((compId) => doneOrSkipped.has(compId))
 		if (page.status === "blocked" && page.componentsReady) {
 			page.status = "pending"
 		}
@@ -199,9 +186,7 @@ export const migrationProgress = tool({
 			.filter((c) => c.status === "pending" && c.dependenciesReady)
 			.sort((a, b) => b.instanceCount - a.instanceCount)
 
-		const readyPages = pages.filter(
-			(p) => p.status === "pending" && p.componentsReady,
-		)
+		const readyPages = pages.filter((p) => p.status === "pending" && p.componentsReady)
 
 		let nextUp: string[] = []
 		if (state.stats.phase === "components") {
@@ -253,10 +238,7 @@ export const migrationNext = tool({
 	description: nextDescription,
 	inputSchema: z.object({
 		limit: z.number().default(5).describe("Maximum number of items to return"),
-		type: z
-			.enum(["component", "page", "any"])
-			.default("any")
-			.describe("Filter by item type"),
+		type: z.enum(["component", "page", "any"]).default("any").describe("Filter by item type"),
 	}),
 	outputSchema: z.union([
 		z.object({
@@ -303,9 +285,7 @@ export const migrationNext = tool({
 		}
 		const lines = output.items.map((item) => {
 			if (item.type === "component") {
-				const deps = item.dependencies?.length
-					? ` (deps: ${item.dependencies.length})`
-					: ""
+				const deps = item.dependencies?.length ? ` (deps: ${item.dependencies.length})` : ""
 				return `- [component] ${item.name} (${item.instanceCount}x)${deps}`
 			}
 			return `- [page] ${item.name} (${item.componentsUsed?.length || 0} components)`
@@ -613,10 +593,7 @@ export const migrationComplete = tool({
 
 			const newlyReady = Object.values(state.components)
 				.filter(
-					(c) =>
-						c.status === "pending" &&
-						c.dependenciesReady &&
-						wasNotReady.includes(c.figmaId),
+					(c) => c.status === "pending" && c.dependenciesReady && wasNotReady.includes(c.figmaId),
 				)
 				.map((c) => c.name)
 
@@ -675,9 +652,7 @@ export const migrationSkip = tool({
 	description: skipDescription,
 	inputSchema: z.object({
 		id: z.string().describe("The component or page ID to skip"),
-		reason: z
-			.string()
-			.describe("Reason for skipping (e.g., 'external component')"),
+		reason: z.string().describe("Reason for skipping (e.g., 'external component')"),
 	}),
 	outputSchema: z.union([
 		z.object({
@@ -743,10 +718,7 @@ export const migrationSkip = tool({
 
 			const newlyReady = Object.values(state.components)
 				.filter(
-					(c) =>
-						c.status === "pending" &&
-						c.dependenciesReady &&
-						wasNotReady.includes(c.figmaId),
+					(c) => c.status === "pending" && c.dependenciesReady && wasNotReady.includes(c.figmaId),
 				)
 				.map((c) => c.name)
 

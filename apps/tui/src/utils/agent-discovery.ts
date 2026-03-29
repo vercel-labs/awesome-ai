@@ -6,9 +6,7 @@ export interface DiscoveredAgent {
 	path: string
 }
 
-async function discoverAgentsFromPath(
-	agentsPath: string,
-): Promise<DiscoveredAgent[]> {
+async function discoverAgentsFromPath(agentsPath: string): Promise<DiscoveredAgent[]> {
 	const agents: DiscoveredAgent[] = []
 
 	try {
@@ -48,9 +46,7 @@ async function discoverAgentsFromPath(
  * Discover agents from multiple paths. Earlier paths take precedence
  * over later paths when agents have the same name.
  */
-export async function discoverAgents(
-	agentPaths: string | string[],
-): Promise<DiscoveredAgent[]> {
+export async function discoverAgents(agentPaths: string | string[]): Promise<DiscoveredAgent[]> {
 	const paths = Array.isArray(agentPaths) ? agentPaths : [agentPaths]
 	const seenNames = new Set<string>()
 	const agents: DiscoveredAgent[] = []

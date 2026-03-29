@@ -6,15 +6,11 @@ const context: RegistryContext = {
 	headers: {},
 }
 
-export function setRegistryHeaders(
-	headers: Record<string, Record<string, string>>,
-) {
+export function setRegistryHeaders(headers: Record<string, Record<string, string>>) {
 	context.headers = { ...context.headers, ...headers }
 }
 
-export function getRegistryHeadersFromContext(
-	url: string,
-): Record<string, string> {
+export function getRegistryHeadersFromContext(url: string): Record<string, string> {
 	return context.headers[url] || {}
 }
 

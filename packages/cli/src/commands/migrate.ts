@@ -1,6 +1,6 @@
+import path from "path"
 import { discoverAgents, runTui } from "awesome-ai-tui"
 import { Command } from "commander"
-import path from "path"
 import { z } from "zod"
 import { getConfig } from "../utils/get-config"
 import { handleError } from "../utils/handle-error"
@@ -32,11 +32,7 @@ export const migrate = new Command()
 		"use agents/prompts from the remote registry (downloads if missing)",
 		false,
 	)
-	.option(
-		"--remote-only",
-		"use only remote agents/prompts (ignore local agents.json)",
-		false,
-	)
+	.option("--remote-only", "use only remote agents/prompts (ignore local agents.json)", false)
 	.option("-y, --yes", "skip confirmation prompt for remote sync", false)
 	.action(async (promptName: string, opts) => {
 		try {
@@ -101,28 +97,20 @@ export const migrate = new Command()
 				process.exit(1)
 			}
 
-			const agentPaths = options.remote
-				? [agentsPath, remotePaths.agents]
-				: [agentsPath]
-			const promptsPaths = options.remote
-				? [promptsPath, remotePaths.prompts]
-				: [promptsPath]
+			const agentPaths = options.remote ? [agentsPath, remotePaths.agents] : [agentsPath]
+			const promptsPaths = options.remote ? [promptsPath, remotePaths.prompts] : [promptsPath]
 
 			const agents = await discoverAgents(agentPaths)
 			const agentNames = agents.map((a) => a.name)
 
-			const missingAgents = REQUIRED_AGENTS.filter(
-				(agent) => !agentNames.includes(agent),
-			)
+			const missingAgents = REQUIRED_AGENTS.filter((agent) => !agentNames.includes(agent))
 
 			if (missingAgents.length > 0) {
 				const suggestion = options.remote
 					? `They may not be available in the remote registry.`
 					: `Add them with 'awesome-ai add ${missingAgents.join(" ")}' or use --remote to fetch from registry`
 
-				logger.error(
-					`Missing required agents: ${missingAgents.join(", ")}. ${suggestion}`,
-				)
+				logger.error(`Missing required agents: ${missingAgents.join(", ")}. ${suggestion}`)
 				process.exit(1)
 			}
 

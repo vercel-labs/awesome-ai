@@ -114,16 +114,13 @@ export function useFetchAvailableModels() {
 
 			try {
 				// Direct fetch to bypass SDK parsing issues
-				const response = await fetch(
-					"https://ai-gateway.vercel.sh/v1/ai/config",
-					{
-						headers: {
-							Authorization: `Bearer ${apiKey}`,
-							"Content-Type": "application/json",
-							"ai-gateway-protocol-version": "0.0.1",
-						},
+				const response = await fetch("https://ai-gateway.vercel.sh/v1/ai/config", {
+					headers: {
+						Authorization: `Bearer ${apiKey}`,
+						"Content-Type": "application/json",
+						"ai-gateway-protocol-version": "0.0.1",
 					},
-				)
+				})
 
 				if (!response.ok) {
 					const errorText = await response.text()
@@ -146,8 +143,7 @@ export function useFetchAvailableModels() {
 									input: m.pricing.input,
 									output: m.pricing.output,
 									cachedInputTokens: m.pricing.input_cache_read ?? undefined,
-									cacheCreationInputTokens:
-										m.pricing.input_cache_write ?? undefined,
+									cacheCreationInputTokens: m.pricing.input_cache_write ?? undefined,
 								}
 							: null,
 					}))
@@ -165,10 +161,7 @@ export function useFetchAvailableModels() {
 				// Log detailed error for debugging
 				debugLog("Failed to fetch models from gateway:")
 				debugLog("  Error type:", error?.constructor?.name)
-				debugLog(
-					"  Message:",
-					error instanceof Error ? error.message : String(error),
-				)
+				debugLog("  Message:", error instanceof Error ? error.message : String(error))
 
 				// Return fallback models
 				cachedModels = FALLBACK_MODELS

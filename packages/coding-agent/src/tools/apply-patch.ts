@@ -1,3 +1,5 @@
+import { promises as fs } from "fs"
+import * as path from "path"
 import {
 	checkPermission,
 	type Permission,
@@ -7,8 +9,6 @@ import {
 } from "@awesome-ai/core"
 import { tool } from "ai"
 import { createTwoFilesPatch, diffLines } from "diff"
-import { promises as fs } from "fs"
-import * as path from "path"
 import { z } from "zod"
 import { deriveNewContentsFromChunks, parsePatch } from "./lib/patch"
 
@@ -41,11 +41,8 @@ const outputSchema = toolOutput({
 	},
 })
 
-export function createApplyPatchTool(
-	permissions: Permission | Record<string, Permission> = "ask",
-) {
-	const patterns =
-		typeof permissions === "string" ? { "*": permissions } : permissions
+export function createApplyPatchTool(permissions: Permission | Record<string, Permission> = "ask") {
+	const patterns = typeof permissions === "string" ? { "*": permissions } : permissions
 
 	return tool({
 		description,
@@ -111,9 +108,7 @@ export function createApplyPatchTool(
 					if (hunk.type === "add") {
 						const filepath = path.resolve(process.cwd(), hunk.path)
 						await fs.mkdir(path.dirname(filepath), { recursive: true })
-						const next = hunk.contents.endsWith("\n")
-							? hunk.contents
-							: `${hunk.contents}\n`
+						const next = hunk.contents.endsWith("\n") ? hunk.contents : `${hunk.contents}\n`
 						await fs.writeFile(filepath, next, "utf-8")
 						diff += `${trimDiff(createTwoFilesPatch(filepath, filepath, "", next))}\n`
 						files.push(filepath)
@@ -138,9 +133,7 @@ export function createApplyPatchTool(
 						const msg = error instanceof Error ? error.message : String(error)
 						throw new Error(`apply_patch verification failed: ${msg}`)
 					}
-					const target = hunk.movePath
-						? path.resolve(process.cwd(), hunk.movePath)
-						: filepath
+					const target = hunk.movePath ? path.resolve(process.cwd(), hunk.movePath) : filepath
 					await fs.mkdir(path.dirname(target), { recursive: true })
 					await fs.writeFile(target, next, "utf-8")
 					if (target !== filepath) {

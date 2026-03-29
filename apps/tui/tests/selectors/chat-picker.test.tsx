@@ -1,14 +1,10 @@
 import { describe, expect, mock, test } from "bun:test"
 import { createAppStore } from "../../src/components/atoms"
-import {
-	ChatPicker,
-	useChatPickerKeyHandler,
-} from "../../src/components/chat-picker"
+import { ChatPicker, useChatPickerKeyHandler } from "../../src/components/chat-picker"
 import { makeKeyEvent } from "../helpers/keys"
 import { getBufferText, renderTui } from "../helpers/render"
 
-let listChatsResult: Array<{ id: string; title: string; updatedAt: number }> =
-	[]
+let listChatsResult: Array<{ id: string; title: string; updatedAt: number }> = []
 
 mock.module("../../src/utils/storage", () => ({
 	listChats: () => Promise.resolve(listChatsResult),

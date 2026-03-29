@@ -23,20 +23,13 @@ async function which(bin: string): Promise<string | undefined> {
 	const pathValue = process.env.PATH ?? ""
 	const exts =
 		process.platform === "win32"
-			? (process.env.PATHEXT?.split(";").filter(Boolean) ?? [
-					".EXE",
-					".CMD",
-					".BAT",
-				])
+			? (process.env.PATHEXT?.split(";").filter(Boolean) ?? [".EXE", ".CMD", ".BAT"])
 			: [""]
 
 	for (const dir of pathValue.split(path.delimiter)) {
 		if (!dir) continue
 		for (const ext of exts) {
-			const full = path.join(
-				dir,
-				process.platform === "win32" ? `${bin}${ext}` : bin,
-			)
+			const full = path.join(dir, process.platform === "win32" ? `${bin}${ext}` : bin)
 			try {
 				await fs.access(full, fs.constants.X_OK)
 				return full
@@ -65,10 +58,7 @@ export async function getRipgrepPath(): Promise<string> {
 
 	// 2. Check if already downloaded
 	const binDir = getBinDir()
-	const rgPath = path.join(
-		binDir,
-		process.platform === "win32" ? "rg.exe" : "rg",
-	)
+	const rgPath = path.join(binDir, process.platform === "win32" ? "rg.exe" : "rg")
 
 	try {
 		await fs.access(rgPath, fs.constants.X_OK)
@@ -97,8 +87,7 @@ async function downloadRipgrep(binDir: string, rgPath: string): Promise<void> {
 
 	// Download
 	const response = await fetch(url)
-	if (!response.ok)
-		throw new Error(`Failed to download ripgrep: ${response.status}`)
+	if (!response.ok) throw new Error(`Failed to download ripgrep: ${response.status}`)
 	await fs.writeFile(archivePath, Buffer.from(await response.arrayBuffer()))
 
 	// Extract
@@ -157,9 +146,7 @@ async function extractZip(archivePath: string, rgPath: string): Promise<void> {
 	const unzipper = (await import("unzipper")) as typeof import("unzipper")
 
 	const directory = await unzipper.Open.file(archivePath)
-	const rgEntry = directory.files.find((f: { path: string }) =>
-		f.path.endsWith("rg.exe"),
-	)
+	const rgEntry = directory.files.find((f: { path: string }) => f.path.endsWith("rg.exe"))
 
 	if (!rgEntry) {
 		throw new Error("rg.exe not found in zip archive")
@@ -229,9 +216,7 @@ export interface SearchMatch {
  * @param opts.maxCount - Maximum matches per file
  * @yields Search matches with file path, line number, and text
  */
-export async function* search(
-	opts: SearchOptions,
-): AsyncGenerator<SearchMatch> {
+export async function* search(opts: SearchOptions): AsyncGenerator<SearchMatch> {
 	const rgPath = await getRipgrepPath()
 
 	const args = [

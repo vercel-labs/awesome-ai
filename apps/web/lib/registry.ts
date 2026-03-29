@@ -7,10 +7,7 @@ import path from "path"
  */
 
 const REGISTRY_URL = process.env.REGISTRY_URL
-const LOCAL_REGISTRY_DIR = path.resolve(
-	process.cwd(),
-	"../../packages/registry/registry",
-)
+const LOCAL_REGISTRY_DIR = path.resolve(process.cwd(), "../../packages/registry/registry")
 
 const isLocal = !REGISTRY_URL
 

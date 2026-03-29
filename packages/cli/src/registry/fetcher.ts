@@ -37,8 +37,7 @@ async function fetchLocalJson(filePath: string) {
 	} catch (error) {
 		if (
 			error instanceof Error &&
-			(error.message.includes("ENOENT") ||
-				error.message.includes("no such file"))
+			(error.message.includes("ENOENT") || error.message.includes("no such file"))
 		) {
 			throw new RegistryLocalFileError(filePath, error)
 		}
@@ -74,9 +73,7 @@ export async function fetchRegistry(paths: string[]) {
 				if (!response.ok) {
 					let messageFromServer: string | undefined
 
-					if (
-						response.headers.get("content-type")?.includes("application/json")
-					) {
+					if (response.headers.get("content-type")?.includes("application/json")) {
 						const json = await response.json()
 						const parsed = z
 							.object({
@@ -141,8 +138,7 @@ export async function fetchRegistryLocal(filePath: string) {
 	} catch (error) {
 		if (
 			error instanceof Error &&
-			(error.message.includes("ENOENT") ||
-				error.message.includes("no such file"))
+			(error.message.includes("ENOENT") || error.message.includes("no such file"))
 		) {
 			throw new RegistryLocalFileError(filePath, error)
 		}

@@ -16,11 +16,7 @@ export async function generateStaticParams() {
 	}))
 }
 
-export async function generateMetadata({
-	params,
-}: {
-	params: Promise<{ slug: string[] }>
-}) {
+export async function generateMetadata({ params }: { params: Promise<{ slug: string[] }> }) {
 	const { slug } = await params
 	const toolSlug = slug.join("/")
 	const tool = await getToolBySlug(toolSlug)
@@ -31,11 +27,7 @@ export async function generateMetadata({
 	}
 }
 
-export default async function ToolPage({
-	params,
-}: {
-	params: Promise<{ slug: string[] }>
-}) {
+export default async function ToolPage({ params }: { params: Promise<{ slug: string[] }> }) {
 	const { slug } = await params
 	const toolSlug = slug.join("/")
 	const tool = await getToolBySlug(toolSlug)
@@ -64,9 +56,7 @@ export default async function ToolPage({
 				{/* Tool Header */}
 				<div className="mb-8">
 					<div className="flex items-center gap-3 mb-4">
-						<h1 className="text-2xl md:text-3xl font-bold text-foreground">
-							{tool.title}
-						</h1>
+						<h1 className="text-2xl md:text-3xl font-bold text-foreground">{tool.title}</h1>
 						<Badge variant="outline">tool</Badge>
 					</div>
 					<p className="text-muted-foreground text-lg max-w-2xl leading-relaxed">
@@ -128,9 +118,7 @@ export default async function ToolPage({
 										<span className="text-sm font-medium text-foreground group-hover:text-primary transition-colors">
 											{agent.title}
 										</span>
-										<p className="text-xs text-muted-foreground truncate">
-											{agent.description}
-										</p>
+										<p className="text-xs text-muted-foreground truncate">{agent.description}</p>
 									</div>
 								</Link>
 							))}
@@ -147,9 +135,7 @@ export default async function ToolPage({
 						</h2>
 						<Card className="overflow-x-auto">
 							<CardHeader className="pb-2">
-								<code className="text-xs text-muted-foreground">
-									{mainFile.path}
-								</code>
+								<code className="text-xs text-muted-foreground">{mainFile.path}</code>
 							</CardHeader>
 							<CardContent>
 								<pre className="text-sm leading-relaxed overflow-x-auto">

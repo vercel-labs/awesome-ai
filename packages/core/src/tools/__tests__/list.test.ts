@@ -74,10 +74,7 @@ describe("listTool", () => {
 		await fs.mkdir(path.join(tempDir, "node_modules", "pkg"), {
 			recursive: true,
 		})
-		await fs.writeFile(
-			path.join(tempDir, "node_modules", "pkg", "index.js"),
-			"module",
-		)
+		await fs.writeFile(path.join(tempDir, "node_modules", "pkg", "index.js"), "module")
 		await fs.writeFile(path.join(tempDir, "source.ts"), "source")
 
 		const results = await executeTool(listTool, { path: tempDir })
@@ -113,10 +110,7 @@ describe("listTool", () => {
 	it("accepts additional ignore patterns", async () => {
 		await fs.mkdir(path.join(tempDir, "ignored_dir"), { recursive: true })
 		await fs.writeFile(path.join(tempDir, "keep.ts"), "keep")
-		await fs.writeFile(
-			path.join(tempDir, "ignored_dir", "ignored.ts"),
-			"ignored",
-		)
+		await fs.writeFile(path.join(tempDir, "ignored_dir", "ignored.ts"), "ignored")
 		await fs.writeFile(path.join(tempDir, "debug.log"), "log file")
 
 		const results = await executeTool(listTool, {

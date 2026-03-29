@@ -139,10 +139,7 @@ interface RuntimeLogEntry {
 }
 
 export interface RuntimeAgent {
-	stream: (input: {
-		messages: ModelMessage[]
-		abortSignal?: AbortSignal
-	}) => Promise<{
+	stream: (input: { messages: ModelMessage[]; abortSignal?: AbortSignal }) => Promise<{
 		response: Promise<{ messages: ModelMessage[] }>
 	}>
 }
@@ -400,9 +397,7 @@ export class SubagentRuntime {
 		}
 
 		const id = await this.nextAgentId()
-		const seedMessages = input.forkContext
-			? cloneMessages(input.parentMessages)
-			: []
+		const seedMessages = input.forkContext ? cloneMessages(input.parentMessages) : []
 		const state: AgentState = {
 			id,
 			type: input.type,
@@ -446,9 +441,7 @@ export class SubagentRuntime {
 			return undefined
 		}
 		if (state.status === "shutdown") {
-			throw new Error(
-				`Subagent ${agentId} is shutdown. Resume it before sending input.`,
-			)
+			throw new Error(`Subagent ${agentId} is shutdown. Resume it before sending input.`)
 		}
 		state.queue.push(prompt)
 		state.updatedAt = now()
@@ -497,9 +490,7 @@ export class SubagentRuntime {
 		this.log("wait_timeout", undefined, {
 			timeoutMs,
 			waitedMs: now() - start,
-			timedOutAgents: timedOutAgents.filter(
-				(entry) => entry.waitStatus === "timeout",
-			).length,
+			timedOutAgents: timedOutAgents.filter((entry) => entry.waitStatus === "timeout").length,
 		})
 		return {
 			timeoutMs,
@@ -528,9 +519,7 @@ export class SubagentRuntime {
 			return undefined
 		}
 		if (state.status === "shutdown") {
-			throw new Error(
-				`Subagent ${agentId} is shutdown. Resume it before interrupting.`,
-			)
+			throw new Error(`Subagent ${agentId} is shutdown. Resume it before interrupting.`)
 		}
 		this.bump("interrupts")
 		this.log("interrupt", agentId, {
@@ -608,10 +597,7 @@ const SpawnInputSchema = z.object({
 		.boolean()
 		.default(false)
 		.describe("When true, fork the parent context into subagent history."),
-	parent_id: z
-		.string()
-		.optional()
-		.describe("Optional parent subagent id for nested delegation."),
+	parent_id: z.string().optional().describe("Optional parent subagent id for nested delegation."),
 })
 
 const SendInputSchema = z.object({
@@ -621,12 +607,7 @@ const SendInputSchema = z.object({
 
 const WaitSchema = z.object({
 	ids: z.array(z.string()).min(1).describe("Subagent ids to wait for."),
-	timeout_ms: z
-		.number()
-		.int()
-		.positive()
-		.default(30_000)
-		.describe("Wait timeout in milliseconds."),
+	timeout_ms: z.number().int().positive().default(30_000).describe("Wait timeout in milliseconds."),
 })
 
 const CloseSchema = z.object({
@@ -651,14 +632,10 @@ export function createSubagentLifecycleTools(input: {
 	const taskPermissions = input.taskPermissions ?? DEFAULT_TASK_PERMISSIONS
 	const allowedSubagentTypes = input.allowedSubagentTypes
 	const spawnAgent = tool({
-		description:
-			"Spawn a subagent with explicit lifecycle management and optional context fork.",
+		description: "Spawn a subagent with explicit lifecycle management and optional context fork.",
 		inputSchema: SpawnInputSchema,
 		needsApproval: ({ type }) => {
-			const permission = checkPermission(
-				type ?? "coding-agent",
-				taskPermissions,
-			)
+			const permission = checkPermission(type ?? "coding-agent", taskPermissions)
 			return permission === "ask"
 		},
 		async *execute(params) {
@@ -666,10 +643,7 @@ export function createSubagentLifecycleTools(input: {
 				status: "pending",
 				message: "Spawning subagent...",
 			}
-			if (
-				Array.isArray(allowedSubagentTypes) &&
-				!allowedSubagentTypes.includes(params.type)
-			) {
+			if (Array.isArray(allowedSubagentTypes) && !allowedSubagentTypes.includes(params.type)) {
 				yield {
 					status: "error",
 					message: `Subagent type "${params.type}" is blocked by tool scope policy.`,
@@ -694,9 +668,7 @@ export function createSubagentLifecycleTools(input: {
 					prompt: params.prompt,
 					parentId: params.parent_id ?? input.currentAgentId,
 					forkContext: params.fork_context,
-					parentMessages: params.fork_context
-						? (input.getParentMessages?.() ?? [])
-						: [],
+					parentMessages: params.fork_context ? (input.getParentMessages?.() ?? []) : [],
 				})
 				yield {
 					status: "success",
@@ -755,10 +727,7 @@ export function createSubagentLifecycleTools(input: {
 				message: "Waiting for subagents...",
 			}
 			try {
-				const waitResult = await input.runtime.wait(
-					params.ids,
-					params.timeout_ms,
-				)
+				const waitResult = await input.runtime.wait(params.ids, params.timeout_ms)
 				yield {
 					status: "success",
 					message: waitResult.timedOut

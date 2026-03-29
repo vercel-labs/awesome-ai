@@ -32,10 +32,11 @@ function detectGitRepo(cwd: string): boolean {
 
 async function generateFileTree(cwd: string, limit = 200): Promise<string> {
 	try {
-		const output = execSync(
-			"git ls-files --cached --others --exclude-standard",
-			{ cwd, encoding: "utf-8", stdio: ["pipe", "pipe", "pipe"] },
-		)
+		const output = execSync("git ls-files --cached --others --exclude-standard", {
+			cwd,
+			encoding: "utf-8",
+			stdio: ["pipe", "pipe", "pipe"],
+		})
 		return output.trim().split("\n").filter(Boolean).slice(0, limit).join("\n")
 	} catch {
 		const files = await walkDirectory(cwd, limit)
@@ -55,16 +56,10 @@ const IGNORE_DIRS = new Set([
 	"coverage",
 ])
 
-async function walkDirectory(
-	dir: string,
-	limit: number,
-	prefix = "",
-): Promise<string[]> {
+async function walkDirectory(dir: string, limit: number, prefix = ""): Promise<string[]> {
 	try {
 		const entries = await readdir(dir)
-		const filtered = entries.filter(
-			(e) => !IGNORE_DIRS.has(e) && !e.startsWith("."),
-		)
+		const filtered = entries.filter((e) => !IGNORE_DIRS.has(e) && !e.startsWith("."))
 
 		const results = await Promise.all(
 			filtered.map(async (entry) => {
@@ -95,10 +90,7 @@ const GLOBAL_RULE_PATHS = [
 	join(homedir(), ".claude", "CLAUDE.md"),
 ]
 
-async function loadCustomRules(
-	cwd: string,
-	additionalFiles: string[] = [],
-): Promise<string[]> {
+async function loadCustomRules(cwd: string, additionalFiles: string[] = []): Promise<string[]> {
 	const ruleFiles = [...DEFAULT_RULE_FILES, ...additionalFiles]
 	const found = new Set<string>()
 	const paths: Array<{ path: string; isGlobal: boolean }> = []
@@ -174,10 +166,7 @@ export async function getEnvironmentContext(
  * Appends environment context (working directory, platform, file tree,
  * custom rules) to a base prompt string.
  */
-export function applyEnvironment(
-	basePrompt: string,
-	env: EnvironmentContext,
-): string {
+export function applyEnvironment(basePrompt: string, env: EnvironmentContext): string {
 	const sections: string[] = [basePrompt]
 
 	sections.push(`# Environment

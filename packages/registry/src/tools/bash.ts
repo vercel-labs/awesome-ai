@@ -1,15 +1,11 @@
-import { tool } from "ai"
 import { spawn } from "child_process"
 import { promises as fs } from "fs"
 import { createRequire } from "module"
 import * as path from "path"
+import { tool } from "ai"
 import type { Parser as TsParser } from "web-tree-sitter"
 import { z } from "zod"
-import {
-	checkPermission,
-	type Permission,
-	PermissionDeniedError,
-} from "@/agents/lib/permissions"
+import { checkPermission, type Permission, PermissionDeniedError } from "@/agents/lib/permissions"
 import { toolOutput, truncation } from "@/tools/lib/tool-output"
 
 const MAX_OUTPUT_LENGTH = 30_000
@@ -124,13 +120,7 @@ function parseToken(text: string): string {
 
 function isPathLike(text: string): boolean {
 	if (text.length === 0) return false
-	if (
-		text === "." ||
-		text === ".." ||
-		text.startsWith("./") ||
-		text.startsWith("../")
-	)
-		return true
+	if (text === "." || text === ".." || text.startsWith("./") || text.startsWith("../")) return true
 	if (path.isAbsolute(text)) return true
 	if (text.startsWith("~")) return true
 	if (text.includes(path.sep)) return true
@@ -164,9 +154,7 @@ function hasExternalPath(part: ParsedCommand, cwd: string): boolean {
 		const token = parseToken(raw)
 		if (token.startsWith("-")) continue
 		if (!isPathLike(token)) continue
-		const target = token.startsWith("~")
-			? path.join(process.env.HOME || "", token.slice(1))
-			: token
+		const target = token.startsWith("~") ? path.join(process.env.HOME || "", token.slice(1)) : token
 		const full = path.resolve(cwd, target)
 		if (!full.startsWith(cwd)) return true
 	}
@@ -194,12 +182,10 @@ async function initParser(): Promise<void> {
 			return wasmPath
 		},
 	})
-	const langPath = parserRequire.resolve(
-		"tree-sitter-bash/tree-sitter-bash.wasm",
+	const langPath = parserRequire.resolve("tree-sitter-bash/tree-sitter-bash.wasm")
+	const lang = await (tree as { Language: { load(path: string): Promise<unknown> } }).Language.load(
+		langPath,
 	)
-	const lang = await (
-		tree as { Language: { load(path: string): Promise<unknown> } }
-	).Language.load(langPath)
 	const next = new tree.Parser()
 	next.setLanguage(lang as never)
 	parser = next
@@ -212,10 +198,7 @@ function parseByTreeSitter(input: string): ParsedCommand[] {
 	const out: ParsedCommand[] = []
 	for (const node of tree.rootNode.descendantsOfType("command")) {
 		if (!node) continue
-		const text =
-			node.parent?.type === "redirected_statement"
-				? node.parent.text
-				: node.text
+		const text = node.parent?.type === "redirected_statement" ? node.parent.text : node.text
 		const args: string[] = []
 		for (let i = 0; i < node.childCount; i++) {
 			const child = node.child(i)
@@ -395,10 +378,7 @@ function hasUnsafeShellForm(command: string): boolean {
 	return false
 }
 
-function getPermission(
-	part: ParsedCommand,
-	permissions: Record<string, Permission>,
-): Permission {
+function getPermission(part: ParsedCommand, permissions: Record<string, Permission>): Permission {
 	if (part.args.length === 0) {
 		return checkPermission(part.text, permissions)
 	}
@@ -495,9 +475,7 @@ const inputSchema = z.object({
 		),
 	description: z
 		.string()
-		.describe(
-			"Clear, concise description of what this command does in 5-10 words",
-		),
+		.describe("Clear, concise description of what this command does in 5-10 words"),
 })
 
 const outputSchema = toolOutput({
@@ -586,9 +564,7 @@ export function createBashTool(
 			await initParser().catch(() => {})
 			// Validate and constrain timeout
 			if (timeout !== undefined && timeout < 0) {
-				throw new Error(
-					`Invalid timeout value: ${timeout}. Timeout must be a positive number.`,
-				)
+				throw new Error(`Invalid timeout value: ${timeout}. Timeout must be a positive number.`)
 			}
 			const effectiveTimeout = Math.min(timeout ?? DEFAULT_TIMEOUT, MAX_TIMEOUT)
 

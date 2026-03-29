@@ -56,8 +56,7 @@ function ShortcutRow({ action, keys }: { action: string; keys: string[] }) {
 }
 
 export function ShortcutsPanel() {
-	const panelHeight =
-		SHORTCUTS.navigation.length + SHORTCUTS.commands.length + 8
+	const panelHeight = SHORTCUTS.navigation.length + SHORTCUTS.commands.length + 8
 
 	return (
 		<Dialog height={panelHeight} maxHeight={30}>
@@ -65,21 +64,13 @@ export function ShortcutsPanel() {
 			<text fg={colors.muted}>NAVIGATION</text>
 			<DialogSpacer />
 			{SHORTCUTS.navigation.map((shortcut) => (
-				<ShortcutRow
-					key={shortcut.action}
-					action={shortcut.action}
-					keys={shortcut.keys}
-				/>
+				<ShortcutRow key={shortcut.action} action={shortcut.action} keys={shortcut.keys} />
 			))}
 			<DialogSpacer />
 			<text fg={colors.muted}>COMMANDS</text>
 			<DialogSpacer />
 			{SHORTCUTS.commands.map((shortcut) => (
-				<ShortcutRow
-					key={shortcut.action}
-					action={shortcut.action}
-					keys={shortcut.keys}
-				/>
+				<ShortcutRow key={shortcut.action} action={shortcut.action} keys={shortcut.keys} />
 			))}
 		</Dialog>
 	)

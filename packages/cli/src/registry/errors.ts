@@ -15,8 +15,7 @@ export const RegistryErrorCode = {
 	UNKNOWN_ERROR: "UNKNOWN_ERROR",
 } as const
 
-export type RegistryErrorCode =
-	(typeof RegistryErrorCode)[keyof typeof RegistryErrorCode]
+export type RegistryErrorCode = (typeof RegistryErrorCode)[keyof typeof RegistryErrorCode]
 
 export class RegistryError extends Error {
 	public readonly code: RegistryErrorCode
@@ -63,8 +62,7 @@ export class RegistryNotFoundError extends RegistryError {
 			statusCode: 404,
 			cause,
 			context: { url },
-			suggestion:
-				"Check if the item name is correct and the registry URL is accessible.",
+			suggestion: "Check if the item name is correct and the registry URL is accessible.",
 		})
 		this.name = "RegistryNotFoundError"
 	}
@@ -82,8 +80,7 @@ export class RegistryUnauthorizedError extends RegistryError {
 			statusCode: 401,
 			cause,
 			context: { url },
-			suggestion:
-				"Check your authentication credentials and environment variables.",
+			suggestion: "Check your authentication credentials and environment variables.",
 		})
 		this.name = "RegistryUnauthorizedError"
 	}
@@ -101,8 +98,7 @@ export class RegistryForbiddenError extends RegistryError {
 			statusCode: 403,
 			cause,
 			context: { url },
-			suggestion:
-				"Check your authentication credentials and environment variables.",
+			suggestion: "Check your authentication credentials and environment variables.",
 		})
 		this.name = "RegistryForbiddenError"
 	}
@@ -119,15 +115,11 @@ export class RegistryFetchError extends RegistryError {
 			? `Failed to fetch from registry (${statusCode}): ${url}`
 			: `Failed to fetch from registry: ${url}`
 
-		const message =
-			typeof cause === "string" && cause
-				? `${baseMessage} - ${cause}`
-				: baseMessage
+		const message = typeof cause === "string" && cause ? `${baseMessage} - ${cause}` : baseMessage
 
 		let suggestion = "Check your network connection and try again."
 		if (statusCode === 404) {
-			suggestion =
-				"The requested resource was not found. Check the URL or item name."
+			suggestion = "The requested resource was not found. Check the URL or item name."
 		} else if (statusCode === 500) {
 			suggestion = "The registry server encountered an error. Try again later."
 		} else if (statusCode && statusCode >= 400 && statusCode < 500) {
@@ -221,8 +213,7 @@ export class RegistryMissingEnvironmentVariablesError extends RegistryError {
 		super(message, {
 			code: RegistryErrorCode.MISSING_ENV_VARS,
 			context: { registryName, missingVars },
-			suggestion:
-				"Set the required environment variables to your .env or .env.local file.",
+			suggestion: "Set the required environment variables to your .env or .env.local file.",
 		})
 		this.name = "RegistryMissingEnvironmentVariablesError"
 	}

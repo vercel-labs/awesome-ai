@@ -67,9 +67,7 @@ class CustomMapStorage implements CacheStorage {
 		return this.inner.has(key)
 	}
 	async keys(prefix?: string): Promise<string[]> {
-		return Array.from(this.inner.keys()).filter(
-			(key) => !prefix || key.startsWith(prefix),
-		)
+		return Array.from(this.inner.keys()).filter((key) => !prefix || key.startsWith(prefix))
 	}
 }
 
@@ -79,12 +77,8 @@ describe("storage contract utilities", () => {
 		expect(keyspace.prefix).toBe("subagent:runtime_abc")
 		expect(keyspace.counter).toBe("subagent:runtime_abc:counter")
 		expect(keyspace.metrics).toBe("subagent:runtime_abc:metrics")
-		expect(keyspace.status("agent_1")).toBe(
-			"subagent:runtime_abc:status:agent_1",
-		)
-		expect(keyspace.lineage("agent_1")).toBe(
-			"subagent:runtime_abc:lineage:agent_1",
-		)
+		expect(keyspace.status("agent_1")).toBe("subagent:runtime_abc:status:agent_1")
+		expect(keyspace.lineage("agent_1")).toBe("subagent:runtime_abc:lineage:agent_1")
 	})
 
 	it("supports custom storage adapters", async () => {

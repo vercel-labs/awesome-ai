@@ -1,20 +1,20 @@
 {
-	"name": "@awesome-ai/prompts",
-	"homepage": "https://awesome-ai.com",
-	"items": [
-		{
-			"name": "test-prompt",
-			"type": "registry:prompt",
-			"title": "Test Prompt",
-			"description": "A test prompt for CLI testing",
-			"categories": ["testing"]
-		},
-		{
-			"name": "coding-prompt",
-			"type": "registry:prompt",
-			"title": "Coding Prompt",
-			"description": "A prompt for coding tasks",
-			"categories": ["coding"]
-		}
-	]
+  "name": "@awesome-ai/prompts",
+  "homepage": "https://awesome-ai.com",
+  "items": [
+    {
+      "name": "test-prompt",
+      "type": "registry:prompt",
+      "title": "Test Prompt",
+      "description": "A test prompt for CLI testing",
+      "categories": ["testing"]
+    },
+    {
+      "name": "coding-prompt",
+      "type": "registry:prompt",
+      "title": "Coding Prompt",
+      "description": "A prompt for coding tasks",
+      "categories": ["coding"]
+    }
+  ]
 }

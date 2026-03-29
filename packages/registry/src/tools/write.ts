@@ -1,13 +1,9 @@
-import { tool } from "ai"
-import { createTwoFilesPatch } from "diff"
 import { promises as fs } from "fs"
 import * as path from "path"
+import { tool } from "ai"
+import { createTwoFilesPatch } from "diff"
 import { z } from "zod"
-import {
-	checkPermission,
-	type Permission,
-	PermissionDeniedError,
-} from "@/agents/lib/permissions"
+import { checkPermission, type Permission, PermissionDeniedError } from "@/agents/lib/permissions"
 import { assertFreshRead } from "@/tools/lib/file-time"
 import { toolOutput } from "@/tools/lib/tool-output"
 import { trimDiff } from "@/tools/lib/trim-diff"
@@ -31,9 +27,7 @@ Usage:
 - Writing to paths outside the current working directory will include a warning.`
 
 const inputSchema = z.object({
-	filePath: z
-		.string()
-		.describe("The path to the file to write (absolute or relative)"),
+	filePath: z.string().describe("The path to the file to write (absolute or relative)"),
 	content: z.string().describe("The content to write to the file"),
 })
 
@@ -80,8 +74,7 @@ export function createWriteTool(
 	permissions: Permission | Record<string, Permission> = "ask",
 	opts: { scope?: string } = {},
 ) {
-	const permissionPatterns =
-		typeof permissions === "string" ? { "*": permissions } : permissions
+	const permissionPatterns = typeof permissions === "string" ? { "*": permissions } : permissions
 	const scope = opts.scope ?? "global"
 
 	return tool({
@@ -89,9 +82,7 @@ export function createWriteTool(
 		inputSchema,
 		outputSchema,
 		needsApproval: ({ filePath }) => {
-			const filepath = path.isAbsolute(filePath)
-				? filePath
-				: path.join(process.cwd(), filePath)
+			const filepath = path.isAbsolute(filePath) ? filePath : path.join(process.cwd(), filePath)
 
 			const permission = checkPermission(filepath, permissionPatterns)
 
@@ -119,9 +110,7 @@ export function createWriteTool(
 			throw new Error("Invalid output status in toModelOutput")
 		},
 		async *execute({ filePath, content }) {
-			const filepath = path.isAbsolute(filePath)
-				? filePath
-				: path.join(process.cwd(), filePath)
+			const filepath = path.isAbsolute(filePath) ? filePath : path.join(process.cwd(), filePath)
 
 			yield {
 				status: "pending",
@@ -166,9 +155,7 @@ export function createWriteTool(
 				// Generate diff if overwriting
 				let diff: string | undefined
 				if (exists && previousContent !== content) {
-					diff = trimDiff(
-						createTwoFilesPatch(filepath, filepath, previousContent, content),
-					)
+					diff = trimDiff(createTwoFilesPatch(filepath, filepath, previousContent, content))
 				}
 
 				const action = exists ? "overwritten" : "created"

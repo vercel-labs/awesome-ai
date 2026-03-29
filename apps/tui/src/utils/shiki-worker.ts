@@ -53,9 +53,7 @@ interface HighlightResponse {
 
 parentPort?.on("message", async (request: HighlightRequest) => {
 	try {
-		const { highlighter, validLanguage } = await getHighlighter(
-			request.language,
-		)
+		const { highlighter, validLanguage } = await getHighlighter(request.language)
 		const result = highlighter.codeToTokens(request.code, {
 			lang: validLanguage,
 			theme: defaultTheme,

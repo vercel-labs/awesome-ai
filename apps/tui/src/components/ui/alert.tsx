@@ -6,11 +6,7 @@ const ALERT_WIDTH = 36
 
 function AlertItem({ alert }: { alert: AlertMessage }) {
 	const borderColor =
-		alert.type === "error"
-			? "#ef4444"
-			: alert.type === "success"
-				? colors.green
-				: colors.border
+		alert.type === "error" ? "#ef4444" : alert.type === "success" ? colors.green : colors.border
 
 	return (
 		<box

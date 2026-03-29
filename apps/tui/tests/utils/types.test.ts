@@ -1,10 +1,5 @@
 import { describe, expect, test } from "bun:test"
-import {
-	formatTimestamp,
-	getToolError,
-	getToolMessage,
-	getToolStatus,
-} from "../../src/types"
+import { formatTimestamp, getToolError, getToolMessage, getToolStatus } from "../../src/types"
 
 describe("types helpers", () => {
 	test("formatTimestamp uses 24h format", () => {

@@ -6,22 +6,11 @@
 import { dirname, join } from "node:path"
 import { fileURLToPath } from "node:url"
 import { Worker } from "node:worker_threads"
-import {
-	memo,
-	type ReactNode,
-	useCallback,
-	useEffect,
-	useMemo,
-	useRef,
-	useState,
-} from "react"
+import { memo, type ReactNode, useCallback, useEffect, useMemo, useRef, useState } from "react"
 import type { ThemedToken, TokensResult } from "shiki"
 
 /** Creates a throttled function that invokes at most once per `wait` ms, with trailing call */
-function useThrottle<T extends (...args: Parameters<T>) => void>(
-	callback: T,
-	wait: number,
-): T {
+function useThrottle<T extends (...args: Parameters<T>) => void>(callback: T, wait: number): T {
 	const lastCallRef = useRef(0)
 	const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 	const callbackRef = useRef(callback)
@@ -87,12 +76,7 @@ function initWorker() {
 
 		worker.on(
 			"message",
-			(response: {
-				id: string
-				tokens: ThemedToken[][]
-				bg?: string
-				fg?: string
-			}) => {
+			(response: { id: string; tokens: ThemedToken[][]; bg?: string; fg?: string }) => {
 				const callbacks = pendingRequests.get(response.id)
 				if (callbacks) {
 					const result: TokensResult = {
@@ -231,9 +215,7 @@ export const CodeBlock = memo(function CodeBlock({
 					}}
 				>
 					<text fg={codeColors.language}>{language}</text>
-					{children && (
-						<box style={{ flexDirection: "row", gap: 1 }}>{children}</box>
-					)}
+					{children && <box style={{ flexDirection: "row", gap: 1 }}>{children}</box>}
 				</box>
 			)}
 

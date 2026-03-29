@@ -29,10 +29,7 @@ function parseFileKeyFromUrl(urlOrKey: string): string {
 		return urlOrKey
 	}
 
-	const patterns = [
-		/figma\.com\/file\/([a-zA-Z0-9]+)/,
-		/figma\.com\/design\/([a-zA-Z0-9]+)/,
-	]
+	const patterns = [/figma\.com\/file\/([a-zA-Z0-9]+)/, /figma\.com\/design\/([a-zA-Z0-9]+)/]
 
 	for (const pattern of patterns) {
 		const match = urlOrKey.match(pattern)
@@ -44,10 +41,7 @@ function parseFileKeyFromUrl(urlOrKey: string): string {
 	return urlOrKey
 }
 
-async function fetchFigmaFile(
-	fileKey: string,
-	token: string,
-): Promise<FigmaFile> {
+async function fetchFigmaFile(fileKey: string, token: string): Promise<FigmaFile> {
 	const response = await fetch(`${FIGMA_API_BASE}/files/${fileKey}`, {
 		headers: {
 			"X-Figma-Token": token,
@@ -56,17 +50,13 @@ async function fetchFigmaFile(
 
 	if (!response.ok) {
 		const errorText = await response.text()
-		throw new Error(
-			`Figma API error (${response.status}): ${errorText || response.statusText}`,
-		)
+		throw new Error(`Figma API error (${response.status}): ${errorText || response.statusText}`)
 	}
 
 	return response.json() as Promise<FigmaFile>
 }
 
-function buildComponentDependencies(
-	data: ExtractedData,
-): Map<string, Set<string>> {
+function buildComponentDependencies(data: ExtractedData): Map<string, Set<string>> {
 	const deps = new Map<string, Set<string>>()
 
 	for (const [compId, compData] of Object.entries(data.components)) {
@@ -87,11 +77,7 @@ function findInstanceDependencies(
 ): void {
 	for (const node of nodes) {
 		if (!node) continue
-		if (
-			node.type === "INSTANCE" &&
-			node.componentId &&
-			node.componentId !== selfId
-		) {
+		if (node.type === "INSTANCE" && node.componentId && node.componentId !== selfId) {
 			deps.add(node.componentId)
 		}
 		if (node.children) {
@@ -135,13 +121,10 @@ function createMigrationState(
 	const doneOrSkipped = new Set<string>()
 	for (const comp of Object.values(components)) {
 		comp.dependenciesReady =
-			comp.dependencies.length === 0 ||
-			comp.dependencies.every((dep) => doneOrSkipped.has(dep))
+			comp.dependencies.length === 0 || comp.dependencies.every((dep) => doneOrSkipped.has(dep))
 	}
 	for (const page of Object.values(pages)) {
-		page.componentsReady = page.componentsUsed.every((compId) =>
-			doneOrSkipped.has(compId),
-		)
+		page.componentsReady = page.componentsUsed.every((compId) => doneOrSkipped.has(compId))
 		if (page.status === "blocked" && page.componentsReady) {
 			page.status = "pending"
 		}
@@ -184,13 +167,8 @@ export function createFigmaFetchTool(figmaToken?: string) {
 	return tool({
 		description,
 		inputSchema: z.object({
-			fileKeyOrUrl: z
-				.string()
-				.describe("The Figma file key or full URL to fetch"),
-			skipInvisible: z
-				.boolean()
-				.default(true)
-				.describe("Skip invisible nodes in the design"),
+			fileKeyOrUrl: z.string().describe("The Figma file key or full URL to fetch"),
+			skipInvisible: z.boolean().default(true).describe("Skip invisible nodes in the design"),
 		}),
 		outputSchema: z.union([
 			z.object({

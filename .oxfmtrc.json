@@ -13,9 +13,5 @@
       "style",
       "unknown"
     ]
-  },
-  "sortTailwindcss": {
-    "functions": ["cn", "clsx", "cva", "twMerge"],
-    "stylesheet": "./apps/web/src/styles/config.css"
   }
 }

@@ -102,11 +102,7 @@ export async function runTui(options: RunTuiOptions) {
 		let promptContent: string | null = null
 
 		for (const promptPath of promptsPaths) {
-			promptContent = await loadPromptContent(
-				promptPath,
-				promptName,
-				actions.debugLog,
-			)
+			promptContent = await loadPromptContent(promptPath, promptName, actions.debugLog)
 			if (promptContent) break
 		}
 

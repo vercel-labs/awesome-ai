@@ -1,20 +1,20 @@
 {
-	"mode": "pre",
-	"tag": "beta",
-	"initialVersions": {
-		"agent": "0.0.0",
-		"awesome-ai-tui": "0.0.0",
-		"ui": "0.1.0",
-		"awesome-ai": "0.0.0",
-		"awesome-ai-registry": "0.0.0"
-	},
-	"changesets": [
-		"cozy-keys-sip",
-		"cuddly-rockets-jog",
-		"fair-items-wonder",
-		"odd-cougars-knock",
-		"pretty-bananas-hug",
-		"shaggy-hands-dig",
-		"violet-experts-double"
-	]
+  "mode": "pre",
+  "tag": "beta",
+  "initialVersions": {
+    "agent": "0.0.0",
+    "awesome-ai-tui": "0.0.0",
+    "ui": "0.1.0",
+    "awesome-ai": "0.0.0",
+    "awesome-ai-registry": "0.0.0"
+  },
+  "changesets": [
+    "cozy-keys-sip",
+    "cuddly-rockets-jog",
+    "fair-items-wonder",
+    "odd-cougars-knock",
+    "pretty-bananas-hug",
+    "shaggy-hands-dig",
+    "violet-experts-double"
+  ]
 }

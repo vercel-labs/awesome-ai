@@ -1,14 +1,9 @@
-import { cosmiconfig } from "cosmiconfig"
 import path from "path"
+import { cosmiconfig } from "cosmiconfig"
 import { loadConfig } from "tsconfig-paths"
 import { BUILTIN_REGISTRIES } from "../registry/constants"
 import { ConfigParseError } from "../registry/errors"
-import {
-	type Config,
-	configSchema,
-	type RawConfig,
-	rawConfigSchema,
-} from "../schema"
+import { type Config, configSchema, type RawConfig, rawConfigSchema } from "../schema"
 import { resolveImport } from "./resolve-import"
 
 export const DEFAULT_AGENTS = "@/agents"
@@ -30,10 +25,7 @@ export async function getConfig(cwd: string): Promise<Config | null> {
 	return await resolveConfigPaths(cwd, config)
 }
 
-export async function resolveConfigPaths(
-	cwd: string,
-	config: RawConfig,
-): Promise<Config> {
+export async function resolveConfigPaths(cwd: string, config: RawConfig): Promise<Config> {
 	// User registries come first so the first one is used as default for unnamespaced deps
 	config.registries = {
 		...(config.registries || {}),
@@ -55,14 +47,11 @@ export async function resolveConfigPaths(
 		resolvedPaths: {
 			cwd,
 			agents:
-				(await resolveImport(config.aliases.agents, tsConfig)) ||
-				path.resolve(cwd, "src/agents"),
+				(await resolveImport(config.aliases.agents, tsConfig)) || path.resolve(cwd, "src/agents"),
 			tools:
-				(await resolveImport(config.aliases.tools, tsConfig)) ||
-				path.resolve(cwd, "src/tools"),
+				(await resolveImport(config.aliases.tools, tsConfig)) || path.resolve(cwd, "src/tools"),
 			prompts:
-				(await resolveImport(config.aliases.prompts, tsConfig)) ||
-				path.resolve(cwd, "src/prompts"),
+				(await resolveImport(config.aliases.prompts, tsConfig)) || path.resolve(cwd, "src/prompts"),
 			registry: path.resolve(cwd, config.registryDir ?? DEFAULT_REGISTRY_DIR),
 		},
 	})
@@ -81,9 +70,7 @@ export async function getRawConfig(cwd: string): Promise<RawConfig | null> {
 		if (config.registries) {
 			for (const registryName of Object.keys(config.registries)) {
 				if (registryName in BUILTIN_REGISTRIES) {
-					throw new Error(
-						`"${registryName}" is a built-in registry and cannot be overridden.`,
-					)
+					throw new Error(`"${registryName}" is a built-in registry and cannot be overridden.`)
 				}
 			}
 		}

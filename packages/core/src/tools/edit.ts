@@ -1,13 +1,9 @@
-import { tool } from "ai"
-import { createTwoFilesPatch } from "diff"
 import { promises as fs } from "fs"
 import * as path from "path"
+import { tool } from "ai"
+import { createTwoFilesPatch } from "diff"
 import { z } from "zod"
-import {
-	checkPermission,
-	type Permission,
-	PermissionDeniedError,
-} from "../permissions"
+import { checkPermission, type Permission, PermissionDeniedError } from "../permissions"
 import { assertFreshRead } from "./lib/file-time"
 import { toolOutput } from "./lib/tool-output"
 import { trimDiff } from "./lib/trim-diff"
@@ -24,10 +20,7 @@ import { trimDiff } from "./lib/trim-diff"
  * A replacer is a generator that yields possible matches for a search string.
  * Each yielded string is a candidate that might be found in the content.
  */
-export type Replacer = (
-	content: string,
-	find: string,
-) => Generator<string, void, unknown>
+export type Replacer = (content: string, find: string) => Generator<string, void, unknown>
 
 // Similarity thresholds for block anchor fallback matching
 const SINGLE_CANDIDATE_SIMILARITY_THRESHOLD = 0.0
@@ -42,9 +35,7 @@ function levenshtein(a: string, b: string): number {
 	}
 
 	const matrix = Array.from({ length: a.length + 1 }, (_, i) =>
-		Array.from({ length: b.length + 1 }, (_, j) =>
-			i === 0 ? j : j === 0 ? i : 0,
-		),
+		Array.from({ length: b.length + 1 }, (_, j) => (i === 0 ? j : j === 0 ? i : 0)),
 	)
 
 	for (let i = 1; i <= a.length; i++) {
@@ -250,10 +241,7 @@ export const BlockAnchorReplacer: Replacer = function* (content, find) {
  * Strategy 4: Whitespace normalized matching
  * Collapses multiple spaces/tabs to single space
  */
-export const WhitespaceNormalizedReplacer: Replacer = function* (
-	content,
-	find,
-) {
+export const WhitespaceNormalizedReplacer: Replacer = function* (content, find) {
 	const normalizeWhitespace = (text: string) => text.replace(/\s+/g, " ").trim()
 	const normalizedFind = normalizeWhitespace(find)
 
@@ -313,9 +301,7 @@ export const IndentationFlexibleReplacer: Replacer = function* (content, find) {
 			}),
 		)
 
-		return lines
-			.map((line) => (line.trim().length === 0 ? line : line.slice(minIndent)))
-			.join("\n")
+		return lines.map((line) => (line.trim().length === 0 ? line : line.slice(minIndent))).join("\n")
 	}
 
 	const normalizedFind = removeIndentation(find)
@@ -336,33 +322,30 @@ export const IndentationFlexibleReplacer: Replacer = function* (content, find) {
  */
 export const EscapeNormalizedReplacer: Replacer = function* (content, find) {
 	const unescapeString = (str: string): string => {
-		return str.replace(
-			/\\(n|t|r|'|"|`|\\|\n|\$)/g,
-			(match, capturedChar: string) => {
-				switch (capturedChar) {
-					case "n":
-						return "\n"
-					case "t":
-						return "\t"
-					case "r":
-						return "\r"
-					case "'":
-						return "'"
-					case '"':
-						return '"'
-					case "`":
-						return "`"
-					case "\\":
-						return "\\"
-					case "\n":
-						return "\n"
-					case "$":
-						return "$"
-					default:
-						return match
-				}
-			},
-		)
+		return str.replace(/\\(n|t|r|'|"|`|\\|\n|\$)/g, (match, capturedChar: string) => {
+			switch (capturedChar) {
+				case "n":
+					return "\n"
+				case "t":
+					return "\t"
+				case "r":
+					return "\r"
+				case "'":
+					return "'"
+				case '"':
+					return '"'
+				case "`":
+					return "`"
+				case "\\":
+					return "\\"
+				case "\n":
+					return "\n"
+				case "$":
+					return "$"
+				default:
+					return match
+			}
+		})
 	}
 
 	const unescapedFind = unescapeString(find)
@@ -453,10 +436,7 @@ export const ContextAwareReplacer: Replacer = function* (content, find) {
 						}
 					}
 
-					if (
-						totalNonEmptyLines === 0 ||
-						matchingLines / totalNonEmptyLines >= 0.5
-					) {
+					if (totalNonEmptyLines === 0 || matchingLines / totalNonEmptyLines >= 0.5) {
 						yield block
 						break
 					}
@@ -527,11 +507,7 @@ export function replace(
 			const lastIndex = content.lastIndexOf(search)
 			if (index !== lastIndex) continue
 
-			return (
-				content.substring(0, index) +
-				newString +
-				content.substring(index + search.length)
-			)
+			return content.substring(0, index) + newString + content.substring(index + search.length)
 		}
 	}
 
@@ -577,13 +553,9 @@ Matching strategies (tried in order):
 8. Context-aware match (uses surrounding lines)`
 
 const inputSchema = z.object({
-	filePath: z
-		.string()
-		.describe("The path to the file to modify (absolute or relative)"),
+	filePath: z.string().describe("The path to the file to modify (absolute or relative)"),
 	oldString: z.string().describe("The text to replace"),
-	newString: z
-		.string()
-		.describe("The text to replace it with (must be different from oldString)"),
+	newString: z.string().describe("The text to replace it with (must be different from oldString)"),
 	replaceAll: z
 		.boolean()
 		.optional()
@@ -628,8 +600,7 @@ export function createEditTool(
 	permissions: Permission | Record<string, Permission> = "ask",
 	opts: { scope?: string } = {},
 ) {
-	const permissionPatterns =
-		typeof permissions === "string" ? { "*": permissions } : permissions
+	const permissionPatterns = typeof permissions === "string" ? { "*": permissions } : permissions
 	const scope = opts.scope ?? "global"
 
 	return tool({
@@ -637,9 +608,7 @@ export function createEditTool(
 		inputSchema,
 		outputSchema,
 		needsApproval: ({ filePath }) => {
-			const filepath = path.isAbsolute(filePath)
-				? filePath
-				: path.join(process.cwd(), filePath)
+			const filepath = path.isAbsolute(filePath) ? filePath : path.join(process.cwd(), filePath)
 
 			const permission = checkPermission(filepath, permissionPatterns)
 
@@ -667,9 +636,7 @@ export function createEditTool(
 				throw new Error("oldString and newString must be different")
 			}
 
-			const filepath = path.isAbsolute(filePath)
-				? filePath
-				: path.join(process.cwd(), filePath)
+			const filepath = path.isAbsolute(filePath) ? filePath : path.join(process.cwd(), filePath)
 
 			yield {
 				status: "pending",
@@ -698,9 +665,7 @@ export function createEditTool(
 				// Handle empty oldString as creating/overwriting file
 				if (oldString === "") {
 					await fs.writeFile(filepath, newString, "utf-8")
-					const diff = trimDiff(
-						createTwoFilesPatch(filepath, filepath, content, newString),
-					)
+					const diff = trimDiff(createTwoFilesPatch(filepath, filepath, content, newString))
 					yield {
 						status: "success",
 						message: `File created: ${filepath}`,
@@ -717,9 +682,7 @@ export function createEditTool(
 				await fs.writeFile(filepath, result, "utf-8")
 
 				const message = `File edited: ${filepath}`
-				const diff = trimDiff(
-					createTwoFilesPatch(filepath, filepath, content, result),
-				)
+				const diff = trimDiff(createTwoFilesPatch(filepath, filepath, content, result))
 
 				yield {
 					status: "success",

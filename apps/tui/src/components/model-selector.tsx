@@ -70,9 +70,7 @@ export function ModelSelector() {
 			<Dialog width={panelWidth}>
 				<DialogTitle color={colors.pink}>Select Model</DialogTitle>
 				<DialogText muted>No models found.</DialogText>
-				<DialogText muted>
-					Make sure you have valid gateway credentials.
-				</DialogText>
+				<DialogText muted>Make sure you have valid gateway credentials.</DialogText>
 			</Dialog>
 		)
 	}
@@ -85,10 +83,7 @@ export function ModelSelector() {
 
 	return (
 		<Dialog width={panelWidth} height={panelHeight} maxHeight={22}>
-			<DialogTitle
-				color={colors.pink}
-				hint="↑↓ navigate, Enter select, Esc close"
-			>
+			<DialogTitle color={colors.pink} hint="↑↓ navigate, Enter select, Esc close">
 				Select Model
 			</DialogTitle>
 			{usingFallback && (
@@ -139,8 +134,7 @@ export function ModelSelector() {
 							<box
 								style={{
 									height: 1,
-									backgroundColor:
-										i === selectedIndex ? colors.bgLight : colors.bg,
+									backgroundColor: i === selectedIndex ? colors.bgLight : colors.bg,
 									paddingLeft: 1,
 									paddingRight: 1,
 								}}
@@ -149,9 +143,7 @@ export function ModelSelector() {
 									<span fg={i === selectedIndex ? colors.text : colors.muted}>
 										{i === currentModelIndex ? "● " : "  "}
 									</span>
-									<span fg={i === selectedIndex ? colors.pink : colors.text}>
-										{model.name}
-									</span>
+									<span fg={i === selectedIndex ? colors.pink : colors.text}>{model.name}</span>
 								</text>
 							</box>
 						</box>

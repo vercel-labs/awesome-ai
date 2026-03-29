@@ -1,9 +1,5 @@
 import { type Atom, atom, useAtom } from "@lfades/atom"
-import type {
-	CliRenderer,
-	ScrollBoxRenderable,
-	TextareaRenderable,
-} from "@opentui/core"
+import type { CliRenderer, ScrollBoxRenderable, TextareaRenderable } from "@opentui/core"
 import { createContext, type ReactNode, useContext, useMemo } from "react"
 import type { TUIMessage } from "../types"
 import type { DiscoveredAgent } from "../utils/agent-discovery"
@@ -63,15 +59,11 @@ export interface AppAtomsInit {
 }
 export function createAppAtoms(initial?: Partial<AppAtomsInit>) {
 	return {
-		messagesAtom: atom<MessageAtom[]>(
-			(initial?.messages ?? []).map((msg) => atom(msg)),
-		),
+		messagesAtom: atom<MessageAtom[]>((initial?.messages ?? []).map((msg) => atom(msg))),
 		isLoadingAtom: atom(initial?.isLoading ?? false),
 		showDebugAtom: atom(initial?.showDebug ?? false),
 		debugLogsAtom: atom(initial?.debugLogs ?? []),
-		selectedModelAtom: atom(
-			initial?.selectedModel ?? "anthropic/claude-opus-4.5",
-		),
+		selectedModelAtom: atom(initial?.selectedModel ?? "anthropic/claude-opus-4.5"),
 		cwdAtom: atom(initial?.cwd ?? process.cwd()),
 		showCommandsAtom: atom(initial?.showCommands ?? false),
 		commandFilterAtom: atom(initial?.commandFilter ?? ""),
@@ -122,14 +114,9 @@ export function createAppActions(atoms: AppAtoms) {
 		const scrollbox = atoms.messageListScrollboxAtom.get()
 		if (scrollbox) {
 			// Reset manual scroll flag to re-enable sticky behavior
-			;(
-				scrollbox as unknown as { _hasManualScroll: boolean }
-			)._hasManualScroll = false
+			;(scrollbox as unknown as { _hasManualScroll: boolean })._hasManualScroll = false
 			// Scroll to the bottom
-			const maxScrollTop = Math.max(
-				0,
-				scrollbox.scrollHeight - scrollbox.viewport.height,
-			)
+			const maxScrollTop = Math.max(0, scrollbox.scrollHeight - scrollbox.viewport.height)
 			scrollbox.scrollTop = maxScrollTop
 		}
 	}
@@ -143,25 +130,17 @@ export function createAppActions(atoms: AppAtoms) {
 
 	const removePendingApproval = (toolCallId: string) => {
 		atoms.pendingApprovalsAtom.set(
-			atoms.pendingApprovalsAtom
-				.get()
-				.filter((a) => a.toolCallId !== toolCallId),
+			atoms.pendingApprovalsAtom.get().filter((a) => a.toolCallId !== toolCallId),
 		)
 	}
 
 	const debugLog = (...args: unknown[]) => {
-		const msg = args
-			.map((a) => (typeof a === "object" ? JSON.stringify(a) : String(a)))
-			.join(" ")
+		const msg = args.map((a) => (typeof a === "object" ? JSON.stringify(a) : String(a))).join(" ")
 
 		atoms.debugLogsAtom.set([...atoms.debugLogsAtom.get().slice(-99), msg])
 	}
 
-	const showAlert = (
-		message: string,
-		type: AlertMessage["type"] = "success",
-		duration = 2500,
-	) => {
+	const showAlert = (message: string, type: AlertMessage["type"] = "success", duration = 2500) => {
 		const id = `alert-${++alertIdCounter}`
 		const alert: AlertMessage = { id, message, type }
 
@@ -222,16 +201,11 @@ export function AppAtomsProvider({
 	atoms?: AppAtoms
 	initial?: Partial<AppAtomsInit>
 }) {
-	const value = useMemo(
-		() => atoms ?? createAppAtoms(initial),
-		[atoms, initial],
-	)
+	const value = useMemo(() => atoms ?? createAppAtoms(initial), [atoms, initial])
 	const actions = useMemo(() => createAppActions(value), [value])
 	return (
 		<AppAtomsContext.Provider value={value}>
-			<AppActionsContext.Provider value={actions}>
-				{children}
-			</AppActionsContext.Provider>
+			<AppActionsContext.Provider value={actions}>{children}</AppActionsContext.Provider>
 		</AppAtomsContext.Provider>
 	)
 }

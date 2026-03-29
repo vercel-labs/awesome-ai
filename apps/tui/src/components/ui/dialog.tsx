@@ -29,9 +29,7 @@ export function Dialog({
 	const { width: termWidth, height: termHeight } = useTerminalDimensions()
 
 	// Clamp height if provided
-	const panelHeight = height
-		? Math.min(Math.max(height, minHeight), maxHeight)
-		: minHeight
+	const panelHeight = height ? Math.min(Math.max(height, minHeight), maxHeight) : minHeight
 
 	return (
 		<box
@@ -93,12 +91,6 @@ export function DialogSpacer() {
 /**
  * A muted text line for dialogs.
  */
-export function DialogText({
-	children,
-	muted = false,
-}: {
-	children: ReactNode
-	muted?: boolean
-}) {
+export function DialogText({ children, muted = false }: { children: ReactNode; muted?: boolean }) {
 	return <text fg={muted ? colors.muted : colors.text}>{children}</text>
 }

@@ -63,10 +63,10 @@ export async function copyToClipboard(text: string): Promise<boolean> {
 
 		if (os === "win32") {
 			const escaped = text.replace(/"/g, '""')
-			const proc = Bun.spawn(
-				["powershell", "-command", `Set-Clipboard -Value "${escaped}"`],
-				{ stdout: "ignore", stderr: "ignore" },
-			)
+			const proc = Bun.spawn(["powershell", "-command", `Set-Clipboard -Value "${escaped}"`], {
+				stdout: "ignore",
+				stderr: "ignore",
+			})
 			await proc.exited
 			return true
 		}

@@ -51,10 +51,9 @@ describe("list command", () => {
 		})
 
 		it("lists tools with --type tools", async () => {
-			const result = await runCLI(
-				["list", "--type", "tools", "--registry", "@test"],
-				{ cwd: project.path },
-			)
+			const result = await runCLI(["list", "--type", "tools", "--registry", "@test"], {
+				cwd: project.path,
+			})
 
 			expect(result.exitCode).toBe(0)
 			const output = JSON.parse(result.stdout)
@@ -66,10 +65,9 @@ describe("list command", () => {
 		})
 
 		it("lists prompts with --type prompts", async () => {
-			const result = await runCLI(
-				["list", "--type", "prompts", "--registry", "@test"],
-				{ cwd: project.path },
-			)
+			const result = await runCLI(["list", "--type", "prompts", "--registry", "@test"], {
+				cwd: project.path,
+			})
 
 			expect(result.exitCode).toBe(0)
 			const output = JSON.parse(result.stdout)
@@ -120,10 +118,7 @@ describe("list command", () => {
 				},
 			}),
 		)
-		await project.writeFile(
-			"subdir/tsconfig.json",
-			JSON.stringify({ compilerOptions: {} }),
-		)
+		await project.writeFile("subdir/tsconfig.json", JSON.stringify({ compilerOptions: {} }))
 
 		const result = await runCLI(
 			["list", "--cwd", `${project.path}/subdir`, "--registry", "@test"],

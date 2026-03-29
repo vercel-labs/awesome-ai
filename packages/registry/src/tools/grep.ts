@@ -1,13 +1,9 @@
-import { tool } from "ai"
 import { promises as fs } from "fs"
 import * as path from "path"
+import { tool } from "ai"
 import { z } from "zod"
 import * as ripgrep from "@/tools/lib/ripgrep"
-import {
-	continuationHint,
-	toolOutput,
-	truncation,
-} from "@/tools/lib/tool-output"
+import { continuationHint, toolOutput, truncation } from "@/tools/lib/tool-output"
 
 const LIMIT = 100
 
@@ -86,9 +82,7 @@ function formatMatches(matches: Match[]): string {
 
 	if (matches.length >= LIMIT) {
 		outputLines.push("")
-		outputLines.push(
-			"(Results are truncated. Consider using a more specific path or pattern.)",
-		)
+		outputLines.push("(Results are truncated. Consider using a more specific path or pattern.)")
 	}
 
 	return outputLines.join("\n")
@@ -107,21 +101,15 @@ Usage:
 export const grepTool = tool({
 	description,
 	inputSchema: z.object({
-		pattern: z
-			.string()
-			.describe("The regex pattern to search for in file contents"),
+		pattern: z.string().describe("The regex pattern to search for in file contents"),
 		path: z
 			.string()
 			.optional()
-			.describe(
-				"The directory to search in. Defaults to the current working directory.",
-			),
+			.describe("The directory to search in. Defaults to the current working directory."),
 		include: z
 			.string()
 			.optional()
-			.describe(
-				'File pattern to include in the search (e.g. "*.js", "*.{ts,tsx}")',
-			),
+			.describe('File pattern to include in the search (e.g. "*.js", "*.{ts,tsx}")'),
 	}),
 	outputSchema: toolOutput({
 		pending: {

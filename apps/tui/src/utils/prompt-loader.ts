@@ -8,9 +8,7 @@ interface DiscoveredPrompt {
 	path: string
 }
 
-async function discoverPrompts(
-	promptsPath: string,
-): Promise<DiscoveredPrompt[]> {
+async function discoverPrompts(promptsPath: string): Promise<DiscoveredPrompt[]> {
 	const prompts: DiscoveredPrompt[] = []
 
 	try {

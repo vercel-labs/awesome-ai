@@ -44,11 +44,7 @@ export async function writeRegistryAtPath(
 		await fs.mkdir(itemDir, { recursive: true })
 
 		const outputPath = path.join(itemDir, `${item.name}.json`)
-		await fs.writeFile(
-			outputPath,
-			`${JSON.stringify(item, null, "\t")}\n`,
-			"utf-8",
-		)
+		await fs.writeFile(outputPath, `${JSON.stringify(item, null, "\t")}\n`, "utf-8")
 		touchedTypes.add(dir)
 	}
 
@@ -58,10 +54,7 @@ export async function writeRegistryAtPath(
 	}
 }
 
-export async function writeLocalRegistry(
-	cwd: string,
-	items: RegistryItem[],
-): Promise<void> {
+export async function writeLocalRegistry(cwd: string, items: RegistryItem[]): Promise<void> {
 	await writeRegistryAtPath(path.join(cwd, DEFAULT_REGISTRY_DIR), items)
 }
 
@@ -69,10 +62,7 @@ export async function writeLocalRegistry(
  * Regenerate the registry.json index for a given type by scanning
  * all existing item JSON files in the directory.
  */
-async function regenerateIndex(
-	registryDir: string,
-	type: string,
-): Promise<void> {
+async function regenerateIndex(registryDir: string, type: string): Promise<void> {
 	const typeDir = path.join(registryDir, type)
 	const entries = await fs.readdir(typeDir)
 
@@ -93,9 +83,5 @@ async function regenerateIndex(
 
 	const index = buildRegistryIndex(items, type)
 	const indexPath = path.join(typeDir, "registry.json")
-	await fs.writeFile(
-		indexPath,
-		`${JSON.stringify(index, null, "\t")}\n`,
-		"utf-8",
-	)
+	await fs.writeFile(indexPath, `${JSON.stringify(index, null, "\t")}\n`, "utf-8")
 }

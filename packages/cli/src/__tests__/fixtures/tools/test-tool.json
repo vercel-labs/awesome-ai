@@ -1,14 +1,14 @@
 {
-	"name": "test-tool",
-	"type": "registry:tool",
-	"title": "Test Tool",
-	"description": "A test tool for CLI testing",
-	"dependencies": ["zod"],
-	"files": [
-		{
-			"path": "tools/test-tool.ts",
-			"type": "registry:tool",
-			"content": "import { z } from \"zod\"\n\nexport const testTool = {\n\tname: \"test-tool\",\n\tdescription: \"A test tool\",\n\tschema: z.object({\n\t\tinput: z.string(),\n\t}),\n\texecute: async (input: { input: string }) => {\n\t\treturn { result: input.input.toUpperCase() }\n\t},\n}\n"
-		}
-	]
+  "name": "test-tool",
+  "type": "registry:tool",
+  "title": "Test Tool",
+  "description": "A test tool for CLI testing",
+  "dependencies": ["zod"],
+  "files": [
+    {
+      "path": "tools/test-tool.ts",
+      "type": "registry:tool",
+      "content": "import { z } from \"zod\"\n\nexport const testTool = {\n\tname: \"test-tool\",\n\tdescription: \"A test tool\",\n\tschema: z.object({\n\t\tinput: z.string(),\n\t}),\n\texecute: async (input: { input: string }) => {\n\t\treturn { result: input.input.toUpperCase() }\n\t},\n}\n"
+    }
+  ]
 }

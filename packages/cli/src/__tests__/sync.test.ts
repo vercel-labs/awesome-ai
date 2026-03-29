@@ -55,15 +55,9 @@ export const echoTool = {
 		expect(result.exitCode).toBe(0)
 		expect(result.stdout).toContain("Synced")
 
-		expect(
-			await project.exists(".awesome-ai/registry/agents/coding-agent.json"),
-		).toBe(true)
-		expect(await project.exists(".awesome-ai/registry/tools/echo.json")).toBe(
-			true,
-		)
-		expect(
-			await project.exists(".awesome-ai/registry/prompts/test-prompt.json"),
-		).toBe(true)
+		expect(await project.exists(".awesome-ai/registry/agents/coding-agent.json")).toBe(true)
+		expect(await project.exists(".awesome-ai/registry/tools/echo.json")).toBe(true)
+		expect(await project.exists(".awesome-ai/registry/prompts/test-prompt.json")).toBe(true)
 
 		const agentItem = JSON.parse(
 			await project.readFile(".awesome-ai/registry/agents/coding-agent.json"),
@@ -123,9 +117,7 @@ export const echoTool = {
 
 		const result = await runCLI(["sync"], { cwd: project.path })
 		expect(result.exitCode).toBe(0)
-		expect(
-			await project.exists(".awesome-ai/registry/agents/registry.json"),
-		).toBe(false)
+		expect(await project.exists(".awesome-ai/registry/agents/registry.json")).toBe(false)
 	})
 
 	it("writes to a custom output directory with --output", async () => {
@@ -150,9 +142,7 @@ export const echoTool = {
 		})
 		expect(result.exitCode).toBe(0)
 		expect(await project.exists("registry/agents/simple-agent.json")).toBe(true)
-		expect(
-			await project.exists(".awesome-ai/registry/agents/simple-agent.json"),
-		).toBe(false)
+		expect(await project.exists(".awesome-ai/registry/agents/simple-agent.json")).toBe(false)
 	})
 
 	it("uses registryDir from agents.json and preserves existing registry items", async () => {
@@ -190,16 +180,10 @@ export const echoTool = {
 		expect(result.exitCode).toBe(0)
 
 		expect(await project.exists("registry/agents/new-agent.json")).toBe(true)
-		expect(await project.exists("registry/agents/existing-agent.json")).toBe(
-			true,
-		)
+		expect(await project.exists("registry/agents/existing-agent.json")).toBe(true)
 
-		const agentsIndex = JSON.parse(
-			await project.readFile("registry/agents/registry.json"),
-		)
+		const agentsIndex = JSON.parse(await project.readFile("registry/agents/registry.json"))
 		const names = agentsIndex.items.map((item: { name: string }) => item.name)
-		expect(names).toEqual(
-			expect.arrayContaining(["existing-agent", "new-agent"]),
-		)
+		expect(names).toEqual(expect.arrayContaining(["existing-agent", "new-agent"]))
 	})
 })

@@ -62,13 +62,11 @@ function useCommandExecutor() {
 					addSystemMsg("Summarizing conversation... (not implemented)")
 					break
 				case "/export": {
-					const messages = atoms.messagesAtom
-						.get()
-						.reduce<TUIMessage[]>((acc, atom) => {
-							const msg = atom.get()
-							if (msg.role !== "system") acc.push(msg)
-							return acc
-						}, [])
+					const messages = atoms.messagesAtom.get().reduce<TUIMessage[]>((acc, atom) => {
+						const msg = atom.get()
+						if (msg.role !== "system") acc.push(msg)
+						return acc
+					}, [])
 
 					if (messages.length === 0) {
 						addSystemMsg("No messages to export.")
@@ -91,9 +89,7 @@ function useCommandExecutor() {
 					break
 				case "/version": {
 					const model = atoms.selectedModelAtom.get()
-					addSystemMsg(
-						`Agent: ${currentAgent || "none"}\nModel: ${model}\nVersion: 1.0.0`,
-					)
+					addSystemMsg(`Agent: ${currentAgent || "none"}\nModel: ${model}\nVersion: 1.0.0`)
 					break
 				}
 				default:
@@ -174,14 +170,12 @@ export function InputArea() {
 	}
 
 	const navigateUp = () => {
-		const newVal =
-			selectedCommand > 0 ? selectedCommand - 1 : filteredCommands.length - 1
+		const newVal = selectedCommand > 0 ? selectedCommand - 1 : filteredCommands.length - 1
 		setSelectedCommand(newVal)
 	}
 
 	const navigateDown = () => {
-		const newVal =
-			selectedCommand < filteredCommands.length - 1 ? selectedCommand + 1 : 0
+		const newVal = selectedCommand < filteredCommands.length - 1 ? selectedCommand + 1 : 0
 		setSelectedCommand(newVal)
 	}
 

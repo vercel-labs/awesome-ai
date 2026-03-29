@@ -53,10 +53,7 @@ export function validateRegistryConfig(
 	}
 }
 
-export function validateRegistryConfigForItems(
-	items: string[],
-	config?: Config,
-): void {
+export function validateRegistryConfigForItems(items: string[], config?: Config): void {
 	for (const item of items) {
 		buildUrlAndHeadersForRegistryItem(item, configWithDefaults(config))
 	}

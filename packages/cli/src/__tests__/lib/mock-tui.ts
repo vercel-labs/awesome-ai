@@ -98,19 +98,15 @@ export function createMockConfig(
 	return {
 		resolvedPaths: {
 			cwd: "/test",
-			agents:
-				overrides.agents === undefined ? "/test/agents" : overrides.agents,
+			agents: overrides.agents === undefined ? "/test/agents" : overrides.agents,
 			tools: overrides.tools === undefined ? "/test/tools" : overrides.tools,
-			prompts:
-				overrides.prompts === undefined ? "/test/prompts" : overrides.prompts,
+			prompts: overrides.prompts === undefined ? "/test/prompts" : overrides.prompts,
 		},
 	}
 }
 
 // Helper to create mock agents
-export function createMockAgents(
-	names: string[],
-): Array<{ name: string; path: string }> {
+export function createMockAgents(names: string[]): Array<{ name: string; path: string }> {
 	return names.map((name) => ({
 		name,
 		path: `/test/agents/${name}.ts`,

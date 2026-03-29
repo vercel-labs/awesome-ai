@@ -2,12 +2,7 @@ import { useKeyboard } from "@opentui/react"
 import { useCallback } from "react"
 import { colors } from "../theme"
 import { useAgentActions } from "../utils/agent"
-import {
-	useAppAtoms,
-	useCurrentAgent,
-	useExecPrompt,
-	useShowShortcuts,
-} from "./atoms"
+import { useAppAtoms, useCurrentAgent, useExecPrompt, useShowShortcuts } from "./atoms"
 import { Footer } from "./footer"
 import { Header } from "./header"
 import { Markdown } from "./markdown"

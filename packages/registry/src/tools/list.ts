@@ -1,13 +1,9 @@
-import { tool } from "ai"
 import { promises as fs } from "fs"
 import * as path from "path"
+import { tool } from "ai"
 import { z } from "zod"
 import * as ripgrep from "@/tools/lib/ripgrep"
-import {
-	continuationHint,
-	toolOutput,
-	truncation,
-} from "@/tools/lib/tool-output"
+import { continuationHint, toolOutput, truncation } from "@/tools/lib/tool-output"
 
 const IGNORE_PATTERNS = [
 	"node_modules",
@@ -126,9 +122,7 @@ export const listTool = tool({
 		path: z
 			.string()
 			.optional()
-			.describe(
-				"The path to the directory to list (defaults to current directory)",
-			),
+			.describe("The path to the directory to list (defaults to current directory)"),
 		ignore: z
 			.array(z.string())
 			.optional()
@@ -192,8 +186,7 @@ export const listTool = tool({
 
 			const output = buildTree(files, resolvedPath)
 			const truncated = files.length >= LIMIT
-			const result =
-				output + (truncated ? "\n(Results truncated to 100 files)" : "")
+			const result = output + (truncated ? "\n(Results truncated to 100 files)" : "")
 
 			yield {
 				status: "success",

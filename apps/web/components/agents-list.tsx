@@ -27,8 +27,7 @@ export function AgentsList({ agents, categories }: AgentsListProps) {
 		const matchesSearch =
 			agent.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
 			agent.description.toLowerCase().includes(searchQuery.toLowerCase())
-		const matchesCategory =
-			!selectedCategory || agent.categories.includes(selectedCategory)
+		const matchesCategory = !selectedCategory || agent.categories.includes(selectedCategory)
 		return matchesSearch && matchesCategory
 	})
 
@@ -48,9 +47,7 @@ export function AgentsList({ agents, categories }: AgentsListProps) {
 				</div>
 				<Select
 					value={selectedCategory || "all"}
-					onValueChange={(value) =>
-						setSelectedCategory(value === "all" ? null : value)
-					}
+					onValueChange={(value) => setSelectedCategory(value === "all" ? null : value)}
 				>
 					<SelectTrigger className="w-full sm:w-[180px] bg-secondary">
 						<SelectValue placeholder="All Categories" />

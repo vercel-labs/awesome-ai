@@ -1,21 +1,21 @@
 {
-	"compilerOptions": {
-		"lib": ["ESNext", "DOM"],
-		"target": "ESNext",
-		"module": "ESNext",
-		"moduleResolution": "bundler",
-		"jsx": "react-jsx",
-		"jsxImportSource": "@opentui/react",
-		"strict": true,
-		"noFallthroughCasesInSwitch": true,
-		"noUncheckedIndexedAccess": true,
-		"noImplicitOverride": true,
-		"skipLibCheck": true,
-		"noEmit": true,
-		"esModuleInterop": true,
-		"resolveJsonModule": true,
-		"isolatedModules": true,
-		"types": ["bun"]
-	},
-	"include": ["src/**/*", "tests/**/*"]
+  "compilerOptions": {
+    "lib": ["ESNext", "DOM"],
+    "target": "ESNext",
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "jsx": "react-jsx",
+    "jsxImportSource": "@opentui/react",
+    "strict": true,
+    "noFallthroughCasesInSwitch": true,
+    "noUncheckedIndexedAccess": true,
+    "noImplicitOverride": true,
+    "skipLibCheck": true,
+    "noEmit": true,
+    "esModuleInterop": true,
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "types": ["bun"]
+  },
+  "include": ["src/**/*", "tests/**/*"]
 }

@@ -1,8 +1,5 @@
 import { describe, expect, mock, test } from "bun:test"
-import {
-	AgentSelector,
-	useAgentSelectorKeyHandler,
-} from "../../src/components/agent-selector"
+import { AgentSelector, useAgentSelectorKeyHandler } from "../../src/components/agent-selector"
 import { createAppStore } from "../../src/components/atoms"
 import { makeKeyEvent } from "../helpers/keys"
 import { getBufferText, renderTui } from "../helpers/render"

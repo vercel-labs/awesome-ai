@@ -1,9 +1,5 @@
 import { describe, expect, it } from "vitest"
-import {
-	getConfig,
-	getRawConfig,
-	resolveConfigPaths,
-} from "../utils/get-config"
+import { getConfig, getRawConfig, resolveConfigPaths } from "../utils/get-config"
 import { createTestProject } from "./lib/test-utils"
 
 describe("config loading", () => {
@@ -75,9 +71,7 @@ describe("config loading", () => {
 			const config = await getRawConfig(project.path)
 
 			expect(config?.registries).toBeDefined()
-			expect(config?.registries?.["@custom"]).toBe(
-				"https://custom-registry.com/{type}/{name}.json",
-			)
+			expect(config?.registries?.["@custom"]).toBe("https://custom-registry.com/{type}/{name}.json")
 		})
 
 		it("accepts registries without placeholders (auto-appended)", async () => {
@@ -101,12 +95,8 @@ describe("config loading", () => {
 			const config = await getRawConfig(project.path)
 
 			expect(config?.registries).toBeDefined()
-			expect(config?.registries?.["@local"]).toBe(
-				"../../packages/registry/registry",
-			)
-			expect(config?.registries?.["@remote"]).toBe(
-				"https://example.com/registry",
-			)
+			expect(config?.registries?.["@local"]).toBe("../../packages/registry/registry")
+			expect(config?.registries?.["@remote"]).toBe("https://example.com/registry")
 		})
 
 		it("parses registry config with headers structure", async () => {

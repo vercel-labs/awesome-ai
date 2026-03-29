@@ -146,8 +146,7 @@ async function createCodingAgent({
 	const allowedSubagentTypes =
 		subagentGovernance?.allowedSubagentTypes ?? DEFAULT_ALLOWED_SUBAGENT_TYPES
 	const childToolScope =
-		subagentGovernance?.childToolScopes?.["coding-agent"] ??
-		DEFAULT_CODING_CHILD_TOOL_SCOPE
+		subagentGovernance?.childToolScopes?.["coding-agent"] ?? DEFAULT_CODING_CHILD_TOOL_SCOPE
 	const handleStatus = (event: RuntimeEvent) => {
 		const done =
 			event.status === "completed" ||
@@ -171,11 +170,7 @@ async function createCodingAgent({
 			maxThreads: maxSubagentThreads,
 			onStatus: handleStatus,
 			cacheStorage,
-			resolveAgent: async ({
-				type,
-				model: childModel,
-				agentId,
-			}): Promise<RuntimeAgent> => {
+			resolveAgent: async ({ type, model: childModel, agentId }): Promise<RuntimeAgent> => {
 				if (type === "coding-agent") {
 					if (childToolScope.allow.length === 0) {
 						throw new Error(`Child tool scope for "${type}" cannot be empty.`)

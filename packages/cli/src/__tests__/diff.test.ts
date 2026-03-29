@@ -90,20 +90,18 @@ describe("diff command", () => {
 		})
 
 		it("handles missing local files gracefully", async () => {
-			const result = await runCLI(
-				["diff", "@test/test-tool", "--type", "tools"],
-				{ cwd: project.path },
-			)
+			const result = await runCLI(["diff", "@test/test-tool", "--type", "tools"], {
+				cwd: project.path,
+			})
 
 			expect(result.exitCode).toBe(0)
 			expect(result.stdout).toContain("does not exist locally")
 		})
 
 		it("handles nonexistent registry item", async () => {
-			const result = await runCLI(
-				["diff", "@test/nonexistent-tool", "--type", "tools"],
-				{ cwd: project.path },
-			)
+			const result = await runCLI(["diff", "@test/nonexistent-tool", "--type", "tools"], {
+				cwd: project.path,
+			})
 
 			expect(result.exitCode).toBe(1)
 			expect(result.stdout).toContain("not found")
@@ -130,10 +128,9 @@ describe("diff command", () => {
 			})
 
 			// Capture diff result before any modifications (for identical test)
-			identicalDiffResult = await runCLI(
-				["diff", "@test/test-tool", "--type", "tools"],
-				{ cwd: project.path },
-			)
+			identicalDiffResult = await runCLI(["diff", "@test/test-tool", "--type", "tools"], {
+				cwd: project.path,
+			})
 		})
 
 		it("shows no diff for identical files", () => {
@@ -142,15 +139,11 @@ describe("diff command", () => {
 
 		it("shows diff for modified tool files", async () => {
 			const originalContent = await project.readFile("tools/test-tool.ts")
-			await project.writeFile(
-				"tools/test-tool.ts",
-				`${originalContent}\n// Local modification\n`,
-			)
+			await project.writeFile("tools/test-tool.ts", `${originalContent}\n// Local modification\n`)
 
-			const result = await runCLI(
-				["diff", "@test/test-tool", "--type", "tools"],
-				{ cwd: project.path },
-			)
+			const result = await runCLI(["diff", "@test/test-tool", "--type", "tools"], {
+				cwd: project.path,
+			})
 
 			expect(result.exitCode).toBe(0)
 			expect(result.stdout).toContain("Local modification")
@@ -162,10 +155,9 @@ describe("diff command", () => {
 				'export const testPrompt = "Modified prompt"',
 			)
 
-			const result = await runCLI(
-				["diff", "@test/test-prompt", "--type", "prompts"],
-				{ cwd: project.path },
-			)
+			const result = await runCLI(["diff", "@test/test-prompt", "--type", "prompts"], {
+				cwd: project.path,
+			})
 
 			expect(result.exitCode).toBe(0)
 			expect(result.stdout.length).toBeGreaterThan(0)
@@ -178,10 +170,9 @@ describe("diff command", () => {
 				content.replace("simple-agent", "modified-agent"),
 			)
 
-			const result = await runCLI(
-				["diff", "@test/simple-agent", "--type", "agents"],
-				{ cwd: project.path },
-			)
+			const result = await runCLI(["diff", "@test/simple-agent", "--type", "agents"], {
+				cwd: project.path,
+			})
 
 			expect(result.exitCode).toBe(0)
 		})
@@ -216,28 +207,13 @@ describe("diff command", () => {
 		)
 
 		// Add tool in subdir
-		await runCLI(
-			[
-				"add",
-				"@test/test-tool",
-				"--tool",
-				"--yes",
-				"--cwd",
-				`${project.path}/subdir`,
-			],
-			{ cwd: project.path },
-		)
+		await runCLI(["add", "@test/test-tool", "--tool", "--yes", "--cwd", `${project.path}/subdir`], {
+			cwd: project.path,
+		})
 
 		// Diff in subdir
 		const result = await runCLI(
-			[
-				"diff",
-				"@test/test-tool",
-				"--type",
-				"tools",
-				"--cwd",
-				`${project.path}/subdir`,
-			],
+			["diff", "@test/test-tool", "--type", "tools", "--cwd", `${project.path}/subdir`],
 			{ cwd: project.path },
 		)
 

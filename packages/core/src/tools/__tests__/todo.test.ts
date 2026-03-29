@@ -4,10 +4,7 @@ import { createTodoTools, type TodoItem, type TodoStorage } from "../todo"
 import { executeTool } from "./lib/test-utils"
 
 // Helper to execute a non-streaming tool and get the single result
-async function execute<T extends Tool>(
-	tool: T,
-	input: Parameters<NonNullable<T["execute"]>>[0],
-) {
+async function execute<T extends Tool>(tool: T, input: Parameters<NonNullable<T["execute"]>>[0]) {
 	const results = await executeTool(tool, input)
 	return results[0]
 }
@@ -54,9 +51,7 @@ describe("createTodoTools", () => {
 		const { todoRead, todoWrite } = createTodoTools(customStorage)
 
 		await execute(todoWrite, {
-			todos: [
-				{ id: "custom-1", content: "Custom storage task", status: "pending" },
-			],
+			todos: [{ id: "custom-1", content: "Custom storage task", status: "pending" }],
 		})
 
 		expect(stored).toHaveLength(1)

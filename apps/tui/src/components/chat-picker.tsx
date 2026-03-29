@@ -77,10 +77,7 @@ export function ChatPicker() {
 
 	return (
 		<Dialog width={panelWidth} height={panelHeight} maxHeight={20}>
-			<DialogTitle
-				color={colors.pink}
-				hint="↑↓ navigate, Enter select, d delete"
-			>
+			<DialogTitle color={colors.pink} hint="↑↓ navigate, Enter select, d delete">
 				Chat History
 			</DialogTitle>
 			<scrollbox
@@ -114,9 +111,7 @@ export function ChatPicker() {
 							<span fg={i === selectedIndex ? colors.text : colors.muted}>
 								{chat.id === currentChatId ? "● " : "  "}
 							</span>
-							<span fg={i === selectedIndex ? colors.pink : colors.text}>
-								{chat.title}
-							</span>
+							<span fg={i === selectedIndex ? colors.pink : colors.text}>{chat.title}</span>
 							<span fg={colors.muted}> {formatDate(chat.updatedAt)}</span>
 						</text>
 					</box>
@@ -127,13 +122,8 @@ export function ChatPicker() {
 }
 
 export function useChatPickerKeyHandler() {
-	const {
-		cwdAtom,
-		currentChatIdAtom,
-		chatListAtom,
-		selectedChatIndexAtom,
-		showChatPickerAtom,
-	} = useAppAtoms()
+	const { cwdAtom, currentChatIdAtom, chatListAtom, selectedChatIndexAtom, showChatPickerAtom } =
+		useAppAtoms()
 	const actions = useAppActions()
 	const agent = useAgentActions()
 
@@ -213,15 +203,11 @@ export function useChatPickerKeyHandler() {
 
 			switch (key.name) {
 				case "up":
-					selectedChatIndexAtom.set(
-						selectedIndex > 0 ? selectedIndex - 1 : chats.length - 1,
-					)
+					selectedChatIndexAtom.set(selectedIndex > 0 ? selectedIndex - 1 : chats.length - 1)
 					return true
 
 				case "down":
-					selectedChatIndexAtom.set(
-						selectedIndex < chats.length - 1 ? selectedIndex + 1 : 0,
-					)
+					selectedChatIndexAtom.set(selectedIndex < chats.length - 1 ? selectedIndex + 1 : 0)
 					return true
 
 				case "return": {
@@ -247,12 +233,6 @@ export function useChatPickerKeyHandler() {
 					return false
 			}
 		},
-		[
-			deleteSelectedChat,
-			selectChat,
-			showChatPickerAtom,
-			chatListAtom,
-			selectedChatIndexAtom,
-		],
+		[deleteSelectedChat, selectChat, showChatPickerAtom, chatListAtom, selectedChatIndexAtom],
 	)
 }

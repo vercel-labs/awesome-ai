@@ -22,19 +22,16 @@ export function isContentSame(
 		/^(import\s+(?:type\s+)?(?:\*\s+as\s+\w+|\{[^}]*\}|\w+)?(?:\s*,\s*(?:\{[^}]*\}|\w+))?\s+from\s+["'])([^"']+)(["'])/gm
 
 	const normalizeImports = (content: string) => {
-		return content.replace(
-			importRegex,
-			(_match, prefix, importPath, suffix) => {
-				if (importPath.startsWith(".")) {
-					return `${prefix}${importPath}${suffix}`
-				}
+		return content.replace(importRegex, (_match, prefix, importPath, suffix) => {
+			if (importPath.startsWith(".")) {
+				return `${prefix}${importPath}${suffix}`
+			}
 
-				const parts = importPath.split("/")
-				const lastPart = parts[parts.length - 1]
+			const parts = importPath.split("/")
+			const lastPart = parts[parts.length - 1]
 
-				return `${prefix}@normalized/${lastPart}${suffix}`
-			},
-		)
+			return `${prefix}@normalized/${lastPart}${suffix}`
+		})
 	}
 
 	const existingNormalized = normalizeImports(normalizedExisting)

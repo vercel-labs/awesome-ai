@@ -54,9 +54,7 @@ export async function getAllTools(): Promise<Tool[]> {
 	return registry.items.map(toTool)
 }
 
-export async function getToolBySlug(
-	slug: string,
-): Promise<ToolDetail | undefined> {
+export async function getToolBySlug(slug: string): Promise<ToolDetail | undefined> {
 	try {
 		const item = await fetchRegistryFile<RegistryItem>(`tools/${slug}.json`)
 		return {

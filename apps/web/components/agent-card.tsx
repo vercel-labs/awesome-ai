@@ -21,9 +21,7 @@ export function AgentCard({ agent }: AgentCardProps) {
 							{agent.title}
 						</h3>
 					</div>
-					<p className="text-sm text-muted-foreground line-clamp-2 mb-3">
-						{agent.description}
-					</p>
+					<p className="text-sm text-muted-foreground line-clamp-2 mb-3">{agent.description}</p>
 					<div className="flex items-center gap-2 flex-wrap text-xs text-muted-foreground">
 						{agent.categories.map((category) => (
 							<Badge key={category} variant="secondary">

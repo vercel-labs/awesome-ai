@@ -1,5 +1,5 @@
-import { Command } from "commander"
 import path from "path"
+import { Command } from "commander"
 import { z } from "zod"
 import { getRegistryItems } from "../registry/api"
 import { clearRegistryContext } from "../registry/context"
@@ -41,9 +41,7 @@ export const view = new Command()
 			}
 
 			if (!options.type) {
-				throw new Error(
-					"Please specify the type using --type (agents, tools, or prompts).",
-				)
+				throw new Error("Please specify the type using --type (agents, tools, or prompts).")
 			}
 
 			const payload = await getRegistryItems(items, options.type, {

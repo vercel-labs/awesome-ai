@@ -58,9 +58,9 @@ describe("migrate command", () => {
 		it("exits with error when no config found", async () => {
 			mockGetConfig.mockResolvedValue(null)
 
-			await expect(
-				migrate.parseAsync(["bun", "test", "my-migration"]),
-			).rejects.toThrow(ProcessExitError)
+			await expect(migrate.parseAsync(["bun", "test", "my-migration"])).rejects.toThrow(
+				ProcessExitError,
+			)
 
 			expect(mockLogger.error).toHaveBeenCalledWith(
 				expect.stringContaining("agents.json not found"),
@@ -71,9 +71,9 @@ describe("migrate command", () => {
 		it("exits with error when agents path cannot be resolved", async () => {
 			mockGetConfig.mockResolvedValue(createMockConfig({ agents: null }))
 
-			await expect(
-				migrate.parseAsync(["bun", "test", "my-migration"]),
-			).rejects.toThrow(ProcessExitError)
+			await expect(migrate.parseAsync(["bun", "test", "my-migration"])).rejects.toThrow(
+				ProcessExitError,
+			)
 
 			expect(mockLogger.error).toHaveBeenCalledWith(
 				"Could not resolve agents path from agents.json",
@@ -84,9 +84,9 @@ describe("migrate command", () => {
 		it("exits with error when prompts path cannot be resolved", async () => {
 			mockGetConfig.mockResolvedValue(createMockConfig({ prompts: null }))
 
-			await expect(
-				migrate.parseAsync(["bun", "test", "my-migration"]),
-			).rejects.toThrow(ProcessExitError)
+			await expect(migrate.parseAsync(["bun", "test", "my-migration"])).rejects.toThrow(
+				ProcessExitError,
+			)
 
 			expect(mockLogger.error).toHaveBeenCalledWith(
 				"Could not resolve prompts path from agents.json",
@@ -100,9 +100,9 @@ describe("migrate command", () => {
 			mockGetConfig.mockResolvedValue(createMockConfig())
 			mockDiscoverAgents.mockResolvedValue([])
 
-			await expect(
-				migrate.parseAsync(["bun", "test", "my-migration"]),
-			).rejects.toThrow(ProcessExitError)
+			await expect(migrate.parseAsync(["bun", "test", "my-migration"])).rejects.toThrow(
+				ProcessExitError,
+			)
 
 			expect(mockLogger.error).toHaveBeenCalledWith(
 				expect.stringContaining("Missing required agents"),
@@ -110,28 +110,22 @@ describe("migrate command", () => {
 			expect(mockLogger.error).toHaveBeenCalledWith(
 				expect.stringContaining("migration-planning-agent"),
 			)
-			expect(mockLogger.error).toHaveBeenCalledWith(
-				expect.stringContaining("migration-agent"),
-			)
+			expect(mockLogger.error).toHaveBeenCalledWith(expect.stringContaining("migration-agent"))
 			expect(process.exit).toHaveBeenCalledWith(1)
 		})
 
 		it("exits with error when required agents are missing (partial)", async () => {
 			mockGetConfig.mockResolvedValue(createMockConfig())
-			mockDiscoverAgents.mockResolvedValue(
-				createMockAgents(["migration-planning-agent"]),
-			)
+			mockDiscoverAgents.mockResolvedValue(createMockAgents(["migration-planning-agent"]))
 
-			await expect(
-				migrate.parseAsync(["bun", "test", "my-migration"]),
-			).rejects.toThrow(ProcessExitError)
+			await expect(migrate.parseAsync(["bun", "test", "my-migration"])).rejects.toThrow(
+				ProcessExitError,
+			)
 
 			expect(mockLogger.error).toHaveBeenCalledWith(
 				expect.stringContaining("Missing required agents"),
 			)
-			expect(mockLogger.error).toHaveBeenCalledWith(
-				expect.stringContaining("migration-agent"),
-			)
+			expect(mockLogger.error).toHaveBeenCalledWith(expect.stringContaining("migration-agent"))
 			expect(process.exit).toHaveBeenCalledWith(1)
 		})
 
@@ -139,22 +133,20 @@ describe("migrate command", () => {
 			mockGetConfig.mockResolvedValue(createMockConfig())
 			mockDiscoverAgents.mockResolvedValue([])
 
-			await expect(
-				migrate.parseAsync(["bun", "test", "my-migration"]),
-			).rejects.toThrow(ProcessExitError)
-
-			expect(mockLogger.error).toHaveBeenCalledWith(
-				expect.stringContaining("awesome-ai add"),
+			await expect(migrate.parseAsync(["bun", "test", "my-migration"])).rejects.toThrow(
+				ProcessExitError,
 			)
+
+			expect(mockLogger.error).toHaveBeenCalledWith(expect.stringContaining("awesome-ai add"))
 		})
 
 		it("shows correct suggestion in error when --remote was used", async () => {
 			mockGetConfig.mockResolvedValue(createMockConfig())
 			mockDiscoverAgents.mockResolvedValue([])
 
-			await expect(
-				migrate.parseAsync(["bun", "test", "my-migration", "--remote"]),
-			).rejects.toThrow(ProcessExitError)
+			await expect(migrate.parseAsync(["bun", "test", "my-migration", "--remote"])).rejects.toThrow(
+				ProcessExitError,
+			)
 
 			expect(mockLogger.error).toHaveBeenCalledWith(
 				expect.stringContaining("may not be available in the remote registry"),
@@ -175,9 +167,9 @@ describe("migrate command", () => {
 				},
 			})
 
-			await expect(
-				migrate.parseAsync(["bun", "test", "my-migration", "--remote"]),
-			).rejects.toThrow(ProcessExitError)
+			await expect(migrate.parseAsync(["bun", "test", "my-migration", "--remote"])).rejects.toThrow(
+				ProcessExitError,
+			)
 
 			expect(mockLogger.info).toHaveBeenCalledWith("Remote sync cancelled.")
 			expect(process.exit).toHaveBeenCalledWith(0)
@@ -196,9 +188,9 @@ describe("migrate command", () => {
 				},
 			})
 
-			await expect(
-				migrate.parseAsync(["bun", "test", "my-migration", "--remote"]),
-			).rejects.toThrow(ProcessExitError)
+			await expect(migrate.parseAsync(["bun", "test", "my-migration", "--remote"])).rejects.toThrow(
+				ProcessExitError,
+			)
 
 			expect(process.exit).toHaveBeenCalledWith(1)
 			expect(mockRunTui).not.toHaveBeenCalled()
@@ -210,13 +202,7 @@ describe("migrate command", () => {
 				createMockAgents(["migration-planning-agent", "migration-agent"]),
 			)
 
-			await migrate.parseAsync([
-				"node",
-				"test",
-				"my-migration",
-				"--remote",
-				"--yes",
-			])
+			await migrate.parseAsync(["node", "test", "my-migration", "--remote", "--yes"])
 
 			expect(mockPerformRemoteSync).toHaveBeenCalledWith(
 				[
@@ -231,12 +217,7 @@ describe("migrate command", () => {
 
 	describe("runTui invocation with remote options", () => {
 		it("calls runTui with remote paths when --remote-only", async () => {
-			await migrate.parseAsync([
-				"node",
-				"test",
-				"my-migration",
-				"--remote-only",
-			])
+			await migrate.parseAsync(["node", "test", "my-migration", "--remote-only"])
 
 			expect(mockRunTui).toHaveBeenCalledWith({
 				agentPaths: ["/cache/agents"],

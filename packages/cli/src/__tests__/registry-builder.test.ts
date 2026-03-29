@@ -2,11 +2,7 @@ import { promises as fs } from "fs"
 import { tmpdir } from "os"
 import path from "path"
 import { afterEach, describe, expect, it } from "vitest"
-import {
-	buildRegistryIndex,
-	loadNpmPackages,
-	processDirectory,
-} from "../utils/registry-builder"
+import { buildRegistryIndex, loadNpmPackages, processDirectory } from "../utils/registry-builder"
 
 const tempDirs: string[] = []
 
@@ -17,11 +13,7 @@ async function createTempDir(prefix: string): Promise<string> {
 }
 
 afterEach(async () => {
-	await Promise.all(
-		tempDirs
-			.splice(0)
-			.map((dir) => fs.rm(dir, { recursive: true, force: true })),
-	)
+	await Promise.all(tempDirs.splice(0).map((dir) => fs.rm(dir, { recursive: true, force: true })))
 })
 
 describe("registry-builder public API", () => {
@@ -73,12 +65,7 @@ export const codingAgent = {
 			"utf-8",
 		)
 
-		const items = await processDirectory(
-			"agents",
-			agentsDir,
-			srcDir,
-			new Set(["zod"]),
-		)
+		const items = await processDirectory("agents", agentsDir, srcDir, new Set(["zod"]))
 		expect(items).toHaveLength(1)
 
 		const item = items[0]!
@@ -116,33 +103,12 @@ export const codingAgent = {
 		await fs.mkdir(path.join(toolsDir, "lib"), { recursive: true })
 		await fs.mkdir(path.join(toolsDir, "__tests__"), { recursive: true })
 
-		await fs.writeFile(
-			path.join(toolsDir, "real-tool.ts"),
-			`export const real = {}`,
-			"utf-8",
-		)
-		await fs.writeFile(
-			path.join(toolsDir, "real-tool.test.ts"),
-			`export {}`,
-			"utf-8",
-		)
-		await fs.writeFile(
-			path.join(toolsDir, "__tests__", "extra.ts"),
-			`export {}`,
-			"utf-8",
-		)
-		await fs.writeFile(
-			path.join(toolsDir, "lib", "helper.ts"),
-			`export {}`,
-			"utf-8",
-		)
+		await fs.writeFile(path.join(toolsDir, "real-tool.ts"), `export const real = {}`, "utf-8")
+		await fs.writeFile(path.join(toolsDir, "real-tool.test.ts"), `export {}`, "utf-8")
+		await fs.writeFile(path.join(toolsDir, "__tests__", "extra.ts"), `export {}`, "utf-8")
+		await fs.writeFile(path.join(toolsDir, "lib", "helper.ts"), `export {}`, "utf-8")
 
-		const items = await processDirectory(
-			"tools",
-			toolsDir,
-			srcDir,
-			new Set<string>(),
-		)
+		const items = await processDirectory("tools", toolsDir, srcDir, new Set<string>())
 		expect(items).toHaveLength(1)
 		expect(items[0]?.name).toBe("real-tool")
 	})

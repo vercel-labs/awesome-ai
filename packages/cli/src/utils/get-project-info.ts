@@ -1,6 +1,6 @@
+import path from "path"
 import fg from "fast-glob"
 import fs from "fs-extra"
-import path from "path"
 import { loadConfig } from "tsconfig-paths"
 
 export type ProjectInfo = {
@@ -9,13 +9,7 @@ export type ProjectInfo = {
 	aliasPrefix: string | null
 }
 
-const PROJECT_SHARED_IGNORE = [
-	"**/node_modules/**",
-	".next",
-	"public",
-	"dist",
-	"build",
-]
+const PROJECT_SHARED_IGNORE = ["**/node_modules/**", ".next", "public", "dist", "build"]
 
 export async function getProjectInfo(cwd: string): Promise<ProjectInfo | null> {
 	const [isSrcDir, isTsx, aliasPrefix] = await Promise.all([

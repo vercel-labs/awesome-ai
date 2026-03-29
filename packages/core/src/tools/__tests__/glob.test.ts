@@ -24,10 +24,7 @@ describe("globTool", () => {
 		async () => {
 			await fs.mkdir(path.join(tempDir, "subdir"), { recursive: true })
 			await fs.writeFile(path.join(tempDir, "root.nestedtest"), "root")
-			await fs.writeFile(
-				path.join(tempDir, "subdir", "nested.nestedtest"),
-				"nested",
-			)
+			await fs.writeFile(path.join(tempDir, "subdir", "nested.nestedtest"), "nested")
 
 			const results = await executeTool(globTool, {
 				pattern: "**/*.nestedtest",

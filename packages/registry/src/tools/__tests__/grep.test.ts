@@ -17,10 +17,7 @@ describe("grepTool", () => {
 	})
 
 	it("finds pattern in files", async () => {
-		await fs.writeFile(
-			path.join(tempDir, "file.txt"),
-			"hello world\nfoo bar\nhello again",
-		)
+		await fs.writeFile(path.join(tempDir, "file.txt"), "hello world\nfoo bar\nhello again")
 
 		const results = await executeTool(grepTool, {
 			pattern: "hello",
@@ -39,10 +36,7 @@ describe("grepTool", () => {
 	})
 
 	it("returns line numbers", async () => {
-		await fs.writeFile(
-			path.join(tempDir, "file.txt"),
-			"line 1\ntarget line\nline 3",
-		)
+		await fs.writeFile(path.join(tempDir, "file.txt"), "line 1\ntarget line\nline 3")
 
 		const results = await executeTool(grepTool, {
 			pattern: "target",
@@ -78,10 +72,7 @@ describe("grepTool", () => {
 	})
 
 	it("supports regex patterns", async () => {
-		await fs.writeFile(
-			path.join(tempDir, "file.txt"),
-			"foo123bar\nfoo456bar\nno match",
-		)
+		await fs.writeFile(path.join(tempDir, "file.txt"), "foo123bar\nfoo456bar\nno match")
 
 		const results = await executeTool(grepTool, {
 			pattern: "foo\\d+bar",
@@ -137,10 +128,7 @@ describe("grepTool", () => {
 
 	it("searches nested directories", async () => {
 		await fs.mkdir(path.join(tempDir, "subdir"), { recursive: true })
-		await fs.writeFile(
-			path.join(tempDir, "subdir", "nested.txt"),
-			"nested match",
-		)
+		await fs.writeFile(path.join(tempDir, "subdir", "nested.txt"), "nested match")
 
 		const results = await executeTool(grepTool, {
 			pattern: "nested",
@@ -171,10 +159,7 @@ describe("grepTool", () => {
 	})
 
 	it("groups results by file", async () => {
-		await fs.writeFile(
-			path.join(tempDir, "file.txt"),
-			"match line 1\nmatch line 2",
-		)
+		await fs.writeFile(path.join(tempDir, "file.txt"), "match line 1\nmatch line 2")
 
 		const results = await executeTool(grepTool, {
 			pattern: "match",
@@ -222,10 +207,7 @@ describe("grepTool", () => {
 	})
 
 	it("trims whitespace from matched lines", async () => {
-		await fs.writeFile(
-			path.join(tempDir, "file.txt"),
-			"   match with spaces   ",
-		)
+		await fs.writeFile(path.join(tempDir, "file.txt"), "   match with spaces   ")
 
 		const results = await executeTool(grepTool, {
 			pattern: "match",

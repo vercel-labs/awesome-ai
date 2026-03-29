@@ -28,12 +28,7 @@ export interface AgentSettings {
 	todoStorage?: TodoStorage
 }
 
-export async function createAgent({
-	model,
-	cwd,
-	environment,
-	todoStorage,
-}: AgentSettings) {
+export async function createAgent({ model, cwd, environment, todoStorage }: AgentSettings) {
 	const env = await getEnvironmentContext({ cwd, ...environment })
 	const instructions = applyEnvironment(prompt, env)
 	const { todoRead, todoWrite } = createTodoTools(todoStorage)

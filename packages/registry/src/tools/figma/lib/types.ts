@@ -155,14 +155,8 @@ export interface FigmaNode {
 
 export interface FigmaFile {
 	document: FigmaNode
-	components: Record<
-		string,
-		{ name: string; description?: string; key?: string }
-	>
-	styles?: Record<
-		string,
-		{ name: string; styleType: string; description?: string }
-	>
+	components: Record<string, { name: string; description?: string; key?: string }>
+	styles?: Record<string, { name: string; styleType: string; description?: string }>
 }
 
 // ============================================================================

@@ -22,21 +22,21 @@ npx awesome-ai add read write edit bash list grep glob --type tools
 
 ### CLI Commands
 
-| Command | Description |
-|---------|-------------|
-| `npx awesome-ai list --type tools` | List all available tools |
+| Command                                   | Description                        |
+| ----------------------------------------- | ---------------------------------- |
+| `npx awesome-ai list --type tools`        | List all available tools           |
 | `npx awesome-ai view <tool> --type tools` | View tool details and dependencies |
-| `npx awesome-ai add <tool> --type tools` | Add a tool to your project |
-| `npx awesome-ai diff <tool> --type tools` | Check for updates to a tool |
+| `npx awesome-ai add <tool> --type tools`  | Add a tool to your project         |
+| `npx awesome-ai diff <tool> --type tools` | Check for updates to a tool        |
 
 ### Options
 
-| Option | Description |
-|--------|-------------|
-| `-o, --overwrite` | Overwrite existing files |
-| `-y, --yes` | Skip confirmation prompts |
+| Option             | Description               |
+| ------------------ | ------------------------- |
+| `-o, --overwrite`  | Overwrite existing files  |
+| `-y, --yes`        | Skip confirmation prompts |
 | `-c, --cwd <path>` | Specify working directory |
-| `-s, --silent` | Mute output |
+| `-s, --silent`     | Mute output               |
 
 ### Example: Adding Tools to an Existing Project
 
@@ -58,15 +58,15 @@ npx awesome-ai add edit --type tools --overwrite
 
 ## Tools Overview
 
-| Tool | Purpose |
-|------|---------|
-| `read` | Read files from the filesystem |
-| `write` | Create or overwrite files |
-| `edit` | Search and replace within files |
-| `bash` | Execute shell commands |
-| `list` | List directory contents |
-| `grep` | Search file contents with regex |
-| `glob` | Find files by name pattern |
+| Tool    | Purpose                         |
+| ------- | ------------------------------- |
+| `read`  | Read files from the filesystem  |
+| `write` | Create or overwrite files       |
+| `edit`  | Search and replace within files |
+| `bash`  | Execute shell commands          |
+| `list`  | List directory contents         |
+| `grep`  | Search file contents with regex |
+| `glob`  | Find files by name pattern      |
 
 ---
 
@@ -75,6 +75,7 @@ npx awesome-ai add edit --type tools --overwrite
 Reads files from the local filesystem with line numbers.
 
 ### Current Features
+
 - Line-numbered output format (`00001| content`)
 - Configurable offset and limit for partial reads
 - **Extension-based binary detection** - Fast-path for 50+ known binary extensions (.zip, .exe, .wasm, .pdf, etc.)
@@ -87,6 +88,7 @@ Reads files from the local filesystem with line numbers.
 - Directory detection with helpful error message
 
 ### Potential Improvements
+
 - [ ] **Image support** - Return images as base64 for vision-capable models
 - [ ] **File read tracking** - Track when files were read for conflict detection
 
@@ -97,6 +99,7 @@ Reads files from the local filesystem with line numbers.
 Creates new files or overwrites existing files.
 
 ### Current Features
+
 - Automatic directory creation (creates parent directories if needed)
 - Detects if file exists vs created
 - Absolute path resolution
@@ -106,6 +109,7 @@ Creates new files or overwrites existing files.
 - **Rich metadata** - Includes `lineCount`, `byteSize`, `wasOverwrite`, `diff`, `warning`
 
 ### Potential Improvements
+
 - [ ] **LSP diagnostics** - Return linter/type errors after writing so agent can fix them immediately
 - [ ] **File conflict detection** - Verify file hasn't changed since it was last read before overwriting
 - [ ] **Permission system** - Optional approval before writing files
@@ -117,6 +121,7 @@ Creates new files or overwrites existing files.
 Performs search and replace operations within files with fuzzy matching.
 
 ### Current Features
+
 - **9 replacement strategies** (tried in order of preference):
   1. Exact string matching
   2. Line-trimmed matching (ignores leading/trailing whitespace per line)
@@ -133,6 +138,7 @@ Performs search and replace operations within files with fuzzy matching.
 - Line ending normalization (handles CRLF → LF)
 
 ### Potential Improvements
+
 - [ ] **LSP diagnostics** - Return linter errors after edit so agent can fix them immediately
 - [ ] **File conflict detection** - Verify file hasn't changed since last read
 
@@ -143,6 +149,7 @@ Performs search and replace operations within files with fuzzy matching.
 Executes shell commands with real-time output streaming.
 
 ### Current Features
+
 - **Real-time output streaming** - Yields output as it's produced (throttled to 100ms intervals)
 - Combined stdout/stderr capture
 - Configurable timeout (default 1 min, max 10 min)
@@ -155,6 +162,7 @@ Executes shell commands with real-time output streaming.
 - **Timeout validation** - Validates timeout parameter, constrains to max 10 minutes
 
 ### Potential Improvements
+
 - [ ] **Command parsing** - Parse bash commands with tree-sitter for better understanding
 - [ ] **Granular permissions** - Allow/deny/ask for specific commands (e.g., `rm *`, `git push`)
 - [ ] **External directory detection** - Warn when commands reference paths outside project
@@ -166,6 +174,7 @@ Executes shell commands with real-time output streaming.
 Lists files and directories in a tree format.
 
 ### Current Features
+
 - **Ripgrep-powered** - Uses `rg --files` for fast file listing
 - **Respects .gitignore** - Automatically honors gitignore rules
 - Recursive directory walking
@@ -175,6 +184,7 @@ Lists files and directories in a tree format.
 - 100 file limit with truncation notice
 
 ### Potential Improvements
+
 - [ ] **File metadata** - Show file sizes, modification times
 
 ---
@@ -184,6 +194,7 @@ Lists files and directories in a tree format.
 Searches for regex patterns in file contents.
 
 ### Current Features
+
 - **Ripgrep-powered** - Uses ripgrep for fast searching
 - **Respects .gitignore** - Automatically honors gitignore rules
 - **Sorted by modification time** - Shows recently modified files first
@@ -193,6 +204,7 @@ Searches for regex patterns in file contents.
 - 100 match limit with truncation notice
 
 ### Potential Improvements
+
 - [ ] **Context lines** - Show lines before/after matches (`-A`, `-B`, `-C`)
 
 ---
@@ -202,6 +214,7 @@ Searches for regex patterns in file contents.
 Finds files matching a glob pattern.
 
 ### Current Features
+
 - **Ripgrep-powered** - Uses `rg --files --glob` for fast matching
 - **Respects .gitignore** - Automatically honors gitignore rules
 - **Full glob syntax** - Supports `**`, `{a,b}`, `[abc]` patterns
@@ -219,9 +232,15 @@ All tools use a consistent output schema via `toolOutput()`:
 
 ```typescript
 toolOutput({
-  pending: { /* fields shown while running */ },
-  success: { /* fields on success */ },
-  error: { /* fields on error */ },
+  pending: {
+    /* fields shown while running */
+  },
+  success: {
+    /* fields on success */
+  },
+  error: {
+    /* fields on error */
+  },
 })
 ```
 
@@ -302,4 +321,3 @@ const agent = createAgent({
 
 // The agent automatically has access to all core tools
 ```
-

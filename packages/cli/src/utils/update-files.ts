@@ -1,6 +1,6 @@
-import { type Change, diffLines } from "diff"
 import { existsSync, promises as fs, statSync } from "fs"
 import path, { basename } from "path"
+import { type Change, diffLines } from "diff"
 import prompts from "prompts"
 import type { RegistryItem, RegistryItemCategory } from "../registry/schema"
 import type { Config } from "../schema"
@@ -66,9 +66,7 @@ export async function updateFiles(
 		const targetDir = path.dirname(filePath)
 
 		if (!config.tsx && projectInfo?.isTsx) {
-			filePath = filePath.replace(/\.tsx?$/, (match) =>
-				match === ".tsx" ? ".jsx" : ".js",
-			)
+			filePath = filePath.replace(/\.tsx?$/, (match) => (match === ".tsx" ? ".jsx" : ".js"))
 		}
 
 		const existingFile = existsSync(filePath)
@@ -173,10 +171,7 @@ const CONTEXT_LINES = 3
  * Format a diff with context lines, hiding unchanged sections.
  * Returns an array of formatted lines.
  */
-export function formatDiffWithContext(
-	diff: Change[],
-	contextLines = CONTEXT_LINES,
-): string[] {
+export function formatDiffWithContext(diff: Change[], contextLines = CONTEXT_LINES): string[] {
 	const output: string[] = []
 
 	// Find indices of changed parts
@@ -249,20 +244,14 @@ export function formatDiffWithContext(
 				// Show first N lines after a change
 				contextOutput = lines.slice(0, contextLines).map((line) => `  ${line}`)
 				if (lines.length > contextLines) {
-					contextOutput.push(
-						`  ... ${lines.length - contextLines} lines hidden ...`,
-					)
+					contextOutput.push(`  ... ${lines.length - contextLines} lines hidden ...`)
 				}
 			} else if (showType === "end") {
 				// Show last N lines before a change
 				if (lines.length > contextLines) {
-					contextOutput.push(
-						`  ... ${lines.length - contextLines} lines hidden ...`,
-					)
+					contextOutput.push(`  ... ${lines.length - contextLines} lines hidden ...`)
 				}
-				contextOutput.push(
-					...lines.slice(-contextLines).map((line) => `  ${line}`),
-				)
+				contextOutput.push(...lines.slice(-contextLines).map((line) => `  ${line}`))
 			} else if (showType === "both") {
 				// Between two changes - show start and end context
 				if (lines.length <= contextLines * 2 + 1) {

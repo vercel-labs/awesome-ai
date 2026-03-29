@@ -1,5 +1,5 @@
-import { Command } from "commander"
 import path from "path"
+import { Command } from "commander"
 import { z } from "zod"
 import { getRegistry } from "../registry/api"
 import { clearRegistryContext } from "../registry/context"
@@ -21,10 +21,7 @@ export const list = new Command()
 		"the working directory. defaults to the current directory.",
 		process.cwd(),
 	)
-	.option(
-		"-t, --type <type>",
-		"the type of item to list (agents, tools, prompts)",
-	)
+	.option("-t, --type <type>", "the type of item to list (agents, tools, prompts)")
 	.option(
 		"-r, --registry <registry>",
 		"the registry to list from (default: @awesome-ai)",
@@ -50,13 +47,9 @@ export const list = new Command()
 			}
 
 			const type = options.type || "agents"
-			const registry = await getRegistry(
-				options.registry || "@awesome-ai",
-				type,
-				{
-					config,
-				},
-			)
+			const registry = await getRegistry(options.registry || "@awesome-ai", type, {
+				config,
+			})
 
 			console.log(JSON.stringify(registry.items, null, 2))
 			process.exit(0)

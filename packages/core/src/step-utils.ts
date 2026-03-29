@@ -44,10 +44,7 @@ export function createContextSummarizer(
 	model: LanguageModel,
 	options: ContextCompactionOptions = DEFAULT_COMPACTION_OPTIONS,
 ) {
-	const triggerThreshold = Math.max(
-		1,
-		options.thresholdTokens - options.proactiveBufferTokens,
-	)
+	const triggerThreshold = Math.max(1, options.thresholdTokens - options.proactiveBufferTokens)
 	return async ({
 		steps,
 		messages,
@@ -56,8 +53,7 @@ export function createContextSummarizer(
 		messages: ModelMessage[]
 	}) => {
 		const lastStep = steps.at(-1)
-		const inputTokens =
-			lastStep?.usage?.inputTokens ?? estimateMessageTokens(messages)
+		const inputTokens = lastStep?.usage?.inputTokens ?? estimateMessageTokens(messages)
 
 		if (inputTokens < triggerThreshold) {
 			return {}
@@ -74,11 +70,7 @@ export function createContextSummarizer(
 	}
 }
 
-export function stopOnTextResponse({
-	steps,
-}: {
-	steps: Array<{ toolCalls?: Array<unknown> }>
-}) {
+export function stopOnTextResponse({ steps }: { steps: Array<{ toolCalls?: Array<unknown> }> }) {
 	if (steps.length === 0) return false
 	const lastStep = steps[steps.length - 1]
 	if (!lastStep) return false

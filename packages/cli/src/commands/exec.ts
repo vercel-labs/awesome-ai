@@ -1,6 +1,6 @@
+import path from "path"
 import { runTui } from "awesome-ai-tui"
 import { Command } from "commander"
-import path from "path"
 import { z } from "zod"
 import { getConfig } from "../utils/get-config"
 import { handleError } from "../utils/handle-error"
@@ -32,11 +32,7 @@ export const exec = new Command()
 		"use agents/prompts from the remote registry (downloads if missing)",
 		false,
 	)
-	.option(
-		"--remote-only",
-		"use only remote agents/prompts (ignore local agents.json)",
-		false,
-	)
+	.option("--remote-only", "use only remote agents/prompts (ignore local agents.json)", false)
 	.option("-y, --yes", "skip confirmation prompt for remote sync", false)
 	.action(async (promptName: string, agent: string | undefined, opts) => {
 		try {
@@ -52,9 +48,7 @@ export const exec = new Command()
 			const remotePaths = getCachedItemsPaths()
 
 			if ((options.remote || options.remoteOnly) && !options.agent) {
-				logger.error(
-					"An agent name is required when using --remote or --remote-only.",
-				)
+				logger.error("An agent name is required when using --remote or --remote-only.")
 				logger.info("Usage: awesome-ai exec <prompt> <agent> --remote")
 				process.exit(1)
 			}
@@ -108,12 +102,8 @@ export const exec = new Command()
 			}
 
 			// Build paths arrays - local paths first, then remote if enabled
-			const agentPaths = options.remote
-				? [agentsPath, remotePaths.agents]
-				: [agentsPath]
-			const promptsPaths = options.remote
-				? [promptsPath, remotePaths.prompts]
-				: [promptsPath]
+			const agentPaths = options.remote ? [agentsPath, remotePaths.agents] : [agentsPath]
+			const promptsPaths = options.remote ? [promptsPath, remotePaths.prompts] : [promptsPath]
 
 			await runTui({
 				agentPaths,

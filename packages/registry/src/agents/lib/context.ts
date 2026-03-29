@@ -1,9 +1,4 @@
-import {
-	generateText,
-	type LanguageModel,
-	type ModelMessage,
-	type ToolResultPart,
-} from "ai"
+import { generateText, type LanguageModel, type ModelMessage, type ToolResultPart } from "ai"
 
 /**
  * Configuration for context summarization.
@@ -62,16 +57,13 @@ export function pruneToolOutputs(
 				(m, idx) =>
 					idx > i &&
 					m.role === "tool" &&
-					m.content.some(
-						(p) => p.type === "tool-result" && p.toolCallId === part.toolCallId,
-					),
+					m.content.some((p) => p.type === "tool-result" && p.toolCallId === part.toolCallId),
 			)
 
 			if (!resultMsg || !Array.isArray(resultMsg.content)) continue
 
 			const resultPart = resultMsg.content.find(
-				(p): p is ToolResultPart =>
-					p.type === "tool-result" && p.toolCallId === part.toolCallId,
+				(p): p is ToolResultPart => p.type === "tool-result" && p.toolCallId === part.toolCallId,
 			)
 
 			if (!resultPart) continue
@@ -234,11 +226,7 @@ export async function summarizeMessages(
 	// Generate summary through internal compaction flow.
 	let summaryMsg: ModelMessage
 	try {
-		summaryMsg = await runHiddenCompactionFlow(
-			prunedOld,
-			summaryModel ?? model,
-			prunedCount,
-		)
+		summaryMsg = await runHiddenCompactionFlow(prunedOld, summaryModel ?? model, prunedCount)
 	} catch {
 		summaryMsg = createFallbackSummary(oldMessages.length)
 	}

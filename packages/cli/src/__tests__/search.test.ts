@@ -35,10 +35,9 @@ describe("search command", () => {
 	})
 
 	it("searches agents by name", async () => {
-		const result = await runCLI(
-			["search", "--query", "test", "--registry", "@test"],
-			{ cwd: project.path },
-		)
+		const result = await runCLI(["search", "--query", "test", "--registry", "@test"], {
+			cwd: project.path,
+		})
 
 		expect(result.exitCode).toBe(0)
 		const output = JSON.parse(result.stdout)
@@ -46,18 +45,15 @@ describe("search command", () => {
 		// Should find items with "test" in name
 		for (const item of output) {
 			const matchesName = item.name.toLowerCase().includes("test")
-			const matchesDescription = item.description
-				?.toLowerCase()
-				.includes("test")
+			const matchesDescription = item.description?.toLowerCase().includes("test")
 			expect(matchesName || matchesDescription).toBe(true)
 		}
 	})
 
 	it("searches by description", async () => {
-		const result = await runCLI(
-			["search", "--query", "cli testing", "--registry", "@test"],
-			{ cwd: project.path },
-		)
+		const result = await runCLI(["search", "--query", "cli testing", "--registry", "@test"], {
+			cwd: project.path,
+		})
 
 		expect(result.exitCode).toBe(0)
 		const output = JSON.parse(result.stdout)
@@ -118,14 +114,12 @@ describe("search command", () => {
 	})
 
 	it("search is case-insensitive", async () => {
-		const resultLower = await runCLI(
-			["search", "--query", "test", "--registry", "@test"],
-			{ cwd: project.path },
-		)
-		const resultUpper = await runCLI(
-			["search", "--query", "TEST", "--registry", "@test"],
-			{ cwd: project.path },
-		)
+		const resultLower = await runCLI(["search", "--query", "test", "--registry", "@test"], {
+			cwd: project.path,
+		})
+		const resultUpper = await runCLI(["search", "--query", "TEST", "--registry", "@test"], {
+			cwd: project.path,
+		})
 
 		expect(resultLower.exitCode).toBe(0)
 		expect(resultUpper.exitCode).toBe(0)

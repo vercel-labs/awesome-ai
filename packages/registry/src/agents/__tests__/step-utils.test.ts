@@ -1,10 +1,7 @@
 import type { ModelMessage } from "ai"
 import { beforeEach, describe, expect, it, vi } from "vitest"
 import { summarizeMessages } from "@/agents/lib/context"
-import {
-	createContextSummarizer,
-	estimateMessageTokens,
-} from "@/agents/lib/step-utils"
+import { createContextSummarizer, estimateMessageTokens } from "@/agents/lib/step-utils"
 
 vi.mock("@/agents/lib/context", () => ({
 	summarizeMessages: vi.fn(),
@@ -65,9 +62,7 @@ describe("step utils compaction", () => {
 			protectTokens: 20_000,
 			minimumPruneTokens: 5_000,
 		})
-		const messages: ModelMessage[] = [
-			{ role: "user", content: "x".repeat(320) },
-		]
+		const messages: ModelMessage[] = [{ role: "user", content: "x".repeat(320) }]
 		const estimated = estimateMessageTokens(messages)
 		expect(estimated).toBe(80)
 		await summarizer({

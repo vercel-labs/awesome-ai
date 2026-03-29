@@ -1,13 +1,9 @@
-import { tool } from "ai"
 import { promises as fs } from "fs"
 import * as path from "path"
+import { tool } from "ai"
 import { z } from "zod"
 import * as ripgrep from "@/tools/lib/ripgrep"
-import {
-	continuationHint,
-	toolOutput,
-	truncation,
-} from "@/tools/lib/tool-output"
+import { continuationHint, toolOutput, truncation } from "@/tools/lib/tool-output"
 
 const LIMIT = 100
 
@@ -65,9 +61,7 @@ export const globTool = tool({
 		path: z
 			.string()
 			.optional()
-			.describe(
-				"The directory to search in. Defaults to the current working directory.",
-			),
+			.describe("The directory to search in. Defaults to the current working directory."),
 	}),
 	outputSchema: toolOutput({
 		pending: {
@@ -125,10 +119,7 @@ export const globTool = tool({
 			files.sort((a, b) => b.mtime - a.mtime)
 
 			const truncated = files.length >= LIMIT
-			const output =
-				files.length === 0
-					? "No files found"
-					: files.map((f) => f.path).join("\n")
+			const output = files.length === 0 ? "No files found" : files.map((f) => f.path).join("\n")
 
 			const result =
 				output +
@@ -145,9 +136,7 @@ export const globTool = tool({
 				fileCount: files.length,
 				truncated: truncated || undefined,
 				truncationReason: truncated ? "file_limit" : undefined,
-				continuationHint: truncated
-					? "Use a more specific glob or path to continue."
-					: undefined,
+				continuationHint: truncated ? "Use a more specific glob or path to continue." : undefined,
 			}
 		} catch (error) {
 			yield {

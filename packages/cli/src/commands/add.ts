@@ -1,5 +1,5 @@
-import { Command } from "commander"
 import path from "path"
+import { Command } from "commander"
 import prompts from "prompts"
 import { z } from "zod"
 import { preFlightAdd } from "../preflights/preflight-add"
@@ -65,11 +65,7 @@ export const add = new Command()
 			}
 
 			// Determine the type: --tool -> tools, --prompt -> prompts, default -> agents
-			const type = options.tool
-				? "tools"
-				: options.prompt
-					? "prompts"
-					: "agents"
+			const type = options.tool ? "tools" : options.prompt ? "prompts" : "agents"
 			const { errors } = await preFlightAdd(options)
 
 			if (errors[ERRORS.MISSING_CONFIG]) {
@@ -96,9 +92,7 @@ export const add = new Command()
 			}
 
 			if (!config) {
-				throw new Error(
-					`Failed to read config at ${highlighter.info(options.cwd)}.`,
-				)
+				throw new Error(`Failed to read config at ${highlighter.info(options.cwd)}.`)
 			}
 
 			const result = await addItems(options.items, type, config, {

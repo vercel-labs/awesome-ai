@@ -1,6 +1,6 @@
 import { createHash } from "crypto"
-import deepmerge from "deepmerge"
 import path from "path"
+import deepmerge from "deepmerge"
 import { z } from "zod"
 import type { Config } from "../schema"
 import { buildUrlAndHeadersForRegistryItem } from "./builder"
@@ -191,9 +191,7 @@ export async function resolveRegistryTree(
 
 	const parsed = registryResolvedItemsTreeSchema.parse({
 		dependencies: deepmerge.all(payload.map((item) => item.dependencies ?? [])),
-		devDependencies: deepmerge.all(
-			payload.map((item) => item.devDependencies ?? []),
-		),
+		devDependencies: deepmerge.all(payload.map((item) => item.devDependencies ?? [])),
 		files: deduplicateFilesByTarget(payload.map((item) => item.files ?? [])),
 		docs: payload
 			.map((item) => item.docs)
@@ -202,9 +200,7 @@ export async function resolveRegistryTree(
 	})
 
 	// Strip the internal _source field to return clean RegistryItem[]
-	const resolvedItems: RegistryItem[] = payload.map(
-		({ _source, ...rest }) => rest,
-	)
+	const resolvedItems: RegistryItem[] = payload.map(({ _source, ...rest }) => rest)
 
 	return { ...parsed, resolvedItems }
 }
@@ -238,19 +234,10 @@ async function resolveDependenciesRecursively(
 
 		if (item.registryDependencies) {
 			const resolvedDeps = config?.registries
-				? resolveRegistryItemsFromRegistries(
-						item.registryDependencies,
-						type,
-						config,
-					)
+				? resolveRegistryItemsFromRegistries(item.registryDependencies, type, config)
 				: item.registryDependencies
 
-			const nested = await resolveDependenciesRecursively(
-				resolvedDeps,
-				type,
-				config,
-				visited,
-			)
+			const nested = await resolveDependenciesRecursively(resolvedDeps, type, config, visited)
 			items.push(...nested.items)
 		}
 	}
@@ -261,10 +248,7 @@ async function resolveDependenciesRecursively(
 function computeItemHash(item: Pick<RegistryItem, "name">, source?: string) {
 	const identifier = source || item.name
 
-	const hash = createHash("sha256")
-		.update(identifier)
-		.digest("hex")
-		.substring(0, 8)
+	const hash = createHash("sha256").update(identifier).digest("hex").substring(0, 8)
 
 	return `${item.name}::${hash}`
 }
@@ -391,10 +375,7 @@ function topologicalSortRegistryItems(
 
 	if (sorted.length !== items.length) {
 		const missingHashes = Array.from(itemMap.keys()).filter(
-			(hash) =>
-				!sorted.some(
-					(item) => computeItemHash(item, sourceMap.get(item)) === hash,
-				),
+			(hash) => !sorted.some((item) => computeItemHash(item, sourceMap.get(item)) === hash),
 		)
 		console.warn(
 			`Warning: Circular dependencies detected. Some items may not be sorted correctly: ${missingHashes.join(", ")}`,
@@ -411,9 +392,7 @@ function topologicalSortRegistryItems(
 	return sorted
 }
 
-function deduplicateFilesByTarget(
-	filesArrays: Array<RegistryItem["files"] | undefined>,
-) {
+function deduplicateFilesByTarget(filesArrays: Array<RegistryItem["files"] | undefined>) {
 	const seen = new Map<string, RegistryItem["files"][number]>()
 	const result: RegistryItem["files"] = []
 

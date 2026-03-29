@@ -1,7 +1,7 @@
-import { type ExecaError, execa } from "execa"
 import { promises as fs } from "fs"
 import { tmpdir } from "os"
 import path from "path"
+import { type ExecaError, execa } from "execa"
 
 // Use TypeScript source directly with bun
 const CLI_PATH = path.resolve(__dirname, "../../index.ts")
@@ -67,10 +67,7 @@ export async function createTestProject(
 
 	// Create package.json if specified
 	if (options.packageJson) {
-		await project.writeFile(
-			"package.json",
-			JSON.stringify(options.packageJson, null, 2),
-		)
+		await project.writeFile("package.json", JSON.stringify(options.packageJson, null, 2))
 	}
 
 	// Create tsconfig.json if specified
@@ -93,10 +90,7 @@ export async function createTestProject(
 					}
 				: options.tsconfig
 
-		await project.writeFile(
-			"tsconfig.json",
-			JSON.stringify(tsconfigContent, null, 2),
-		)
+		await project.writeFile("tsconfig.json", JSON.stringify(tsconfigContent, null, 2))
 	}
 
 	// Create any additional files

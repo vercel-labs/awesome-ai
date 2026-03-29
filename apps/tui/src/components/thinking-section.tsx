@@ -27,9 +27,7 @@ export function ThinkingSection({ thinking }: ThinkingSectionProps) {
 				<text fg={colors.muted}>
 					<span fg={colors.pink}>{expanded ? "▼" : "▶"}</span>{" "}
 					<span fg={colors.muted}>thinking</span>
-					{!expanded && hasMore && (
-						<span fg={colors.border}> (click to expand)</span>
-					)}
+					{!expanded && hasMore && <span fg={colors.border}> (click to expand)</span>}
 				</text>
 			</box>
 

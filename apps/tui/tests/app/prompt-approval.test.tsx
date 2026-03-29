@@ -1,9 +1,6 @@
 import { describe, expect, mock, test } from "bun:test"
 import { createAppStore } from "../../src/components/atoms"
-import {
-	PromptApproval,
-	usePromptApprovalHandler,
-} from "../../src/components/prompt-approval"
+import { PromptApproval, usePromptApprovalHandler } from "../../src/components/prompt-approval"
 import { getBufferText, renderTui } from "../helpers/render"
 
 const sendMessageSpy = mock(() => Promise.resolve())
@@ -21,10 +18,9 @@ describe("PromptApproval", () => {
 			execPrompt: { name: "review", content: "Do the thing." },
 			currentAgent: "alpha",
 		})
-		const result = await renderTui(
-			<PromptApproval onApprove={() => {}} onDeny={() => {}} />,
-			{ store },
-		)
+		const result = await renderTui(<PromptApproval onApprove={() => {}} onDeny={() => {}} />, {
+			store,
+		})
 		const output = getBufferText(result)
 		expect(output).toContain("Prompt:")
 		expect(output).toContain("review")

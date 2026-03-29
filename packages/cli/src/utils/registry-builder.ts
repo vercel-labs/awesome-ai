@@ -12,19 +12,13 @@ function toTitleCase(str: string): string {
 		.join(" ")
 }
 
-function extractDescription(
-	content: string,
-	name: string,
-	type: ItemType,
-): string {
+function extractDescription(content: string, name: string, type: ItemType): string {
 	if (type === "tools") {
 		const constDescMatch = content.match(/^const description\s*=\s*`([^`]+)`/m)
 		if (constDescMatch) {
 			const fullDesc = constDescMatch[1]!.trim()
 			const firstLine = fullDesc.split("\n")[0]!.trim()
-			return firstLine.length > 100
-				? `${firstLine.slice(0, 100)}...`
-				: firstLine
+			return firstLine.length > 100 ? `${firstLine.slice(0, 100)}...` : firstLine
 		}
 	}
 
@@ -34,9 +28,7 @@ function extractDescription(
 			const lines = promptMatch[1]!.split("\n").filter((l) => l.trim())
 			if (lines.length > 0) {
 				const firstLine = lines[0]!.trim()
-				return firstLine.length > 100
-					? `${firstLine.slice(0, 100)}...`
-					: firstLine
+				return firstLine.length > 100 ? `${firstLine.slice(0, 100)}...` : firstLine
 			}
 		}
 	}
@@ -157,11 +149,7 @@ async function processSourceFile(
 ): Promise<RegistryItem | null> {
 	const baseName = path.basename(filePath, ".ts")
 
-	if (
-		baseName.endsWith(".test") ||
-		filePath.includes("__tests__") ||
-		filePath.includes("/lib/")
-	) {
+	if (baseName.endsWith(".test") || filePath.includes("__tests__") || filePath.includes("/lib/")) {
 		return null
 	}
 
@@ -169,21 +157,13 @@ async function processSourceFile(
 	const name = relativePath.replace(/\.ts$/, "")
 
 	const content = await fs.readFile(filePath, "utf-8")
-	const {
-		npmDeps,
-		npmDevDeps,
-		registryDeps,
-		toolLibFiles,
-		agentLibFiles,
-		relativeLibFiles,
-	} = extractImports(content, { npmPackages })
+	const { npmDeps, npmDevDeps, registryDeps, toolLibFiles, agentLibFiles, relativeLibFiles } =
+		extractImports(content, { npmPackages })
 	const description = extractDescription(content, baseName, type)
 
 	const registryType = `registry:${type.slice(0, -1)}` as RegistryItem["type"]
 
-	const files: RegistryItem["files"] = [
-		{ path: `${type}/${name}.ts`, type: registryType, content },
-	]
+	const files: RegistryItem["files"] = [{ path: `${type}/${name}.ts`, type: registryType, content }]
 
 	for (const lib of toolLibFiles) {
 		const libFile = await readLibFile(srcDir, lib, "tools")
@@ -266,18 +246,8 @@ export async function processDirectory(
 				if (entry.isDirectory()) {
 					if (entry.name === "lib" || entry.name === "__tests__") continue
 					await walk(fullPath)
-				} else if (
-					entry.isFile() &&
-					entry.name.endsWith(".ts") &&
-					!entry.name.includes(".test.")
-				) {
-					const item = await processSourceFile(
-						fullPath,
-						type,
-						baseDir,
-						srcDir,
-						npmPackages,
-					)
+				} else if (entry.isFile() && entry.name.endsWith(".ts") && !entry.name.includes(".test.")) {
+					const item = await processSourceFile(fullPath, type, baseDir, srcDir, npmPackages)
 					if (item) items.push(item)
 				}
 			}

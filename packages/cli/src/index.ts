@@ -18,14 +18,8 @@ process.on("SIGTERM", () => process.exit(0))
 async function main() {
 	const program = new Command()
 		.name("awesome-ai")
-		.description(
-			"add agents, tools, and prompts from registries to your project",
-		)
-		.version(
-			packageJson.version || "0.0.0",
-			"-v, --version",
-			"display the version number",
-		)
+		.description("add agents, tools, and prompts from registries to your project")
+		.version(packageJson.version || "0.0.0", "-v, --version", "display the version number")
 
 	program
 		.addCommand(init)

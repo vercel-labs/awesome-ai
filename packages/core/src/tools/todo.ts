@@ -88,10 +88,7 @@ export function createTodoTools(storage?: TodoStorage) {
 
 			return {
 				status: "success",
-				message:
-					todos.length === 0
-						? "No todos yet."
-						: `Retrieved ${todos.length} todos.`,
+				message: todos.length === 0 ? "No todos yet." : `Retrieved ${todos.length} todos.`,
 				todos,
 				count: todos.length,
 				pending,
@@ -113,10 +110,7 @@ export function createTodoTools(storage?: TodoStorage) {
 
 			return {
 				status: "success",
-				message:
-					todos.length === 0
-						? "Cleared all todos."
-						: `Saved ${todos.length} todos.`,
+				message: todos.length === 0 ? "Cleared all todos." : `Saved ${todos.length} todos.`,
 				todos,
 				count: todos.length,
 				pending,

@@ -60,16 +60,12 @@ export function buildUrlFromRegistryConfig(
 ) {
 	if (typeof registryConfig === "string") {
 		const urlWithPlaceholders = appendPlaceholdersIfNeeded(registryConfig)
-		const url = urlWithPlaceholders
-			.replace(NAME_PLACEHOLDER, item)
-			.replace(TYPE_PLACEHOLDER, type)
+		const url = urlWithPlaceholders.replace(NAME_PLACEHOLDER, item).replace(TYPE_PLACEHOLDER, type)
 		return expandEnvVars(url)
 	}
 
 	const urlWithPlaceholders = appendPlaceholdersIfNeeded(registryConfig.url)
-	let baseUrl = urlWithPlaceholders
-		.replace(NAME_PLACEHOLDER, item)
-		.replace(TYPE_PLACEHOLDER, type)
+	let baseUrl = urlWithPlaceholders.replace(NAME_PLACEHOLDER, item).replace(TYPE_PLACEHOLDER, type)
 	baseUrl = expandEnvVars(baseUrl)
 
 	if (!registryConfig.params) {
@@ -79,9 +75,7 @@ export function buildUrlFromRegistryConfig(
 	return appendQueryParams(baseUrl, registryConfig.params)
 }
 
-export function buildHeadersFromRegistryConfig(
-	config: z.infer<typeof registryConfigItemSchema>,
-) {
+export function buildHeadersFromRegistryConfig(config: z.infer<typeof registryConfigItemSchema>) {
 	if (typeof config === "string" || !config.headers) {
 		return {}
 	}
@@ -131,9 +125,7 @@ function shouldIncludeHeader(originalValue: string, expandedValue: string) {
 	if (originalValue.includes("${")) {
 		const envVars = originalValue.match(ENV_VAR_PATTERN)
 		if (envVars) {
-			const templateWithoutVars = originalValue
-				.replace(ENV_VAR_PATTERN, "")
-				.trim()
+			const templateWithoutVars = originalValue.replace(ENV_VAR_PATTERN, "").trim()
 			return trimmedExpanded !== templateWithoutVars
 		}
 	}

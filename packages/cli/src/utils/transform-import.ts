@@ -50,22 +50,14 @@ export async function transformImports(opts: TransformOpts): Promise<string> {
 	})
 
 	for (const specifier of sourceFile.getImportStringLiterals()) {
-		const updated = updateImportAliases(
-			specifier.getLiteralValue(),
-			opts.config,
-			opts.isRemote,
-		)
+		const updated = updateImportAliases(specifier.getLiteralValue(), opts.config, opts.isRemote)
 		specifier.setLiteralValue(updated)
 	}
 
 	return sourceFile.getText()
 }
 
-function updateImportAliases(
-	moduleSpecifier: string,
-	config: Config,
-	_isRemote: boolean = false,
-) {
+function updateImportAliases(moduleSpecifier: string, config: Config, _isRemote: boolean = false) {
 	if (moduleSpecifier.startsWith("@/tools/")) {
 		const rest = moduleSpecifier.replace(/^@\/tools\//, "")
 		return `${config.aliases.tools}/${rest}`

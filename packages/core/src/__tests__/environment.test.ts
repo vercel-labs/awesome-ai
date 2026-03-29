@@ -92,9 +92,7 @@ describe("getEnvironmentContext", () => {
 				customRuleFiles: ["CUSTOM.md"],
 			})
 			expect(ctx.customRules).toBeDefined()
-			expect(ctx.customRules!.some((r) => r.includes("Project Rules"))).toBe(
-				true,
-			)
+			expect(ctx.customRules!.some((r) => r.includes("Project Rules"))).toBe(true)
 		})
 
 		it("walks directory for file tree in non-git repos", async () => {
@@ -108,10 +106,7 @@ describe("getEnvironmentContext", () => {
 
 		it("ignores node_modules and other common directories", async () => {
 			await fs.mkdir(path.join(tempDir, "node_modules"))
-			await fs.writeFile(
-				path.join(tempDir, "node_modules", "package.json"),
-				"{}",
-			)
+			await fs.writeFile(path.join(tempDir, "node_modules", "package.json"), "{}")
 			await fs.writeFile(path.join(tempDir, "index.ts"), "")
 			const ctx = await getEnvironmentContext({ cwd: tempDir })
 			expect(ctx.fileTree).toBeDefined()

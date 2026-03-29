@@ -2,14 +2,7 @@
  * Markdown rendering components for terminal UI
  */
 
-import {
-	type ReactNode,
-	useEffect,
-	useId,
-	useMemo,
-	useState,
-	useTransition,
-} from "react"
+import { type ReactNode, useEffect, useId, useMemo, useState, useTransition } from "react"
 import remend from "remend"
 import { colors } from "../theme"
 import { CodeBlock } from "./code-block"
@@ -225,8 +218,7 @@ function ListBlock({
 			{listItems.map((item, idx) => {
 				// Update numbering for this indent level
 				if (ordered) {
-					numberingByIndent[item.indent] =
-						(numberingByIndent[item.indent] || 0) + 1
+					numberingByIndent[item.indent] = (numberingByIndent[item.indent] || 0) + 1
 					// Reset deeper levels when we go back up
 					for (const key of Object.keys(numberingByIndent)) {
 						if (Number(key) > item.indent) {
@@ -356,9 +348,7 @@ function parseBlocks(text: string): ParsedBlock[] {
 				const listLine = lines[i]!
 				const itemMatch = listLine.match(listItemPattern)
 				if (itemMatch) {
-					const indent = Math.floor(
-						((itemMatch[1]?.length ?? 0) - baseIndent) / 2,
-					)
+					const indent = Math.floor(((itemMatch[1]?.length ?? 0) - baseIndent) / 2)
 					items.push({ text: itemMatch[3] ?? "", indent: Math.max(0, indent) })
 					i += 1
 				} else if (listLine.trim() === "") {
@@ -482,13 +472,7 @@ function BlockRenderer({
 }) {
 	switch (block.type) {
 		case "heading":
-			return (
-				<HeadingBlock
-					content={block.content}
-					level={block.level ?? 1}
-					isFirst={isFirst}
-				/>
-			)
+			return <HeadingBlock content={block.content} level={block.level ?? 1} isFirst={isFirst} />
 		case "list":
 			return (
 				<ListBlock
@@ -521,10 +505,7 @@ export function Markdown({ children, streaming = false }: MarkdownProps) {
 	const [displayBlocks, setDisplayBlocks] = useState<ParsedBlock[]>([])
 
 	// Process incomplete markdown for streaming
-	const processed = useMemo(
-		() => (streaming ? remend(children) : children),
-		[children, streaming],
-	)
+	const processed = useMemo(() => (streaming ? remend(children) : children), [children, streaming])
 
 	// Parse into blocks - memoized to avoid reparsing on every render
 	const blocks = useMemo(() => parseBlocks(processed), [processed])

@@ -1,6 +1,6 @@
-import { Command } from "commander"
 import { promises as fs } from "fs"
 import path from "path"
+import { Command } from "commander"
 import prompts from "prompts"
 import { z } from "zod"
 import { preFlightInit } from "../preflights/preflight-init"
@@ -67,9 +67,7 @@ export async function runInit(options: z.infer<typeof initOptionsSchema>) {
 		const { proceed } = await prompts({
 			type: "confirm",
 			name: "proceed",
-			message: `Write configuration to ${highlighter.info(
-				"agents.json",
-			)}. Proceed?`,
+			message: `Write configuration to ${highlighter.info("agents.json")}. Proceed?`,
 			initial: true,
 		})
 
@@ -113,9 +111,7 @@ async function promptForConfig(opts: z.infer<typeof initOptionsSchema>) {
 		{
 			type: "toggle",
 			name: "typescript",
-			message: `Would you like to use ${highlighter.info(
-				"TypeScript",
-			)} (recommended)?`,
+			message: `Would you like to use ${highlighter.info("TypeScript")} (recommended)?`,
 			initial: true,
 			active: "yes",
 			inactive: "no",

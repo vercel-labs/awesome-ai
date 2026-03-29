@@ -56,9 +56,7 @@ describe("run command", () => {
 
 	describe("validation errors", () => {
 		it("exits with error when --remote used without agent name", async () => {
-			await expect(run.parseAsync(["bun", "test", "--remote"])).rejects.toThrow(
-				ProcessExitError,
-			)
+			await expect(run.parseAsync(["bun", "test", "--remote"])).rejects.toThrow(ProcessExitError)
 
 			expect(mockLogger.error).toHaveBeenCalledWith(
 				"An agent name is required when using --remote or --remote-only.",
@@ -67,9 +65,9 @@ describe("run command", () => {
 		})
 
 		it("exits with error when --remote-only used without agent name", async () => {
-			await expect(
-				run.parseAsync(["bun", "test", "--remote-only"]),
-			).rejects.toThrow(ProcessExitError)
+			await expect(run.parseAsync(["bun", "test", "--remote-only"])).rejects.toThrow(
+				ProcessExitError,
+			)
 
 			expect(mockLogger.error).toHaveBeenCalledWith(
 				"An agent name is required when using --remote or --remote-only.",
@@ -80,9 +78,7 @@ describe("run command", () => {
 		it("exits with error when no agent provided and no config", async () => {
 			mockGetConfig.mockResolvedValue(null)
 
-			await expect(run.parseAsync(["bun", "test"])).rejects.toThrow(
-				ProcessExitError,
-			)
+			await expect(run.parseAsync(["bun", "test"])).rejects.toThrow(ProcessExitError)
 
 			expect(mockLogger.error).toHaveBeenCalledWith(
 				expect.stringContaining("agents.json not found"),
@@ -94,9 +90,7 @@ describe("run command", () => {
 			mockGetConfig.mockResolvedValue(createMockConfig())
 			mockDiscoverAgents.mockResolvedValue([])
 
-			await expect(run.parseAsync(["bun", "test"])).rejects.toThrow(
-				ProcessExitError,
-			)
+			await expect(run.parseAsync(["bun", "test"])).rejects.toThrow(ProcessExitError)
 
 			expect(mockLogger.error).toHaveBeenCalledWith(
 				"No agents found. Add agents with 'awesome-ai add'.",
@@ -107,9 +101,7 @@ describe("run command", () => {
 		it("exits with error when agent provided but no config", async () => {
 			mockGetConfig.mockResolvedValue(null)
 
-			await expect(run.parseAsync(["bun", "test", "my-agent"])).rejects.toThrow(
-				ProcessExitError,
-			)
+			await expect(run.parseAsync(["bun", "test", "my-agent"])).rejects.toThrow(ProcessExitError)
 
 			expect(mockLogger.error).toHaveBeenCalledWith(
 				expect.stringContaining("agents.json not found"),
@@ -120,9 +112,7 @@ describe("run command", () => {
 		it("exits with error when agents path cannot be resolved", async () => {
 			mockGetConfig.mockResolvedValue(createMockConfig({ agents: null }))
 
-			await expect(run.parseAsync(["bun", "test", "my-agent"])).rejects.toThrow(
-				ProcessExitError,
-			)
+			await expect(run.parseAsync(["bun", "test", "my-agent"])).rejects.toThrow(ProcessExitError)
 
 			expect(mockLogger.error).toHaveBeenCalledWith(
 				"Could not resolve agents path from agents.json",
@@ -134,20 +124,14 @@ describe("run command", () => {
 	describe("agent listing", () => {
 		it("lists available agents when no agent provided with valid config", async () => {
 			mockGetConfig.mockResolvedValue(createMockConfig())
-			mockDiscoverAgents.mockResolvedValue(
-				createMockAgents(["agent-one", "agent-two"]),
-			)
+			mockDiscoverAgents.mockResolvedValue(createMockAgents(["agent-one", "agent-two"]))
 
-			await expect(run.parseAsync(["bun", "test"])).rejects.toThrow(
-				ProcessExitError,
-			)
+			await expect(run.parseAsync(["bun", "test"])).rejects.toThrow(ProcessExitError)
 
 			expect(mockLogger.info).toHaveBeenCalledWith("Available agents:")
 			expect(mockLogger.info).toHaveBeenCalledWith("  - agent-one")
 			expect(mockLogger.info).toHaveBeenCalledWith("  - agent-two")
-			expect(mockLogger.info).toHaveBeenCalledWith(
-				"Run with: awesome-ai run <agent>",
-			)
+			expect(mockLogger.info).toHaveBeenCalledWith("Run with: awesome-ai run <agent>")
 			expect(process.exit).toHaveBeenCalledWith(0)
 		})
 	})
@@ -165,9 +149,9 @@ describe("run command", () => {
 				},
 			})
 
-			await expect(
-				run.parseAsync(["bun", "test", "my-agent", "--remote"]),
-			).rejects.toThrow(ProcessExitError)
+			await expect(run.parseAsync(["bun", "test", "my-agent", "--remote"])).rejects.toThrow(
+				ProcessExitError,
+			)
 
 			expect(mockLogger.info).toHaveBeenCalledWith("Remote sync cancelled.")
 			expect(process.exit).toHaveBeenCalledWith(0)
@@ -186,9 +170,9 @@ describe("run command", () => {
 				},
 			})
 
-			await expect(
-				run.parseAsync(["bun", "test", "my-agent", "--remote"]),
-			).rejects.toThrow(ProcessExitError)
+			await expect(run.parseAsync(["bun", "test", "my-agent", "--remote"])).rejects.toThrow(
+				ProcessExitError,
+			)
 
 			expect(process.exit).toHaveBeenCalledWith(1)
 			expect(mockRunTui).not.toHaveBeenCalled()
@@ -199,10 +183,9 @@ describe("run command", () => {
 
 			await run.parseAsync(["bun", "test", "my-agent", "--remote", "--yes"])
 
-			expect(mockPerformRemoteSync).toHaveBeenCalledWith(
-				[{ name: "my-agent", type: "agents" }],
-				{ yes: true },
-			)
+			expect(mockPerformRemoteSync).toHaveBeenCalledWith([{ name: "my-agent", type: "agents" }], {
+				yes: true,
+			})
 		})
 	})
 
@@ -232,9 +215,7 @@ describe("run command", () => {
 
 	describe("runTui invocation with local config", () => {
 		it("calls runTui with local paths only (default)", async () => {
-			mockGetConfig.mockResolvedValue(
-				createMockConfig({ agents: "/my/agents" }),
-			)
+			mockGetConfig.mockResolvedValue(createMockConfig({ agents: "/my/agents" }))
 
 			await run.parseAsync(["bun", "test", "my-agent"])
 
@@ -246,9 +227,7 @@ describe("run command", () => {
 		})
 
 		it("calls runTui with local + remote paths when --remote", async () => {
-			mockGetConfig.mockResolvedValue(
-				createMockConfig({ agents: "/my/agents" }),
-			)
+			mockGetConfig.mockResolvedValue(createMockConfig({ agents: "/my/agents" }))
 
 			await run.parseAsync(["bun", "test", "my-agent", "--remote"])
 
@@ -262,13 +241,7 @@ describe("run command", () => {
 		it("passes --cwd option correctly", async () => {
 			mockGetConfig.mockResolvedValue(createMockConfig())
 
-			await run.parseAsync([
-				"node",
-				"test",
-				"my-agent",
-				"--cwd",
-				"/custom/path",
-			])
+			await run.parseAsync(["node", "test", "my-agent", "--cwd", "/custom/path"])
 
 			expect(mockRunTui).toHaveBeenCalledWith(
 				expect.objectContaining({

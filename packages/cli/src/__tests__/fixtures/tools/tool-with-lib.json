@@ -1,18 +1,18 @@
 {
-	"name": "tool-with-lib",
-	"type": "registry:tool",
-	"title": "Tool with Lib",
-	"description": "A tool that imports from lib",
-	"files": [
-		{
-			"path": "tools/tool-with-lib.ts",
-			"type": "registry:tool",
-			"content": "import { helper } from \"@/tools/lib/helper\"\n\nexport const toolWithLib = {\n\tname: \"tool-with-lib\",\n\texecute: () => helper(),\n}\n"
-		},
-		{
-			"path": "tools/lib/helper.ts",
-			"type": "registry:lib",
-			"content": "export function helper() {\n\treturn \"helper result\"\n}\n"
-		}
-	]
+  "name": "tool-with-lib",
+  "type": "registry:tool",
+  "title": "Tool with Lib",
+  "description": "A tool that imports from lib",
+  "files": [
+    {
+      "path": "tools/tool-with-lib.ts",
+      "type": "registry:tool",
+      "content": "import { helper } from \"@/tools/lib/helper\"\n\nexport const toolWithLib = {\n\tname: \"tool-with-lib\",\n\texecute: () => helper(),\n}\n"
+    },
+    {
+      "path": "tools/lib/helper.ts",
+      "type": "registry:lib",
+      "content": "export function helper() {\n\treturn \"helper result\"\n}\n"
+    }
+  ]
 }

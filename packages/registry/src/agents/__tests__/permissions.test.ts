@@ -80,15 +80,9 @@ describe("checkPermission", () => {
 	})
 
 	it("supports default task permission policy", () => {
-		expect(checkPermission("coding-agent", DEFAULT_TASK_PERMISSIONS)).toBe(
-			"allow",
-		)
-		expect(checkPermission("planning-agent", DEFAULT_TASK_PERMISSIONS)).toBe(
-			"allow",
-		)
-		expect(checkPermission("custom-agent", DEFAULT_TASK_PERMISSIONS)).toBe(
-			"ask",
-		)
+		expect(checkPermission("coding-agent", DEFAULT_TASK_PERMISSIONS)).toBe("allow")
+		expect(checkPermission("planning-agent", DEFAULT_TASK_PERMISSIONS)).toBe("allow")
+		expect(checkPermission("custom-agent", DEFAULT_TASK_PERMISSIONS)).toBe("ask")
 	})
 })
 

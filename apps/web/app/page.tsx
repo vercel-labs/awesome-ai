@@ -4,10 +4,7 @@ import { Header } from "@/components/header"
 import { getAllAgents, getAllCategories } from "@/lib/agents"
 
 export default async function HomePage() {
-	const [agents, categories] = await Promise.all([
-		getAllAgents(),
-		getAllCategories(),
-	])
+	const [agents, categories] = await Promise.all([getAllAgents(), getAllCategories()])
 
 	return (
 		<div className="min-h-screen bg-background">
@@ -23,8 +20,8 @@ export default async function HomePage() {
 						AI Agents for Every Task
 					</h1>
 					<p className="text-muted-foreground text-lg max-w-2xl leading-relaxed">
-						Discover and deploy pre-configured AI agents. Install with a single
-						command or deploy directly to Vercel.
+						Discover and deploy pre-configured AI agents. Install with a single command or deploy
+						directly to Vercel.
 					</p>
 
 					{/* Quick Install Example */}
@@ -42,13 +39,9 @@ export default async function HomePage() {
 							</div>
 							<div className="flex items-center gap-2">
 								<span className="text-muted-foreground select-none">$</span>
-								<span className="text-foreground">
-									awesome-ai add coding-agent
-								</span>
+								<span className="text-foreground">awesome-ai add coding-agent</span>
 							</div>
-							<div className="text-primary">
-								{">"} Agent installed successfully!
-							</div>
+							<div className="text-primary">{">"} Agent installed successfully!</div>
 						</div>
 					</div>
 				</div>
@@ -57,9 +50,7 @@ export default async function HomePage() {
 				<section>
 					<div className="flex items-center gap-2 mb-6">
 						<span className="text-primary">{">"}</span>
-						<h2 className="text-xl font-semibold text-foreground">
-							Available Agents
-						</h2>
+						<h2 className="text-xl font-semibold text-foreground">Available Agents</h2>
 					</div>
 					<AgentsList agents={agents} categories={categories} />
 				</section>
@@ -73,16 +64,10 @@ export default async function HomePage() {
 						<span>awesome-ai</span>
 					</div>
 					<div className="flex items-center gap-6">
-						<a
-							href="https://github.com"
-							className="hover:text-foreground transition-colors"
-						>
+						<a href="https://github.com" className="hover:text-foreground transition-colors">
 							GitHub
 						</a>
-						<a
-							href="https://vercel.com"
-							className="hover:text-foreground transition-colors"
-						>
+						<a href="https://vercel.com" className="hover:text-foreground transition-colors">
 							Vercel
 						</a>
 						<span>MIT License</span>

@@ -1,10 +1,5 @@
 import path from "node:path"
-import {
-	getStoragePaths,
-	getWorkspaceCachePath,
-	readJson,
-	writeJson,
-} from "./storage"
+import { getStoragePaths, getWorkspaceCachePath, readJson, writeJson } from "./storage"
 
 /**
  * Root settings stored in ~/.config/awesome-ai/settings.json
@@ -55,9 +50,7 @@ export async function loadRootSettings(): Promise<RootSettings> {
 /**
  * Load workspace-specific settings
  */
-export async function loadWorkspaceSettings(
-	cwd: string,
-): Promise<WorkspaceSettings> {
+export async function loadWorkspaceSettings(cwd: string): Promise<WorkspaceSettings> {
 	const settingsPath = await getWorkspaceSettingsPath(cwd)
 	return (await readJson<WorkspaceSettings>(settingsPath)) || {}
 }
@@ -78,10 +71,7 @@ export async function loadSettings(cwd: string): Promise<ResolvedSettings> {
 	}
 }
 
-export async function saveWorkspaceSettings(
-	cwd: string,
-	settings: Partial<WorkspaceSettings>,
-) {
+export async function saveWorkspaceSettings(cwd: string, settings: Partial<WorkspaceSettings>) {
 	const settingsPath = await getWorkspaceSettingsPath(cwd)
 	const existing = await loadWorkspaceSettings(cwd)
 

@@ -53,9 +53,9 @@ describe("exec command", () => {
 
 	describe("validation errors", () => {
 		it("exits with error when --remote used without agent name", async () => {
-			await expect(
-				exec.parseAsync(["bun", "test", "my-prompt", "--remote"]),
-			).rejects.toThrow(ProcessExitError)
+			await expect(exec.parseAsync(["bun", "test", "my-prompt", "--remote"])).rejects.toThrow(
+				ProcessExitError,
+			)
 
 			expect(mockLogger.error).toHaveBeenCalledWith(
 				"An agent name is required when using --remote or --remote-only.",
@@ -64,9 +64,9 @@ describe("exec command", () => {
 		})
 
 		it("exits with error when --remote-only used without agent name", async () => {
-			await expect(
-				exec.parseAsync(["bun", "test", "my-prompt", "--remote-only"]),
-			).rejects.toThrow(ProcessExitError)
+			await expect(exec.parseAsync(["bun", "test", "my-prompt", "--remote-only"])).rejects.toThrow(
+				ProcessExitError,
+			)
 
 			expect(mockLogger.error).toHaveBeenCalledWith(
 				"An agent name is required when using --remote or --remote-only.",
@@ -77,9 +77,7 @@ describe("exec command", () => {
 		it("exits with error when no config found", async () => {
 			mockGetConfig.mockResolvedValue(null)
 
-			await expect(
-				exec.parseAsync(["bun", "test", "my-prompt"]),
-			).rejects.toThrow(ProcessExitError)
+			await expect(exec.parseAsync(["bun", "test", "my-prompt"])).rejects.toThrow(ProcessExitError)
 
 			expect(mockLogger.error).toHaveBeenCalledWith(
 				expect.stringContaining("agents.json not found"),
@@ -90,9 +88,7 @@ describe("exec command", () => {
 		it("exits with error when agents path cannot be resolved", async () => {
 			mockGetConfig.mockResolvedValue(createMockConfig({ agents: null }))
 
-			await expect(
-				exec.parseAsync(["bun", "test", "my-prompt"]),
-			).rejects.toThrow(ProcessExitError)
+			await expect(exec.parseAsync(["bun", "test", "my-prompt"])).rejects.toThrow(ProcessExitError)
 
 			expect(mockLogger.error).toHaveBeenCalledWith(
 				"Could not resolve agents path from agents.json",
@@ -103,9 +99,7 @@ describe("exec command", () => {
 		it("exits with error when prompts path cannot be resolved", async () => {
 			mockGetConfig.mockResolvedValue(createMockConfig({ prompts: null }))
 
-			await expect(
-				exec.parseAsync(["bun", "test", "my-prompt"]),
-			).rejects.toThrow(ProcessExitError)
+			await expect(exec.parseAsync(["bun", "test", "my-prompt"])).rejects.toThrow(ProcessExitError)
 
 			expect(mockLogger.error).toHaveBeenCalledWith(
 				"Could not resolve prompts path from agents.json",
@@ -159,14 +153,7 @@ describe("exec command", () => {
 		it("syncs both prompt and agent in remote mode", async () => {
 			mockGetConfig.mockResolvedValue(createMockConfig())
 
-			await exec.parseAsync([
-				"node",
-				"test",
-				"my-prompt",
-				"my-agent",
-				"--remote",
-				"--yes",
-			])
+			await exec.parseAsync(["node", "test", "my-prompt", "my-agent", "--remote", "--yes"])
 
 			expect(mockPerformRemoteSync).toHaveBeenCalledWith(
 				[
@@ -180,13 +167,7 @@ describe("exec command", () => {
 
 	describe("runTui invocation with remote options", () => {
 		it("calls runTui with remote paths only when --remote-only", async () => {
-			await exec.parseAsync([
-				"node",
-				"test",
-				"my-prompt",
-				"my-agent",
-				"--remote-only",
-			])
+			await exec.parseAsync(["node", "test", "my-prompt", "my-agent", "--remote-only"])
 
 			expect(mockRunTui).toHaveBeenCalledWith({
 				agentPaths: ["/cache/agents"],
@@ -200,13 +181,7 @@ describe("exec command", () => {
 		it("calls runTui with remote paths when --remote and no local config", async () => {
 			mockGetConfig.mockResolvedValue(null)
 
-			await exec.parseAsync([
-				"node",
-				"test",
-				"my-prompt",
-				"my-agent",
-				"--remote",
-			])
+			await exec.parseAsync(["node", "test", "my-prompt", "my-agent", "--remote"])
 
 			expect(mockRunTui).toHaveBeenCalledWith({
 				agentPaths: ["/cache/agents"],
@@ -240,13 +215,7 @@ describe("exec command", () => {
 				createMockConfig({ agents: "/my/agents", prompts: "/my/prompts" }),
 			)
 
-			await exec.parseAsync([
-				"node",
-				"test",
-				"my-prompt",
-				"my-agent",
-				"--remote",
-			])
+			await exec.parseAsync(["node", "test", "my-prompt", "my-agent", "--remote"])
 
 			expect(mockRunTui).toHaveBeenCalledWith({
 				agentPaths: ["/my/agents", "/cache/agents"],

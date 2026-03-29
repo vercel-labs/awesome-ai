@@ -62,9 +62,7 @@ describe("ripgrep", () => {
 			await fs.writeFile(path.join(tempDir, "file.js"), "js")
 			await fs.writeFile(path.join(tempDir, "file.ts"), "ts")
 
-			const results = await collect(
-				files({ cwd: tempDir, glob: ["*.txt", "*.js"] }),
-			)
+			const results = await collect(files({ cwd: tempDir, glob: ["*.txt", "*.js"] }))
 
 			expect(results.sort()).toEqual(["file.js", "file.txt"])
 		})
@@ -110,10 +108,7 @@ describe("ripgrep", () => {
 		})
 
 		it("finds multiple matches in same file", async () => {
-			await fs.writeFile(
-				path.join(tempDir, "file.txt"),
-				"line one foo\nline two\nline three foo",
-			)
+			await fs.writeFile(path.join(tempDir, "file.txt"), "line one foo\nline two\nline three foo")
 
 			const results = await collect(search({ cwd: tempDir, pattern: "foo" }))
 
@@ -134,14 +129,9 @@ describe("ripgrep", () => {
 		})
 
 		it("supports regex patterns", async () => {
-			await fs.writeFile(
-				path.join(tempDir, "file.txt"),
-				"foo123bar\nfoo456bar\nno match",
-			)
+			await fs.writeFile(path.join(tempDir, "file.txt"), "foo123bar\nfoo456bar\nno match")
 
-			const results = await collect(
-				search({ cwd: tempDir, pattern: "foo\\d+bar" }),
-			)
+			const results = await collect(search({ cwd: tempDir, pattern: "foo\\d+bar" }))
 
 			expect(results).toHaveLength(2)
 		})
@@ -150,23 +140,16 @@ describe("ripgrep", () => {
 			await fs.writeFile(path.join(tempDir, "code.ts"), "const match = 1")
 			await fs.writeFile(path.join(tempDir, "code.js"), "const match = 2")
 
-			const results = await collect(
-				search({ cwd: tempDir, pattern: "match", glob: ["*.ts"] }),
-			)
+			const results = await collect(search({ cwd: tempDir, pattern: "match", glob: ["*.ts"] }))
 
 			expect(results).toHaveLength(1)
 			expect(results[0]?.path).toBe("code.ts")
 		})
 
 		it("respects maxCount option", async () => {
-			await fs.writeFile(
-				path.join(tempDir, "file.txt"),
-				"match1\nmatch2\nmatch3\nmatch4",
-			)
+			await fs.writeFile(path.join(tempDir, "file.txt"), "match1\nmatch2\nmatch3\nmatch4")
 
-			const results = await collect(
-				search({ cwd: tempDir, pattern: "match", maxCount: 2 }),
-			)
+			const results = await collect(search({ cwd: tempDir, pattern: "match", maxCount: 2 }))
 
 			expect(results).toHaveLength(2)
 		})
@@ -174,19 +157,14 @@ describe("ripgrep", () => {
 		it("returns empty for no matches", async () => {
 			await fs.writeFile(path.join(tempDir, "file.txt"), "no matching content")
 
-			const results = await collect(
-				search({ cwd: tempDir, pattern: "notfound" }),
-			)
+			const results = await collect(search({ cwd: tempDir, pattern: "notfound" }))
 
 			expect(results).toHaveLength(0)
 		})
 
 		it("searches in nested directories", async () => {
 			await fs.mkdir(path.join(tempDir, "subdir"), { recursive: true })
-			await fs.writeFile(
-				path.join(tempDir, "subdir", "nested.txt"),
-				"nested match",
-			)
+			await fs.writeFile(path.join(tempDir, "subdir", "nested.txt"), "nested match")
 
 			const results = await collect(search({ cwd: tempDir, pattern: "match" }))
 
@@ -215,10 +193,7 @@ describe("ripgrep", () => {
 		})
 
 		it("returns correct line numbers", async () => {
-			await fs.writeFile(
-				path.join(tempDir, "file.txt"),
-				"line 1\nline 2\ntarget line\nline 4",
-			)
+			await fs.writeFile(path.join(tempDir, "file.txt"), "line 1\nline 2\ntarget line\nline 4")
 
 			const results = await collect(search({ cwd: tempDir, pattern: "target" }))
 

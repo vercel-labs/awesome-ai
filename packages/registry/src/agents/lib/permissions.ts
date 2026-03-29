@@ -6,10 +6,7 @@
  */
 export type Permission = "allow" | "deny" | "ask"
 export type PermissionPatterns = Record<string, Permission>
-export type SupportedSubagentType =
-	| "coding-agent"
-	| "planning-agent"
-	| "research-agent"
+export type SupportedSubagentType = "coding-agent" | "planning-agent" | "research-agent"
 
 export interface AgentGovernanceConfig {
 	taskPermissions?: PermissionPatterns
@@ -148,10 +145,7 @@ export function matchWildcard(value: string, pattern: string): boolean {
  * checkPermission("ls -la", { "ls*": "allow", "*": "ask" }) // "allow"
  * checkPermission("npm install", { "ls*": "allow", "*": "ask" }) // "ask"
  */
-export function checkPermission(
-	value: string,
-	patterns: PermissionPatterns,
-): Permission {
+export function checkPermission(value: string, patterns: PermissionPatterns): Permission {
 	// Sort patterns from most specific to least specific
 	const sortedPatterns = Object.keys(patterns).sort((a, b) => {
 		// Exact matches (no wildcards) come first

@@ -1,11 +1,5 @@
 import { type Agent, convertToModelMessages, type ModelMessage } from "ai"
-import {
-	createContext,
-	type ReactNode,
-	useContext,
-	useEffect,
-	useMemo,
-} from "react"
+import { createContext, type ReactNode, useContext, useEffect, useMemo } from "react"
 import {
 	type AppActions,
 	type AppAtoms,
@@ -43,10 +37,7 @@ interface SubagentState {
 	lastError?: string
 }
 
-function createAgentController(
-	atoms: AppAtoms,
-	actions: AppActions,
-): AgentController {
+function createAgentController(atoms: AppAtoms, actions: AppActions): AgentController {
 	// State for agent and conversation
 	let currentAgentInstance: Agent | null = null
 	let conversationMessages: ModelMessage[] = []
@@ -92,18 +83,13 @@ function createAgentController(
 		actions.debugLog("Subagent state updated", next)
 	}
 
-	const getMessages = (): TUIMessage[] =>
-		atoms.messagesAtom.get().map((atom) => atom.get())
+	const getMessages = (): TUIMessage[] => atoms.messagesAtom.get().map((atom) => atom.get())
 
 	const syncConversationMessages = async () => {
 		const uiMessages = getMessages()
 		// Filter out system messages (used for TUI notifications, not model context)
 		// and filter out incomplete tool calls from assistant messages
-		const completedToolStates = new Set([
-			"output-available",
-			"output-error",
-			"output-denied",
-		])
+		const completedToolStates = new Set(["output-available", "output-error", "output-denied"])
 
 		const toolStateCounts = new Map<string, number>()
 		const toolOutputStatusCounts = new Map<string, number>()
@@ -129,16 +115,11 @@ function createAgentController(
 							output?: unknown
 						}
 						if (toolPart.state) {
-							toolStateCounts.set(
-								toolPart.state,
-								(toolStateCounts.get(toolPart.state) ?? 0) + 1,
-							)
+							toolStateCounts.set(toolPart.state, (toolStateCounts.get(toolPart.state) ?? 0) + 1)
 						}
 
 						const outputStatus =
-							toolPart.output &&
-							typeof toolPart.output === "object" &&
-							"status" in toolPart.output
+							toolPart.output && typeof toolPart.output === "object" && "status" in toolPart.output
 								? (toolPart.output as { status?: string }).status
 								: "undefined"
 
@@ -150,8 +131,7 @@ function createAgentController(
 						}
 
 						if (
-							(toolPart.state === "output-available" ||
-								toolPart.state === "output-error") &&
+							(toolPart.state === "output-available" || toolPart.state === "output-error") &&
 							(outputStatus === "pending" ||
 								outputStatus === "streaming" ||
 								outputStatus === "undefined")
@@ -179,23 +159,14 @@ function createAgentController(
 						return false
 					}
 
-					if (
-						toolPart.state === "output-available" ||
-						toolPart.state === "output-error"
-					) {
+					if (toolPart.state === "output-available" || toolPart.state === "output-error") {
 						const outputStatus =
-							toolPart.output &&
-							typeof toolPart.output === "object" &&
-							"status" in toolPart.output
+							toolPart.output && typeof toolPart.output === "object" && "status" in toolPart.output
 								? (toolPart.output as { status?: string }).status
 								: undefined
 
 						if (outputStatus === "pending" || outputStatus === "streaming") {
-							actions.debugLog(
-								"Tool output not finalized",
-								toolPart.state,
-								outputStatus,
-							)
+							actions.debugLog("Tool output not finalized", toolPart.state, outputStatus)
 						}
 					}
 
@@ -208,16 +179,10 @@ function createAgentController(
 			actions.debugLog("Tool part states", Object.fromEntries(toolStateCounts))
 		}
 		if (toolOutputStatusCounts.size > 0) {
-			actions.debugLog(
-				"Tool output statuses",
-				Object.fromEntries(toolOutputStatusCounts),
-			)
+			actions.debugLog("Tool output statuses", Object.fromEntries(toolOutputStatusCounts))
 		}
 		if (problematicToolParts.length > 0) {
-			actions.debugLog(
-				"Tool parts with non-final outputs",
-				problematicToolParts.slice(0, 5),
-			)
+			actions.debugLog("Tool parts with non-final outputs", problematicToolParts.slice(0, 5))
 		}
 
 		try {
@@ -235,14 +200,9 @@ function createAgentController(
 			})
 		}
 
-		const messageCount = Array.isArray(conversationMessages)
-			? conversationMessages.length
-			: 0
+		const messageCount = Array.isArray(conversationMessages) ? conversationMessages.length : 0
 		if (!Array.isArray(conversationMessages)) {
-			actions.debugLog(
-				"conversationMessages is not an array",
-				typeof conversationMessages,
-			)
+			actions.debugLog("conversationMessages is not an array", typeof conversationMessages)
 		}
 		actions.debugLog(`Synced conversationMessages: ${messageCount} messages`)
 	}
@@ -305,9 +265,7 @@ function createAgentController(
 	/**
 	 * Stream an agent response and update the message atom with the results.
 	 */
-	const streamAgentResponse = async (
-		messageAtom: MessageAtom,
-	): Promise<void> => {
+	const streamAgentResponse = async (messageAtom: MessageAtom): Promise<void> => {
 		if (!currentAgentInstance) return
 
 		currentAbortController = new AbortController()
@@ -335,10 +293,7 @@ function createAgentController(
 				if (reasoningText && !hasReasoningPart) {
 					actions.debugLog("xD Adding reasoning part to message UwU")
 					hasReasoningPart = true
-					parts = [
-						{ type: "reasoning" as const, text: reasoningText },
-						...parts,
-					]
+					parts = [{ type: "reasoning" as const, text: reasoningText }, ...parts]
 					// Adjust text part index since we inserted at the beginning
 					currentTextPartIndex += 1
 				}
@@ -387,10 +342,8 @@ function createAgentController(
 					if (updates.state !== undefined) updatedPart.state = updates.state
 					if (updates.input !== undefined) updatedPart.input = updates.input
 					if (updates.output !== undefined) updatedPart.output = updates.output
-					if (updates.errorText !== undefined)
-						updatedPart.errorText = updates.errorText
-					if (updates.approval !== undefined)
-						updatedPart.approval = updates.approval
+					if (updates.errorText !== undefined) updatedPart.errorText = updates.errorText
+					if (updates.approval !== undefined) updatedPart.approval = updates.approval
 
 					newParts[existingPartIndex] = updatedPart
 					messageAtom.set({ ...current, parts: newParts })
@@ -401,9 +354,7 @@ function createAgentController(
 					const isDynamic = updates.dynamic ?? toolState?.dynamic ?? false
 					const { dynamic: _dynamic, ...restUpdates } = updates
 					const newPart = {
-						type: isDynamic
-							? ("dynamic-tool" as const)
-							: (`tool-${toolName}` as const),
+						type: isDynamic ? ("dynamic-tool" as const) : (`tool-${toolName}` as const),
 						toolName: isDynamic ? toolName : undefined,
 						toolCallId,
 						state: restUpdates.state ?? ("input-streaming" as const),
@@ -533,13 +484,10 @@ function createAgentController(
 								}>
 							}
 							if (output.status === "error") {
-								actions.debugLog(
-									`Subagent lifecycle tool failed: ${toolName}`,
-									{
-										message: output.message,
-										error: output.error,
-									},
-								)
+								actions.debugLog(`Subagent lifecycle tool failed: ${toolName}`, {
+									message: output.message,
+									error: output.error,
+								})
 							}
 							if (output.agent?.id && output.agent.status) {
 								upsertSubagentState({
@@ -571,10 +519,7 @@ function createAgentController(
 					case "tool-error": {
 						addOrUpdateToolPart(chunk.toolCallId, {
 							state: "output-error",
-							errorText:
-								chunk.error instanceof Error
-									? chunk.error.message
-									: String(chunk.error),
+							errorText: chunk.error instanceof Error ? chunk.error.message : String(chunk.error),
 						})
 						actions.debugLog(`Tool error: ${chunk.toolCallId}`, chunk.error)
 						break
@@ -724,11 +669,7 @@ function createAgentController(
 		}
 
 		if (!currentAgentInstance) {
-			actions.addMessage(
-				createSystemMessage(
-					"No agent loaded. Select an agent with /agent or ⌥ A",
-				),
-			)
+			actions.addMessage(createSystemMessage("No agent loaded. Select an agent with /agent or ⌥ A"))
 			return
 		}
 
@@ -764,9 +705,7 @@ function createAgentController(
 
 			if (!isAbortError) {
 				actions.addMessage(
-					createSystemMessage(
-						`Error: ${error instanceof Error ? error.message : String(error)}`,
-					),
+					createSystemMessage(`Error: ${error instanceof Error ? error.message : String(error)}`),
 				)
 			}
 		} finally {
@@ -812,9 +751,7 @@ function createAgentController(
 
 		messageAtom.set({ ...message, parts: updatedParts as TUIMessage["parts"] })
 		actions.removePendingApproval(toolCallId)
-		actions.debugLog(
-			`Tool ${toolName} ${approved ? "approved" : "denied"} (${toolCallId})`,
-		)
+		actions.debugLog(`Tool ${toolName} ${approved ? "approved" : "denied"} (${toolCallId})`)
 
 		pendingApprovalResponses.push({
 			toolCallId,
@@ -828,9 +765,7 @@ function createAgentController(
 
 		const remainingApprovals = atoms.pendingApprovalsAtom.get()
 		if (remainingApprovals.length > 0) {
-			actions.debugLog(
-				`${remainingApprovals.length} more approval(s) pending, waiting...`,
-			)
+			actions.debugLog(`${remainingApprovals.length} more approval(s) pending, waiting...`)
 			return true
 		}
 
@@ -888,14 +823,11 @@ function createAgentController(
 				await streamAgentResponse(messageAtom)
 			} catch (error) {
 				// Ignore abort errors (user stopped generation)
-				const isAbortError =
-					error instanceof Error && error.name === "AbortError"
+				const isAbortError = error instanceof Error && error.name === "AbortError"
 
 				if (!isAbortError) {
 					actions.addMessage(
-						createSystemMessage(
-							`Error: ${error instanceof Error ? error.message : String(error)}`,
-						),
+						createSystemMessage(`Error: ${error instanceof Error ? error.message : String(error)}`),
 					)
 				}
 			} finally {
@@ -926,10 +858,7 @@ const AgentControllerContext = createContext<AgentController | null>(null)
 export function AgentControllerProvider({ children }: { children: ReactNode }) {
 	const atoms = useAppAtoms()
 	const actions = useAppActions()
-	const controller = useMemo(
-		() => createAgentController(atoms, actions),
-		[atoms, actions],
-	)
+	const controller = useMemo(() => createAgentController(atoms, actions), [atoms, actions])
 
 	useEffect(() => {
 		const initialAgent = atoms.currentAgentAtom.get()
@@ -945,18 +874,14 @@ export function AgentControllerProvider({ children }: { children: ReactNode }) {
 	}, [controller, atoms.currentAgentAtom])
 
 	return (
-		<AgentControllerContext.Provider value={controller}>
-			{children}
-		</AgentControllerContext.Provider>
+		<AgentControllerContext.Provider value={controller}>{children}</AgentControllerContext.Provider>
 	)
 }
 
 export function useAgentActions(): AgentController {
 	const controller = useContext(AgentControllerContext)
 	if (!controller) {
-		throw new Error(
-			"useAgentActions must be used within AgentControllerProvider",
-		)
+		throw new Error("useAgentActions must be used within AgentControllerProvider")
 	}
 	return controller
 }

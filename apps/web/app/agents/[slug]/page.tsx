@@ -18,11 +18,7 @@ export async function generateStaticParams() {
 	}))
 }
 
-export async function generateMetadata({
-	params,
-}: {
-	params: Promise<{ slug: string }>
-}) {
+export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
 	const { slug } = await params
 	const agent = await getAgentBySlug(slug)
 	if (!agent) return { title: "Agent Not Found" }
@@ -32,11 +28,7 @@ export async function generateMetadata({
 	}
 }
 
-export default async function AgentPage({
-	params,
-}: {
-	params: Promise<{ slug: string }>
-}) {
+export default async function AgentPage({ params }: { params: Promise<{ slug: string }> }) {
 	const { slug } = await params
 	const agent = await getAgentBySlug(slug)
 
@@ -66,9 +58,7 @@ export default async function AgentPage({
 				{/* Agent Header */}
 				<div className="mb-8">
 					<div className="flex items-center gap-3 mb-4">
-						<h1 className="text-2xl md:text-3xl font-bold text-foreground">
-							{agent.title}
-						</h1>
+						<h1 className="text-2xl md:text-3xl font-bold text-foreground">{agent.title}</h1>
 					</div>
 					<p className="text-muted-foreground text-lg max-w-2xl leading-relaxed">
 						{agent.description}
@@ -103,8 +93,7 @@ export default async function AgentPage({
 						<CardContent>
 							<CliCommand command={`awesome-ai add ${agent.name}`} />
 							<p className="mt-4 text-xs text-muted-foreground">
-								Run this command in your project directory to install this
-								agent.
+								Run this command in your project directory to install this agent.
 							</p>
 						</CardContent>
 					</Card>
@@ -165,16 +154,12 @@ export default async function AgentPage({
 									<CardContent className="pt-4 pb-4">
 										<div className="flex items-start justify-between gap-4">
 											<div>
-												<code className="text-sm font-medium text-foreground">
-													{cfg.name}
-												</code>
+												<code className="text-sm font-medium text-foreground">{cfg.name}</code>
 												<span className="text-xs text-muted-foreground ml-2">
 													{cfg.type}
 													{!cfg.required && " (optional)"}
 												</span>
-												<p className="text-sm text-muted-foreground mt-1">
-													{cfg.description}
-												</p>
+												<p className="text-sm text-muted-foreground mt-1">{cfg.description}</p>
 											</div>
 											{cfg.env && (
 												<Badge variant="outline" className="shrink-0">
@@ -200,9 +185,8 @@ export default async function AgentPage({
 							<div className="flex items-start gap-3 p-3 rounded border border-border bg-secondary/50 mb-4 text-sm text-muted-foreground">
 								<Info className="h-4 w-4 mt-0.5 shrink-0 text-primary" />
 								<p>
-									This agent requires a working directory. At runtime,
-									environment context (platform, file tree, and custom rules) is
-									appended to the prompt automatically.
+									This agent requires a working directory. At runtime, environment context
+									(platform, file tree, and custom rules) is appended to the prompt automatically.
 								</p>
 							</div>
 						)}

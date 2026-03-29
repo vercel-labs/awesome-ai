@@ -11,9 +11,7 @@ export const initOptionsSchema = z.object({
 	silent: z.boolean(),
 })
 
-export async function preFlightInit(
-	options: z.infer<typeof initOptionsSchema>,
-) {
+export async function preFlightInit(options: z.infer<typeof initOptionsSchema>) {
 	const errors: Record<string, boolean> = {}
 	const cwd = path.resolve(options.cwd)
 

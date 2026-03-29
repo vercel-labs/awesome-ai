@@ -1,6 +1,6 @@
+import path from "path"
 import { discoverAgents, runTui } from "awesome-ai-tui"
 import { Command } from "commander"
-import path from "path"
 import { z } from "zod"
 import { getConfig } from "../utils/get-config"
 import { handleError } from "../utils/handle-error"
@@ -25,16 +25,8 @@ export const run = new Command()
 		"the working directory. defaults to the current directory.",
 		process.cwd(),
 	)
-	.option(
-		"-r, --remote",
-		"use agents from the remote registry (downloads if missing)",
-		false,
-	)
-	.option(
-		"--remote-only",
-		"use only remote agents (ignore local agents.json)",
-		false,
-	)
+	.option("-r, --remote", "use agents from the remote registry (downloads if missing)", false)
+	.option("--remote-only", "use only remote agents (ignore local agents.json)", false)
 	.option("-y, --yes", "skip confirmation prompt for remote sync", false)
 	.action(async (agent, opts) => {
 		try {
@@ -50,9 +42,7 @@ export const run = new Command()
 
 			// Require agent name when using remote options
 			if ((options.remote || options.remoteOnly) && !options.agent) {
-				logger.error(
-					"An agent name is required when using --remote or --remote-only.",
-				)
+				logger.error("An agent name is required when using --remote or --remote-only.")
 				logger.info("Usage: awesome-ai run <agent> --remote")
 				process.exit(1)
 			}
@@ -81,10 +71,9 @@ export const run = new Command()
 			}
 
 			if (options.remote || options.remoteOnly) {
-				const result = await performRemoteSync(
-					[{ name: options.agent, type: "agents" }],
-					{ yes: options.yes },
-				)
+				const result = await performRemoteSync([{ name: options.agent, type: "agents" }], {
+					yes: options.yes,
+				})
 				if (result.cancelled) {
 					logger.info("Remote sync cancelled.")
 					process.exit(0)
@@ -118,9 +107,7 @@ export const run = new Command()
 			}
 
 			// Build paths array - local path first, then remote if enabled
-			const agentPaths = options.remote
-				? [agentsPath, remotePaths.agents]
-				: [agentsPath]
+			const agentPaths = options.remote ? [agentsPath, remotePaths.agents] : [agentsPath]
 
 			await runTui({
 				agentPaths,

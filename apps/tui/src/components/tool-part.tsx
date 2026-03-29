@@ -2,12 +2,7 @@ import { useEffect, useState } from "react"
 import { colors } from "../theme"
 import { getToolError, getToolMessage, getToolStatus } from "../types"
 import { useAgentActions } from "../utils/agent"
-import {
-	type MessageAtom,
-	type PendingApproval,
-	useAppActions,
-	usePendingApprovals,
-} from "./atoms"
+import { type MessageAtom, type PendingApproval, useAppActions, usePendingApprovals } from "./atoms"
 import { Spinner } from "./ui/spinner"
 
 // AI SDK tool part states
@@ -92,9 +87,7 @@ export function ToolPart({ data, messageAtom }: ToolPartProps) {
 	const { handleToolApproval } = useAgentActions()
 	// Extract tool name: for typed tools it's `tool-${name}`, for dynamic it's in toolName
 	const toolName =
-		data.type === "dynamic-tool"
-			? data.toolName || "unknown"
-			: data.type.replace("tool-", "")
+		data.type === "dynamic-tool" ? data.toolName || "unknown" : data.type.replace("tool-", "")
 	const [expanded, setExpanded] = useState(false)
 	const toolStatus = getToolStatus(output)
 	const toolMessage = getToolMessage(output)
@@ -104,8 +97,7 @@ export function ToolPart({ data, messageAtom }: ToolPartProps) {
 
 	// Check if this is the first pending approval (for highlighting)
 	const isFirstPending =
-		state === "approval-requested" &&
-		pendingApprovals[0]?.toolCallId === data.toolCallId
+		state === "approval-requested" && pendingApprovals[0]?.toolCallId === data.toolCallId
 
 	// Register this approval request when it becomes active
 	useEffect(() => {
@@ -142,9 +134,7 @@ export function ToolPart({ data, messageAtom }: ToolPartProps) {
 		} else if (state === "output-denied") {
 			displayMessage = "Denied by user"
 		} else if (state === "approval-responded") {
-			displayMessage = approval?.approved
-				? "Approved, executing..."
-				: "Denied by user"
+			displayMessage = approval?.approved ? "Approved, executing..." : "Denied by user"
 		} else if (state === "input-streaming" || state === "input-available") {
 			displayMessage = "Running..."
 		}
@@ -183,12 +173,7 @@ export function ToolPart({ data, messageAtom }: ToolPartProps) {
 				<text>
 					<span fg={colors.green}> {toolName}</span>
 					{displayMessage && <span fg={colors.muted}> {displayMessage}</span>}
-					{canToggle && (
-						<span fg={colors.border}>
-							{" "}
-							({expanded ? "collapse" : "expand"})
-						</span>
-					)}
+					{canToggle && <span fg={colors.border}> ({expanded ? "collapse" : "expand"})</span>}
 				</text>
 			</box>
 

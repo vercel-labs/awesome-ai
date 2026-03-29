@@ -10,9 +10,7 @@ export function CommandPalette() {
 	const [filter] = useCommandFilter()
 	const [selectedIndex, setSelectedIndex] = useSelectedCommand()
 	const scrollRef = useRef<ScrollBoxRenderable>(null)
-	const commands = COMMANDS.filter((cmd) =>
-		cmd.name.toLowerCase().includes(filter.toLowerCase()),
-	)
+	const commands = COMMANDS.filter((cmd) => cmd.name.toLowerCase().includes(filter.toLowerCase()))
 
 	// Keep selectedIndex in bounds when filter changes
 	useEffect(() => {
@@ -66,8 +64,7 @@ export function CommandPalette() {
 						key={cmd.name}
 						style={{
 							height: 1,
-							backgroundColor:
-								i === selectedIndex ? colors.greenDark : colors.bg,
+							backgroundColor: i === selectedIndex ? colors.greenDark : colors.bg,
 							paddingLeft: 1,
 							paddingRight: 1,
 						}}

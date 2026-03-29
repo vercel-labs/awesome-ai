@@ -113,14 +113,8 @@ describe("init command", () => {
 		})
 
 		// Create a subdirectory
-		await project.writeFile(
-			"subdir/package.json",
-			JSON.stringify({ name: "subproject" }),
-		)
-		await project.writeFile(
-			"subdir/tsconfig.json",
-			JSON.stringify({ compilerOptions: {} }),
-		)
+		await project.writeFile("subdir/package.json", JSON.stringify({ name: "subproject" }))
+		await project.writeFile("subdir/tsconfig.json", JSON.stringify({ compilerOptions: {} }))
 
 		const result = await runCLI(
 			["init", "--yes", "--defaults", "--cwd", `${project.path}/subdir`],

@@ -1,13 +1,9 @@
-import { tool } from "ai"
 import { promises as fs } from "fs"
 import * as path from "path"
+import { tool } from "ai"
 import { z } from "zod"
 import { markRead } from "@/tools/lib/file-time"
-import {
-	continuationOffset,
-	toolOutput,
-	truncation,
-} from "@/tools/lib/tool-output"
+import { continuationOffset, toolOutput, truncation } from "@/tools/lib/tool-output"
 
 const DEFAULT_READ_LIMIT = 2000
 const MAX_READ_LIMIT = 1500
@@ -85,12 +81,7 @@ function isSensitiveFile(filepath: string): boolean {
 	const basename = path.basename(filepath)
 
 	// Whitelist: allow example/sample env files
-	const whitelist = [
-		".env.sample",
-		".env.example",
-		".env.template",
-		".env.local.example",
-	]
+	const whitelist = [".env.sample", ".env.example", ".env.template", ".env.local.example"]
 	if (whitelist.some((w) => basename.endsWith(w) || basename === w.slice(1))) {
 		return false
 	}
@@ -173,13 +164,8 @@ export function createReadTool(scope = "global") {
 	return tool({
 		description,
 		inputSchema: z.object({
-			filePath: z
-				.string()
-				.describe("The path to the file to read (absolute or relative)"),
-			offset: z
-				.number()
-				.default(0)
-				.describe("The line number to start reading from (0-based)"),
+			filePath: z.string().describe("The path to the file to read (absolute or relative)"),
+			offset: z.number().default(0).describe("The line number to start reading from (0-based)"),
 			limit: z
 				.number()
 				.default(DEFAULT_READ_LIMIT)
@@ -307,9 +293,7 @@ export function createReadTool(scope = "global") {
 				const totalLines = lines.length
 
 				const raw = lines.slice(offset, offset + limit).map((line) => {
-					return line.length > MAX_LINE_LENGTH
-						? `${line.substring(0, MAX_LINE_LENGTH)}...`
-						: line
+					return line.length > MAX_LINE_LENGTH ? `${line.substring(0, MAX_LINE_LENGTH)}...` : line
 				})
 
 				const formattedLines = raw.map((line, index) => {

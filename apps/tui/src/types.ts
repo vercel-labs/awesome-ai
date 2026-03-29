@@ -17,10 +17,7 @@ export interface TUIMessageMetadata {
 
 export type TUIMessage = UIMessage<TUIMessageMetadata>
 
-export type TUIMessagePart = UIMessagePart<
-	Record<string, never>,
-	Record<string, never>
->
+export type TUIMessagePart = UIMessagePart<Record<string, never>, Record<string, never>>
 
 export interface Command {
 	name: string
@@ -42,10 +39,7 @@ export function createUserMessage(text: string): TUIMessage {
 	}
 }
 
-export function createAssistantMessage(
-	text: string = "",
-	reasoning?: string,
-): TUIMessage {
+export function createAssistantMessage(text: string = "", reasoning?: string): TUIMessage {
 	const parts: TUIMessagePart[] = []
 
 	if (reasoning) {
@@ -76,9 +70,7 @@ export function createSystemMessage(text: string): TUIMessage {
  */
 export function getMessageText(message: TUIMessage): string {
 	return message.parts
-		.filter(
-			(part): part is { type: "text"; text: string } => part.type === "text",
-		)
+		.filter((part): part is { type: "text"; text: string } => part.type === "text")
 		.map((part) => part.text)
 		.join("\n")
 }
@@ -111,9 +103,7 @@ export function getToolMessage(output: unknown): string | undefined {
 /**
  * Extract the status from a tool output.
  */
-export function getToolStatus(
-	output: unknown,
-): ToolOutputBase["status"] | undefined {
+export function getToolStatus(output: unknown): ToolOutputBase["status"] | undefined {
 	if (
 		output &&
 		typeof output === "object" &&

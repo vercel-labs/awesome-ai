@@ -1,13 +1,13 @@
 {
-	"name": "simple-agent",
-	"type": "registry:agent",
-	"title": "Simple Agent",
-	"description": "A simple agent without dependencies",
-	"files": [
-		{
-			"path": "agents/simple-agent.ts",
-			"type": "registry:agent",
-			"content": "export const simpleAgent = {\n\tname: \"simple-agent\",\n\tdescription: \"A simple test agent\",\n}\n"
-		}
-	]
+  "name": "simple-agent",
+  "type": "registry:agent",
+  "title": "Simple Agent",
+  "description": "A simple agent without dependencies",
+  "files": [
+    {
+      "path": "agents/simple-agent.ts",
+      "type": "registry:agent",
+      "content": "export const simpleAgent = {\n\tname: \"simple-agent\",\n\tdescription: \"A simple test agent\",\n}\n"
+    }
+  ]
 }

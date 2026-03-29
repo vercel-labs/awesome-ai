@@ -2,11 +2,7 @@ export {
 	type AgentSettings as CodingAgentSettings,
 	createAgent as createCodingAgent,
 } from "./agents/coding-agent"
-export {
-	resolveModelId,
-	resolveToolMode,
-	type ToolMode,
-} from "./agents/lib/tool-mode"
+export { resolveModelId, resolveToolMode, type ToolMode } from "./agents/lib/tool-mode"
 export {
 	type AgentSettings as PlanningAgentSettings,
 	createAgent as createPlanningAgent,

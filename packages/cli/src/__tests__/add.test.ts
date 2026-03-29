@@ -62,10 +62,9 @@ describe("add command", () => {
 		})
 
 		it("adds tool files to correct location", async () => {
-			const result = await runCLI(
-				["add", "@test/test-tool", "--tool", "--yes"],
-				{ cwd: project.path },
-			)
+			const result = await runCLI(["add", "@test/test-tool", "--tool", "--yes"], {
+				cwd: project.path,
+			})
 
 			expect(result.exitCode).toBe(0)
 			expect(await project.exists("tools/test-tool.ts")).toBe(true)
@@ -75,10 +74,9 @@ describe("add command", () => {
 		})
 
 		it("adds prompt files to correct location", async () => {
-			const result = await runCLI(
-				["add", "@test/test-prompt", "--prompt", "--yes"],
-				{ cwd: project.path },
-			)
+			const result = await runCLI(["add", "@test/test-prompt", "--prompt", "--yes"], {
+				cwd: project.path,
+			})
 
 			expect(result.exitCode).toBe(0)
 			expect(await project.exists("prompts/test-prompt.ts")).toBe(true)
@@ -96,10 +94,9 @@ describe("add command", () => {
 		})
 
 		it("transforms @/tools imports to configured alias and adds lib files", async () => {
-			const result = await runCLI(
-				["add", "@test/tool-with-lib", "--tool", "--yes"],
-				{ cwd: project.path },
-			)
+			const result = await runCLI(["add", "@test/tool-with-lib", "--tool", "--yes"], {
+				cwd: project.path,
+			})
 
 			expect(result.exitCode).toBe(0)
 
@@ -114,10 +111,9 @@ describe("add command", () => {
 		})
 
 		it("respects --silent flag", async () => {
-			const result = await runCLI(
-				["add", "@test/test-prompt", "--prompt", "--yes", "--silent"],
-				{ cwd: project.path },
-			)
+			const result = await runCLI(["add", "@test/test-prompt", "--prompt", "--yes", "--silent"], {
+				cwd: project.path,
+			})
 
 			expect(result.exitCode).toBe(0)
 			// Output should be minimal in silent mode
@@ -142,9 +138,7 @@ describe("add command", () => {
 			const contextContent = await project.readFile("agents/lib/context.ts")
 			expect(contextContent).toContain("createContext")
 
-			const permissionsContent = await project.readFile(
-				"agents/lib/permissions.ts",
-			)
+			const permissionsContent = await project.readFile("agents/lib/permissions.ts")
 			expect(permissionsContent).toContain("Permission")
 		})
 
@@ -199,10 +193,9 @@ describe("add command", () => {
 		await project.writeFile("tools/test-tool.ts", "// modified content")
 
 		// Second add with overwrite
-		const result = await runCLI(
-			["add", "@test/test-tool", "--tool", "--yes", "--overwrite"],
-			{ cwd: project.path },
-		)
+		const result = await runCLI(["add", "@test/test-tool", "--tool", "--yes", "--overwrite"], {
+			cwd: project.path,
+		})
 
 		expect(result.exitCode).toBe(0)
 
@@ -293,10 +286,9 @@ describe("add command", () => {
 		})
 
 		it("respects custom aliases in config for tools", async () => {
-			const result = await runCLI(
-				["add", "@test/tool-with-lib", "--tool", "--yes"],
-				{ cwd: project.path },
-			)
+			const result = await runCLI(["add", "@test/tool-with-lib", "--tool", "--yes"], {
+				cwd: project.path,
+			})
 
 			expect(result.exitCode).toBe(0)
 
@@ -319,9 +311,7 @@ describe("add command", () => {
 			expect(await project.exists("src/agents/lib/permissions.ts")).toBe(true)
 
 			// Imports should use ~/agents alias
-			const agentContent = await project.readFile(
-				"src/agents/agent-with-lib.ts",
-			)
+			const agentContent = await project.readFile("src/agents/agent-with-lib.ts")
 			expect(agentContent).toContain("~/agents/lib/context")
 			expect(agentContent).toContain("~/agents/lib/permissions")
 		})
@@ -521,10 +511,9 @@ describe("add command with local file registry", () => {
 	})
 
 	it("handles local file paths for tools", async () => {
-		const result = await runCLI(
-			["add", "@local/test-tool", "--tool", "--yes"],
-			{ cwd: project.path },
-		)
+		const result = await runCLI(["add", "@local/test-tool", "--tool", "--yes"], {
+			cwd: project.path,
+		})
 
 		expect(result.exitCode).toBe(0)
 		expect(await project.exists("tools/test-tool.ts")).toBe(true)
@@ -611,10 +600,9 @@ describe("add command update behavior", () => {
 		const project = await createProjectWithRegistry()
 
 		// First add - should install dependencies
-		const firstResult = await runCLI(
-			["add", "@test/test-tool", "--tool", "--yes"],
-			{ cwd: project.path },
-		)
+		const firstResult = await runCLI(["add", "@test/test-tool", "--tool", "--yes"], {
+			cwd: project.path,
+		})
 
 		expect(firstResult.exitCode).toBe(0)
 		const firstOutput = firstResult.stdout + firstResult.stderr
@@ -624,10 +612,9 @@ describe("add command update behavior", () => {
 		await project.writeFile("tools/test-tool.ts", "// modified content")
 
 		// Second add with --yes to auto-confirm update - should install dependencies
-		const secondResult = await runCLI(
-			["add", "@test/test-tool", "--tool", "--yes"],
-			{ cwd: project.path },
-		)
+		const secondResult = await runCLI(["add", "@test/test-tool", "--tool", "--yes"], {
+			cwd: project.path,
+		})
 
 		expect(secondResult.exitCode).toBe(0)
 		const secondOutput = secondResult.stdout + secondResult.stderr
@@ -638,10 +625,9 @@ describe("add command update behavior", () => {
 		const project = await createProjectWithRegistry()
 
 		// First add - should show updating files
-		const firstResult = await runCLI(
-			["add", "@test/test-tool", "--tool", "--yes"],
-			{ cwd: project.path },
-		)
+		const firstResult = await runCLI(["add", "@test/test-tool", "--tool", "--yes"], {
+			cwd: project.path,
+		})
 
 		expect(firstResult.exitCode).toBe(0)
 		const firstOutput = firstResult.stdout + firstResult.stderr
@@ -649,10 +635,9 @@ describe("add command update behavior", () => {
 		expect(firstOutput).not.toContain("Already up to date")
 
 		// Second add without changes - should show already up to date
-		const secondResult = await runCLI(
-			["add", "@test/test-tool", "--tool", "--yes"],
-			{ cwd: project.path },
-		)
+		const secondResult = await runCLI(["add", "@test/test-tool", "--tool", "--yes"], {
+			cwd: project.path,
+		})
 
 		expect(secondResult.exitCode).toBe(0)
 		const secondOutput = secondResult.stdout + secondResult.stderr
@@ -685,10 +670,9 @@ describe("add command update behavior", () => {
 		const project = await createProjectWithRegistry()
 
 		// Add two tools
-		await runCLI(
-			["add", "@test/test-tool", "@test/tool-with-lib", "--tool", "--yes"],
-			{ cwd: project.path },
-		)
+		await runCLI(["add", "@test/test-tool", "@test/tool-with-lib", "--tool", "--yes"], {
+			cwd: project.path,
+		})
 
 		// Modify only one of them
 		await project.writeFile("tools/test-tool.ts", "// modified content")
@@ -736,10 +720,9 @@ describe("add command update behavior", () => {
 				},
 			})
 
-			const result = await runCLI(
-				["add", "@test/test-tool", "--tool", "--yes"],
-				{ cwd: project.path },
-			)
+			const result = await runCLI(["add", "@test/test-tool", "--tool", "--yes"], {
+				cwd: project.path,
+			})
 
 			expect(result.exitCode).toBe(0)
 			expect(await project.exists("tools/test-tool.ts")).toBe(true)
@@ -750,10 +733,9 @@ describe("add command update behavior", () => {
 		it("adds nested tools to correct location", async () => {
 			const project = await createProjectWithRegistry()
 
-			const result = await runCLI(
-				["add", "@test/nested/test-nested", "--tool", "--yes"],
-				{ cwd: project.path },
-			)
+			const result = await runCLI(["add", "@test/nested/test-nested", "--tool", "--yes"], {
+				cwd: project.path,
+			})
 
 			expect(result.exitCode).toBe(0)
 			expect(await project.exists("tools/nested/test-nested.ts")).toBe(true)

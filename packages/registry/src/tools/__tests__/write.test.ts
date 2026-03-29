@@ -250,9 +250,7 @@ describe("writeTool", () => {
 		assert(typeof needsApproval === "function")
 
 		const opts = { toolCallId: "test", messages: [] }
-		expect(
-			needsApproval({ filePath: "/any/file.txt", content: "content" }, opts),
-		).toBe(true)
+		expect(needsApproval({ filePath: "/any/file.txt", content: "content" }, opts)).toBe(true)
 	})
 
 	it("respects custom permissions", () => {
@@ -268,19 +266,15 @@ describe("writeTool", () => {
 		const opts = { toolCallId: "test", messages: [] }
 
 		// Allowed file
-		expect(
-			needsApproval({ filePath: "/data/file.txt", content: "content" }, opts),
-		).toBe(false)
+		expect(needsApproval({ filePath: "/data/file.txt", content: "content" }, opts)).toBe(false)
 
 		// Ask file
-		expect(
-			needsApproval({ filePath: "/src/file.ts", content: "content" }, opts),
-		).toBe(true)
+		expect(needsApproval({ filePath: "/src/file.ts", content: "content" }, opts)).toBe(true)
 
 		// Denied file
-		expect(() =>
-			needsApproval({ filePath: "/.env.local", content: "SECRET=value" }, opts),
-		).toThrow(PermissionDeniedError)
+		expect(() => needsApproval({ filePath: "/.env.local", content: "SECRET=value" }, opts)).toThrow(
+			PermissionDeniedError,
+		)
 	})
 
 	it("prefers nested deny path over broader allow path", () => {
@@ -292,14 +286,9 @@ describe("writeTool", () => {
 		const { needsApproval } = write
 		assert(typeof needsApproval === "function")
 		const opts = { toolCallId: "test", messages: [] }
-		expect(
-			needsApproval({ filePath: "/repo/src/main.ts", content: "ok" }, opts),
-		).toBe(false)
+		expect(needsApproval({ filePath: "/repo/src/main.ts", content: "ok" }, opts)).toBe(false)
 		expect(() =>
-			needsApproval(
-				{ filePath: "/repo/src/secret/keys.ts", content: "no" },
-				opts,
-			),
+			needsApproval({ filePath: "/repo/src/secret/keys.ts", content: "no" }, opts),
 		).toThrow(PermissionDeniedError)
 	})
 
@@ -312,11 +301,7 @@ describe("writeTool", () => {
 		const { needsApproval } = write
 		assert(typeof needsApproval === "function")
 		const opts = { toolCallId: "test", messages: [] }
-		expect(
-			needsApproval({ filePath: "/repo/src/main.ts", content: "ok" }, opts),
-		).toBe(false)
-		expect(
-			needsApproval({ filePath: "/repo/src/other.ts", content: "ok" }, opts),
-		).toBe(true)
+		expect(needsApproval({ filePath: "/repo/src/main.ts", content: "ok" }, opts)).toBe(false)
+		expect(needsApproval({ filePath: "/repo/src/other.ts", content: "ok" }, opts)).toBe(true)
 	})
 })

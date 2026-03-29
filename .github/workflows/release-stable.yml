@@ -37,18 +37,18 @@ jobs:
         run: |
           BRANCH="release/stable-$(date +%Y%m%d-%H%M%S)"
           git checkout -b "$BRANCH"
-          
+
           # Exit prerelease mode
           pnpm changeset pre exit
-          
+
           # Version the packages (this will create stable versions)
           pnpm changeset version
-          
+
           # Commit and push
           git add .
           git commit -m "chore: release stable version"
           git push origin "$BRANCH"
-          
+
           # Create PR
           gh pr create \
             --title "Release: Stable Version" \

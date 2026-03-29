@@ -2,12 +2,7 @@ import type { KeyEvent, ScrollBoxRenderable } from "@opentui/core"
 import { useCallback, useEffect, useRef } from "react"
 import { colors } from "../theme"
 import { saveWorkspaceSettings } from "../utils/settings"
-import {
-	useAppAtoms,
-	useAvailableAgents,
-	useCurrentAgent,
-	useSelectedAgentIndex,
-} from "./atoms"
+import { useAppAtoms, useAvailableAgents, useCurrentAgent, useSelectedAgentIndex } from "./atoms"
 import { Dialog, DialogSpacer, DialogText, DialogTitle } from "./ui/dialog"
 
 export function AgentSelector() {
@@ -39,9 +34,7 @@ export function AgentSelector() {
 			<Dialog>
 				<DialogTitle color={colors.green}>Select Agent</DialogTitle>
 				<DialogText muted>No agents found.</DialogText>
-				<DialogText muted>
-					Make sure agents.json exists and has agents defined.
-				</DialogText>
+				<DialogText muted>Make sure agents.json exists and has agents defined.</DialogText>
 			</Dialog>
 		)
 	}
@@ -81,8 +74,7 @@ export function AgentSelector() {
 						key={agent.name}
 						style={{
 							height: 1,
-							backgroundColor:
-								i === selectedIndex ? colors.greenDark : colors.bg,
+							backgroundColor: i === selectedIndex ? colors.greenDark : colors.bg,
 							paddingLeft: 1,
 							paddingRight: 1,
 						}}
@@ -91,9 +83,7 @@ export function AgentSelector() {
 							<span fg={i === selectedIndex ? colors.text : colors.muted}>
 								{agent.name === currentAgent ? "● " : "  "}
 							</span>
-							<span fg={i === selectedIndex ? colors.green : colors.text}>
-								{agent.name}
-							</span>
+							<span fg={i === selectedIndex ? colors.green : colors.text}>{agent.name}</span>
 						</text>
 					</box>
 				))}

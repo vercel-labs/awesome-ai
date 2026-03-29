@@ -87,10 +87,7 @@ export function extractImports(
 		} else if (importPath.startsWith("@/agents/")) {
 			const agentName = importPath.replace("@/agents/", "")
 			registryDeps.push(`agents:${agentName}`)
-		} else if (
-			!importPath.startsWith("node:") &&
-			!importPath.startsWith("@/")
-		) {
+		} else if (!importPath.startsWith("node:") && !importPath.startsWith("@/")) {
 			// External npm package
 			const packageName = importPath.startsWith("@")
 				? importPath.split("/").slice(0, 2).join("/")

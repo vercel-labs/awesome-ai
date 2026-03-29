@@ -1,15 +1,11 @@
-import { Command } from "commander"
 import path from "path"
+import { Command } from "commander"
 import { z } from "zod"
 import { getConfig } from "../utils/get-config"
 import { handleError } from "../utils/handle-error"
 import { highlighter } from "../utils/highlighter"
 import { logger } from "../utils/logger"
-import {
-	type ItemType,
-	loadNpmPackages,
-	processDirectory,
-} from "../utils/registry-builder"
+import { type ItemType, loadNpmPackages, processDirectory } from "../utils/registry-builder"
 import { spinner } from "../utils/spinner"
 import { writeRegistryAtPath } from "../utils/write-local-registry"
 
@@ -21,9 +17,7 @@ export const syncOptionsSchema = z.object({
 
 export const sync = new Command()
 	.name("sync")
-	.description(
-		"regenerate the local .awesome-ai/registry/ from your source files",
-	)
+	.description("regenerate the local .awesome-ai/registry/ from your source files")
 	.option(
 		"-c, --cwd <cwd>",
 		"the working directory. defaults to the current directory.",
@@ -76,9 +70,7 @@ export const sync = new Command()
 				return
 			}
 
-			syncSpinner?.succeed(
-				`Found ${allItems.length} item${allItems.length !== 1 ? "s" : ""}.`,
-			)
+			syncSpinner?.succeed(`Found ${allItems.length} item${allItems.length !== 1 ? "s" : ""}.`)
 
 			const writeSpinner = spinner("Writing local registry.", {
 				silent: options.silent,

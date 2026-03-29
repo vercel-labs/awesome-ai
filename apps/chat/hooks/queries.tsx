@@ -1,7 +1,7 @@
 "use client"
 
-import { createQuery } from "@/hooks/create-query"
 import { api } from "@/convex/_generated/api"
+import { createQuery } from "@/hooks/create-query"
 
 const auth = createQuery(api.auth.getAuth)
 

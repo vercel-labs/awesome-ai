@@ -1,6 +1,6 @@
 import { type ReactNode, Suspense } from "react"
-import { api } from "@/convex/_generated/api"
 import { ConvexProvider } from "@/components/providers/convex-provider"
+import { api } from "@/convex/_generated/api"
 import { preloadAuthQuery, tokenRequired } from "@/lib/auth-server"
 
 export default async function SessionLayout({ children }: { children: ReactNode }) {

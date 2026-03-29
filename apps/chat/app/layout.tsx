@@ -17,9 +17,7 @@ export default async function RootLayout({
 }>) {
 	return (
 		<html lang="en">
-			<body className={`${jetbrainsMono.className} antialiased`}>
-				{children}
-			</body>
+			<body className={`${jetbrainsMono.className} antialiased`}>{children}</body>
 		</html>
 	)
 }

@@ -5,8 +5,8 @@ import { ConvexProviderWithAuth, ConvexReactClient, useConvexAuth } from "convex
 import { Suspense, useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react"
 import { api } from "@/convex/_generated/api"
 import { AuthQuery, useAuth } from "@/hooks/queries"
-import { isTokenStale } from "@/lib/auth-utils"
 import { authClient } from "@/lib/auth-client"
+import { isTokenStale } from "@/lib/auth-utils"
 
 const convexUrl = process.env.NEXT_PUBLIC_CONVEX_URL
 if (!convexUrl) {

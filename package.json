@@ -4,6 +4,7 @@
   "scripts": {
     "build": "turbo run build --filter=!ui",
     "dev": "turbo run dev",
+    "dev:chat": "turbo run dev convex --filter=chat",
     "lint": "oxlint",
     "format": "oxfmt",
     "test": "turbo run test",

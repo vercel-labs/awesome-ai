@@ -9,6 +9,10 @@
       "cache": false,
       "persistent": true
     },
+    "convex": {
+      "cache": false,
+      "persistent": true
+    },
     "lint": {},
     "test": {
       "dependsOn": ["build"]

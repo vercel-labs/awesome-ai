@@ -5,8 +5,8 @@
   "scripts": {
     "build": "next build",
     "dev": "next dev",
-    "lint": "eslint .",
-    "start": "next start"
+    "start": "next start",
+    "convex": "convex dev"
   },
   "dependencies": {
     "@ai-sdk/gateway": "^3.0.66",

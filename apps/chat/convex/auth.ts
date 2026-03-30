@@ -18,14 +18,10 @@ export const createAuthOptions = (ctx: GenericCtx<DataModel>) => {
 			vercel: {
 				clientId: process.env.VERCEL_CLIENT_ID as string,
 				clientSecret: process.env.VERCEL_CLIENT_SECRET as string,
+				scope: ["openid", "email", "profile"],
 			},
 		},
-		plugins: [
-			convex({
-				authConfig,
-				jwks: process.env.JWKS,
-			}),
-		],
+		plugins: [convex({ authConfig, jwks: process.env.JWKS })],
 	} satisfies BetterAuthOptions
 }
 
